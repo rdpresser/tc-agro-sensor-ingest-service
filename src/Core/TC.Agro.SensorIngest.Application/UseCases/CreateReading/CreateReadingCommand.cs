@@ -1,0 +1,12 @@
+namespace TC.Agro.SensorIngest.Application.UseCases.CreateReading
+{
+    public sealed record CreateReadingCommand(
+        string SensorId,
+        Guid PlotId,
+        DateTime Timestamp,
+        double? Temperature,
+        double? Humidity,
+        double? SoilMoisture,
+        double? Rainfall,
+        double? BatteryLevel) : IBaseCommand<CreateReadingResponse>;
+}

@@ -1,0 +1,30 @@
+global using System.Diagnostics.CodeAnalysis;
+
+global using Ardalis.Result;
+
+global using FastEndpoints;
+
+global using FluentValidation;
+
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.Extensions.Logging;
+
+global using ZiggyCreatures.Caching.Fusion;
+
+global using TC.Agro.Contracts.Events;
+global using TC.Agro.SensorIngest.Application.Abstractions;
+global using TC.Agro.SensorIngest.Application.Abstractions.Mappers;
+global using TC.Agro.SensorIngest.Application.Abstractions.Ports;
+global using TC.Agro.SensorIngest.Application.IntegrationEvents;
+global using TC.Agro.SensorIngest.Application.UseCases.CreateBatchReadings;
+global using TC.Agro.SensorIngest.Application.UseCases.CreateReading;
+global using TC.Agro.SensorIngest.Application.UseCases.GetLatestReadings;
+global using TC.Agro.SensorIngest.Domain.Aggregates;
+
+global using TC.Agro.SharedKernel.Application.Commands;
+global using TC.Agro.SharedKernel.Application.Handlers;
+global using TC.Agro.SharedKernel.Application.Ports;
+global using TC.Agro.SharedKernel.Application.Queries;
+global using TC.Agro.SharedKernel.Domain.Aggregate;
+global using TC.Agro.SharedKernel.Domain.Events;
+global using TC.Agro.SharedKernel.Infrastructure.UserClaims;

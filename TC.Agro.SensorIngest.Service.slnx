@@ -1,0 +1,27 @@
+<Solution>
+  <Folder Name="/common/">
+    <Project Path="../../common/src/TC.Agro.Contracts/TC.Agro.Contracts.csproj" />
+    <Project Path="../../common/src/TC.Agro.SharedKernel/TC.Agro.SharedKernel.csproj" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Build.targets" />
+    <File Path="Directory.Packages.props" />
+  </Folder>
+  <Folder Name="/src/" />
+  <Folder Name="/src/Adapters/" />
+  <Folder Name="/src/Adapters/Driven (Outbound)/">
+    <Project Path="src/Adapters/Outbound/TC.Agro.SensorIngest.Infrastructure/TC.Agro.SensorIngest.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Adapters/Driver (Inbound)/">
+    <Project Path="src/Adapters/Inbound/TC.Agro.SensorIngest.Service/TC.Agro.SensorIngest.Service.csproj" />
+  </Folder>
+  <Folder Name="/src/Core/">
+    <Project Path="src/Core/TC.Agro.SensorIngest.Application/TC.Agro.SensorIngest.Application.csproj" />
+    <Project Path="src/Core/TC.Agro.SensorIngest.Domain/TC.Agro.SensorIngest.Domain.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/TC.Agro.SensorIngest.Tests/TC.Agro.SensorIngest.Tests.csproj" />
+  </Folder>
+</Solution>

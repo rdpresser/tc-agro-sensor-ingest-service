@@ -1,0 +1,103 @@
+namespace TC.Agro.SensorIngest.Application.UseCases.CreateBatchReadings
+{
+    public sealed class CreateBatchReadingsCommandHandler
+    {
+        private readonly ISensorReadingRepository _repository;
+        private readonly ITransactionalOutbox _outbox;
+        private readonly ILogger<CreateBatchReadingsCommandHandler> _logger;
+
+        public CreateBatchReadingsCommandHandler(
+            ISensorReadingRepository repository,
+            ITransactionalOutbox outbox,
+            ILogger<CreateBatchReadingsCommandHandler> logger)
+        {
+            _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+            _outbox = outbox ?? throw new ArgumentNullException(nameof(outbox));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
+
+        public async Task<Result<CreateBatchReadingsResponse>> Handle(
+            CreateBatchReadingsCommand command,
+            CancellationToken ct)
+        {
+            var results = new List<BatchReadingResult>();
+            var successfulAggregates = new List<SensorReadingAggregate>();
+
+            foreach (var input in command.Readings)
+            {
+                var aggregateResult = SensorReadingAggregate.Create(
+                    sensorId: input.SensorId,
+                    plotId: input.PlotId,
+                    time: input.Timestamp,
+                    temperature: input.Temperature,
+                    humidity: input.Humidity,
+                    soilMoisture: input.SoilMoisture,
+                    rainfall: input.Rainfall,
+                    batteryLevel: input.BatteryLevel);
+
+                if (aggregateResult.IsSuccess)
+                {
+                    successfulAggregates.Add(aggregateResult.Value);
+                    results.Add(new BatchReadingResult(
+                        ReadingId: aggregateResult.Value.Id,
+                        SensorId: input.SensorId,
+                        Success: true));
+                }
+                else
+                {
+                    var errorMessage = string.Join("; ", aggregateResult.ValidationErrors.Select(e => e.ErrorMessage));
+                    results.Add(new BatchReadingResult(
+                        ReadingId: null,
+                        SensorId: input.SensorId,
+                        Success: false,
+                        ErrorMessage: errorMessage));
+                }
+            }
+
+            if (successfulAggregates.Count > 0)
+            {
+                await _repository.AddRangeAsync(successfulAggregates, ct).ConfigureAwait(false);
+
+                // Publish integration events for each successful reading
+                foreach (var aggregate in successfulAggregates)
+                {
+                    foreach (var domainEvent in aggregate.UncommittedEvents)
+                    {
+                        if (domainEvent is SensorReadingAggregate.SensorReadingCreatedDomainEvent createdEvent)
+                        {
+                            var integrationEvent = new SensorIngestedIntegrationEvent(
+                                EventId: Guid.NewGuid(),
+                                AggregateId: createdEvent.AggregateId,
+                                OccurredOn: createdEvent.OccurredOn,
+                                EventName: nameof(SensorIngestedIntegrationEvent),
+                                RelatedIds: new Dictionary<string, Guid> { { "PlotId", createdEvent.PlotId } },
+                                SensorId: createdEvent.SensorId,
+                                PlotId: createdEvent.PlotId,
+                                Time: createdEvent.Time,
+                                Temperature: createdEvent.Temperature,
+                                Humidity: createdEvent.Humidity,
+                                SoilMoisture: createdEvent.SoilMoisture,
+                                Rainfall: createdEvent.Rainfall,
+                                BatteryLevel: createdEvent.BatteryLevel);
+
+                            await _outbox.EnqueueAsync(integrationEvent, ct).ConfigureAwait(false);
+                        }
+                    }
+                }
+            }
+
+            _logger.LogInformation(
+                "Batch processed: {ProcessedCount} successful, {FailedCount} failed out of {TotalCount} readings",
+                successfulAggregates.Count,
+                results.Count - successfulAggregates.Count,
+                command.Readings.Count);
+
+            var response = new CreateBatchReadingsResponse(
+                ProcessedCount: successfulAggregates.Count,
+                FailedCount: results.Count - successfulAggregates.Count,
+                Results: results);
+
+            return Result.Success(response);
+        }
+    }
+}
