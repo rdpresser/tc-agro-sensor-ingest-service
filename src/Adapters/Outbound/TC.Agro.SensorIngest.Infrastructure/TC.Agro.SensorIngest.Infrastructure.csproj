@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <PackageReference Include="Dapper" />
+    <PackageReference Include="EFCore.NamingConventions" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Z.EntityFramework.Plus.EFCore" />
+    <PackageReference Include="WolverineFx.EntityFrameworkCore" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\..\..\common\src\TC.Agro.SharedKernel\TC.Agro.SharedKernel.csproj" />
+    <ProjectReference Include="..\..\..\Core\TC.Agro.SensorIngest.Application\TC.Agro.SensorIngest.Application.csproj" />
+    <ProjectReference Include="..\..\..\Core\TC.Agro.SensorIngest.Domain\TC.Agro.SensorIngest.Domain.csproj" />
+  </ItemGroup>
+
+</Project>
