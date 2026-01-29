@@ -1,5 +1,6 @@
 // System
 global using System.Diagnostics.CodeAnalysis;
+global using System.Net;
 
 // Microsoft
 global using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -43,13 +44,20 @@ global using TC.Agro.SensorIngest.Service.Telemetry;
 
 // Project - Application
 global using Application = TC.Agro.SensorIngest.Application;
+global using TC.Agro.SensorIngest.Application.Abstractions;
+global using TC.Agro.SensorIngest.Application.Abstractions.Ports;
+global using TC.Agro.SensorIngest.Application.UseCases.CreateReading;
+global using TC.Agro.SensorIngest.Application.UseCases.CreateBatchReadings;
+global using TC.Agro.SensorIngest.Application.UseCases.GetLatestReadings;
 
 // Project - Infrastructure
 global using TC.Agro.SensorIngest.Infrastructure;
 global using TC.Agro.SensorIngest.Infrastructure.Persistence;
 
 // Project - SharedKernel
+global using TC.Agro.SharedKernel.Api.Endpoints;
 global using TC.Agro.SharedKernel.Api.Extensions;
+global using TC.Agro.SharedKernel.Application.Behaviors;
 global using TC.Agro.SharedKernel.Extensions;
 global using TC.Agro.SharedKernel.Infrastructure.Authentication;
 global using TC.Agro.SharedKernel.Infrastructure.Caching.HealthCheck;

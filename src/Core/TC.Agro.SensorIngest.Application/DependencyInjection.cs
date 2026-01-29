@@ -1,11 +1,18 @@
-using Microsoft.Extensions.DependencyInjection;
-
-namespace TC.Agro.SensorIngest.Application;
-
-public static class DependencyInjection
+namespace TC.Agro.SensorIngest.Application
 {
-    public static IServiceCollection AddApplication(this IServiceCollection services)
+    [ExcludeFromCodeCoverage]
+    public static class DependencyInjection
     {
-        return services;
+        public static IServiceCollection AddApplication(this IServiceCollection services)
+        {
+            // FluentValidation validators
+            services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
+
+            // Handlers
+            services.AddScoped<CreateBatchReadingsCommandHandler>();
+            services.AddScoped<GetLatestReadingsQueryHandler>();
+
+            return services;
+        }
     }
 }

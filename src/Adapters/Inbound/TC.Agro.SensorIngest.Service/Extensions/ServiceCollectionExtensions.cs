@@ -76,9 +76,13 @@ namespace TC.Agro.SensorIngest.Service.Extensions
 
         public static IServiceCollection AddCustomFastEndpoints(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddFastEndpoints(dicoveryOptions =>
+            services.AddFastEndpoints(discoveryOptions =>
             {
-                dicoveryOptions.Assemblies = [typeof(Application.DependencyInjection).Assembly];
+                discoveryOptions.Assemblies =
+                [
+                    typeof(Application.DependencyInjection).Assembly,
+                    typeof(ServiceCollectionExtensions).Assembly
+                ];
             })
             .SwaggerDocument(o =>
             {
