@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <!-- Default para todos os projetos abaixo -->
+    <!-- Defaults for all projects below -->
     <TargetFramework>net10.0</TargetFramework>
 
     <ImplicitUsings>enable</ImplicitUsings>
@@ -16,7 +16,7 @@
     <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 
-    <!-- Builds mais deterministicos -->
+    <!-- Deterministic builds -->
     <Deterministic>true</Deterministic>
     <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
   </PropertyGroup>

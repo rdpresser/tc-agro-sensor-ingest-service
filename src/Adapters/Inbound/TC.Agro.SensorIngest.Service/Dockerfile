@@ -53,6 +53,12 @@ RUN dotnet publish "./TC.Agro.SensorIngest.Service.csproj" -c $BUILD_CONFIGURATI
 
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final
+
+RUN addgroup --system --gid 1001 appgroup && \
+    adduser --system --uid 1001 --ingroup appgroup appuser
+
 WORKDIR /app
 COPY --from=publish /app/publish .
+
+USER appuser
 ENTRYPOINT ["dotnet", "TC.Agro.SensorIngest.Service.dll"]

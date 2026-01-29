@@ -29,10 +29,9 @@ namespace TC.Agro.SensorIngest.Service.Extensions
                 options.AddPolicy("DefaultCorsPolicy", builder =>
                 {
                     builder
-                        .SetIsOriginAllowed((host) => true)
+                        .AllowAnyOrigin()
                         .AllowAnyMethod()
-                        .AllowAnyHeader()
-                        .AllowCredentials();
+                        .AllowAnyHeader();
                 });
             });
 

@@ -167,7 +167,7 @@ namespace TC.Agro.SensorIngest.Service.Extensions
             return app;
         }
 
-        public async static Task<IApplicationBuilder> CreateMessageDatabase(this IApplicationBuilder app)
+        public static async Task<IApplicationBuilder> CreateMessageDatabase(this IApplicationBuilder app)
         {
             var connProvider = app.ApplicationServices.GetRequiredService<DbConnectionFactory>();
             await PostgresDatabaseHelper.EnsureDatabaseExists(connProvider);
