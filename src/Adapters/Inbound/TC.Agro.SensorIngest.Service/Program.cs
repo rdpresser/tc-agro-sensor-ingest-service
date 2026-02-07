@@ -1,4 +1,5 @@
 using TC.Agro.SensorIngest.Application;
+using TC.Agro.SensorIngest.Service.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,6 +29,8 @@ app.UseCors("DefaultCorsPolicy");
 
 // Use metrics authentication middleware extension
 app.UseMetricsAuthentication();
+
+app.MapHub<SensorHub>("/sensorHub");
 
 app.UseAuthentication()
   .UseAuthorization()

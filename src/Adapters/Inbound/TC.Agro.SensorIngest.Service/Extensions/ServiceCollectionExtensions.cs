@@ -19,6 +19,10 @@ namespace TC.Agro.SensorIngest.Service.Extensions
                 .AddCustomFastEndpoints(builder.Configuration)
                 .AddCustomHealthCheck();
 
+            services.AddSignalR();
+
+            services.AddScoped<ISensorHubNotifier, TC.Agro.SensorIngest.Service.Services.SensorHubNotifier>();
+
             return services;
         }
 
@@ -29,9 +33,10 @@ namespace TC.Agro.SensorIngest.Service.Extensions
                 options.AddPolicy("DefaultCorsPolicy", builder =>
                 {
                     builder
-                        .AllowAnyOrigin()
+                        .SetIsOriginAllowed(_ => true)
                         .AllowAnyMethod()
-                        .AllowAnyHeader();
+                        .AllowAnyHeader()
+                        .AllowCredentials();
                 });
             });
 

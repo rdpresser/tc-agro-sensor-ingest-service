@@ -14,6 +14,7 @@ global using Wolverine.EntityFrameworkCore;
 
 global using TC.Agro.SensorIngest.Application.Abstractions.Ports;
 global using TC.Agro.SensorIngest.Domain.Aggregates;
+global using TC.Agro.SensorIngest.Domain.ValueObjects;
 global using TC.Agro.SensorIngest.Infrastructure.Configurations;
 global using TC.Agro.SensorIngest.Infrastructure.Messaging;
 global using TC.Agro.SensorIngest.Infrastructure.Persistence;

@@ -42,6 +42,9 @@ global using Wolverine.Runtime;
 global using TC.Agro.SensorIngest.Service.Extensions;
 global using TC.Agro.SensorIngest.Service.Telemetry;
 
+// SignalR
+global using Microsoft.AspNetCore.SignalR;
+
 // Project - Application
 global using Application = TC.Agro.SensorIngest.Application;
 global using TC.Agro.SensorIngest.Application.Abstractions;
@@ -49,6 +52,13 @@ global using TC.Agro.SensorIngest.Application.Abstractions.Ports;
 global using TC.Agro.SensorIngest.Application.UseCases.CreateReading;
 global using TC.Agro.SensorIngest.Application.UseCases.CreateBatchReadings;
 global using TC.Agro.SensorIngest.Application.UseCases.GetLatestReadings;
+global using TC.Agro.SensorIngest.Application.UseCases.RegisterSensor;
+global using TC.Agro.SensorIngest.Application.UseCases.GetSensorList;
+global using TC.Agro.SensorIngest.Application.UseCases.GetReadingsHistory;
+global using TC.Agro.SensorIngest.Application.UseCases.CreateAlert;
+global using TC.Agro.SensorIngest.Application.UseCases.GetAlertList;
+global using TC.Agro.SensorIngest.Application.UseCases.ResolveAlert;
+global using TC.Agro.SensorIngest.Application.UseCases.GetDashboardStats;
 
 // Project - Infrastructure
 global using TC.Agro.SensorIngest.Infrastructure;

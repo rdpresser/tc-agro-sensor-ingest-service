@@ -4,6 +4,8 @@ namespace TC.Agro.SensorIngest.Infrastructure.Persistence
     public sealed class ApplicationDbContext : DbContext, IApplicationDbContext
     {
         public DbSet<SensorReadingAggregate> SensorReadings => Set<SensorReadingAggregate>();
+        public DbSet<SensorAggregate> Sensors => Set<SensorAggregate>();
+        public DbSet<AlertAggregate> Alerts => Set<AlertAggregate>();
 
         /// <inheritdoc />
         public DbContext DbContext => this;
