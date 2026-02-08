@@ -6,7 +6,7 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Sensors
     {
         public override void Configure()
         {
-            Post("sensors");
+            Post(string.Empty);
             RoutePrefixOverride("sensors");
             PostProcessor<LoggingCommandPostProcessorBehavior<RegisterSensorCommand, RegisterSensorResponse>>();
 

@@ -20,8 +20,11 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
 
             if (!string.IsNullOrWhiteSpace(status))
             {
-                var statusVo = AlertStatus.FromDb(status).Value;
-                query = query.Where(x => x.Status == statusVo);
+                var statusResult = AlertStatus.Create(status);
+                if (!statusResult.IsSuccess)
+                    return [];
+
+                query = query.Where(x => x.Status == statusResult.Value);
             }
 
             var entities = await query

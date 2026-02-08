@@ -60,6 +60,7 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateReading
         {
             await _hubNotifier.NotifySensorReadingAsync(
                 aggregate.SensorId,
+                aggregate.PlotId,
                 aggregate.Temperature,
                 aggregate.Humidity,
                 aggregate.SoilMoisture,

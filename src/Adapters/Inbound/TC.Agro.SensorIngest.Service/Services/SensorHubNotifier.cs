@@ -19,6 +19,7 @@ namespace TC.Agro.SensorIngest.Service.Services
 
         public async Task NotifySensorReadingAsync(
             string sensorId,
+            Guid plotId,
             double? temperature,
             double? humidity,
             double? soilMoisture,
@@ -29,13 +30,13 @@ namespace TC.Agro.SensorIngest.Service.Services
             {
                 var dto = new SensorReadingHubDto(
                     sensorId,
-                    string.Empty,
+                    plotId,
                     temperature,
                     humidity,
                     soilMoisture,
                     timestamp);
 
-                await _hubContext.Clients.All.SensorReading(dto).ConfigureAwait(false);
+                await _hubContext.Clients.Group($"plot:{plotId}").SensorReading(dto).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -59,7 +60,7 @@ namespace TC.Agro.SensorIngest.Service.Services
             {
                 var dto = new AlertHubDto(id, severity, title, message, plotId, plotName, sensorId, status, createdAt);
 
-                await _hubContext.Clients.All.NewAlert(dto).ConfigureAwait(false);
+                await _hubContext.Clients.Group($"plot:{plotId}").NewAlert(dto).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -69,6 +70,7 @@ namespace TC.Agro.SensorIngest.Service.Services
 
         public async Task NotifySensorStatusChangedAsync(
             string sensorId,
+            Guid plotId,
             string status,
             CancellationToken ct)
         {
@@ -76,7 +78,7 @@ namespace TC.Agro.SensorIngest.Service.Services
             {
                 var dto = new SensorStatusChangedDto(sensorId, status);
 
-                await _hubContext.Clients.All.SensorStatusChanged(dto).ConfigureAwait(false);
+                await _hubContext.Clients.Group($"plot:{plotId}").SensorStatusChanged(dto).ConfigureAwait(false);
             }
             catch (Exception ex)
             {

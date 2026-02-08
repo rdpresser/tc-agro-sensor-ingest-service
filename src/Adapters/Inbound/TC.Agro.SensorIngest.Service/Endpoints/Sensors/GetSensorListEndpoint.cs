@@ -13,7 +13,7 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Sensors
 
         public override void Configure()
         {
-            Get("sensors");
+            Get("");
             RoutePrefixOverride("sensors");
 
             Roles("Admin", "Producer");

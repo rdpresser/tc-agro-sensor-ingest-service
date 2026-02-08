@@ -68,8 +68,11 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
             int days = 7,
             CancellationToken cancellationToken = default)
         {
+            var clampedDays = Math.Clamp(days, 1, 90);
+
             // Using raw SQL for TimescaleDB time_bucket function
-            var sql = @"
+            // days is clamped and cast to integer, safe for interpolation in interval
+            var sql = $@"
                 SELECT
                     time_bucket('1 hour', time) AS hour,
                     AVG(temperature) AS avg_temperature,
@@ -78,13 +81,13 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
                     AVG(humidity) AS avg_humidity,
                     AVG(soil_moisture) AS avg_soil_moisture
                 FROM sensor_readings
-                WHERE sensor_id = {0}
-                  AND time > now() - interval '{1} days'
+                WHERE sensor_id = @sensorId
+                  AND time > now() - interval '{clampedDays} days'
                 GROUP BY hour
                 ORDER BY hour DESC";
 
             return await _dbContext.Database
-                .SqlQueryRaw<HourlyAggregateDto>(sql, sensorId, days)
+                .SqlQueryRaw<HourlyAggregateDto>(sql, new Npgsql.NpgsqlParameter("@sensorId", sensorId))
                 .ToListAsync(cancellationToken)
                 .ConfigureAwait(false);
         }

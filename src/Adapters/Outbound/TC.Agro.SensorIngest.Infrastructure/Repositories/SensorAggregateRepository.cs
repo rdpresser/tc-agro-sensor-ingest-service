@@ -18,7 +18,7 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
         {
             return await DbSet
                 .AsNoTracking()
-                .AnyAsync(x => x.SensorId == sensorId && x.IsActive, ct)
+                .AnyAsync(x => x.SensorId == sensorId, ct)
                 .ConfigureAwait(false);
         }
     }

@@ -28,12 +28,15 @@ namespace TC.Agro.SensorIngest.Service.Extensions
 
         public static IServiceCollection AddCustomCors(this IServiceCollection services, IConfiguration configuration)
         {
+            var allowedOrigins = configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+                ?? ["http://localhost:3000", "http://localhost:5173"];
+
             services.AddCors(options =>
             {
                 options.AddPolicy("DefaultCorsPolicy", builder =>
                 {
                     builder
-                        .SetIsOriginAllowed(_ => true)
+                        .WithOrigins(allowedOrigins)
                         .AllowAnyMethod()
                         .AllowAnyHeader()
                         .AllowCredentials();

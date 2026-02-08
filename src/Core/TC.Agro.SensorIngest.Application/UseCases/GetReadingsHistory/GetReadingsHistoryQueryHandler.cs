@@ -20,7 +20,7 @@ namespace TC.Agro.SensorIngest.Application.UseCases.GetReadingsHistory
             GetReadingsHistoryQuery query,
             CancellationToken ct)
         {
-            var days = Math.Min(query.Days, 30);
+            var days = Math.Clamp(query.Days, 1, 30);
             var from = DateTime.UtcNow.AddDays(-days);
             var to = DateTime.UtcNow;
 

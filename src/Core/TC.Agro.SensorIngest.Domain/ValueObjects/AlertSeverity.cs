@@ -6,13 +6,13 @@ namespace TC.Agro.SensorIngest.Domain.ValueObjects
         public static readonly ValidationError InvalidValue = new("AlertSeverity.InvalidValue", "Invalid alert severity value.");
 
         public const string Critical = "Critical";
-        public const string WarningLevel = "Warning";
+        public const string Warning = "Warning";
         public const string Info = "Info";
 
         private static readonly HashSet<string> ValidSeverities = new(StringComparer.OrdinalIgnoreCase)
         {
             Critical,
-            WarningLevel,
+            Warning,
             Info
         };
 

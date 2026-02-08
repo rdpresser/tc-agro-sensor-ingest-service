@@ -88,13 +88,13 @@ namespace TC.Agro.SensorIngest.Domain.Aggregates
             Status = statusResult.Value;
             SetUpdatedAt(DateTimeOffset.UtcNow);
 
-            if (oldStatus != status)
+            if (oldStatus != statusResult.Value.Value)
             {
                 AddNewEvent(new SensorStatusChangedDomainEvent(
                     Id,
                     SensorId,
                     oldStatus,
-                    status,
+                    statusResult.Value.Value,
                     DateTimeOffset.UtcNow));
             }
         }

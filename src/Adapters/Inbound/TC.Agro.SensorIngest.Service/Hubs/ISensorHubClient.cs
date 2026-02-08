@@ -9,7 +9,7 @@ namespace TC.Agro.SensorIngest.Service.Hubs
 
     public sealed record SensorReadingHubDto(
         string SensorId,
-        string PlotName,
+        Guid PlotId,
         double? Temperature,
         double? Humidity,
         double? SoilMoisture,

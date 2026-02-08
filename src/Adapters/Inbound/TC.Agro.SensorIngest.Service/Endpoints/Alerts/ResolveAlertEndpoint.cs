@@ -61,4 +61,13 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Alerts
     {
         public Guid AlertId { get; set; }
     }
+
+    public sealed class ResolveAlertRequestValidator : Validator<ResolveAlertRequest>
+    {
+        public ResolveAlertRequestValidator()
+        {
+            RuleFor(x => x.AlertId)
+                .NotEmpty().WithMessage("AlertId is required.");
+        }
+    }
 }
