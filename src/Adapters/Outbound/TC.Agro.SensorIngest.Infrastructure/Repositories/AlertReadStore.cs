@@ -16,7 +16,7 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
         {
             var query = _dbContext.Alerts
                 .AsNoTracking()
-                .Where(x => x.IsActive);
+                .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(status))
             {
@@ -50,7 +50,7 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
             var pendingStatus = AlertStatus.CreatePending();
             return await _dbContext.Alerts
                 .AsNoTracking()
-                .CountAsync(x => x.IsActive && x.Status == pendingStatus, ct)
+                .CountAsync(x => x.Status == pendingStatus, ct)
                 .ConfigureAwait(false);
         }
     }

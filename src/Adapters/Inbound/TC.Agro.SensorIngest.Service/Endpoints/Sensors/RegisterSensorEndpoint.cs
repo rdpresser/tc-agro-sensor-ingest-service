@@ -11,7 +11,7 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Sensors
             PostProcessor<LoggingCommandPostProcessorBehavior<RegisterSensorCommand, RegisterSensorResponse>>();
             PostProcessor<CacheInvalidationPostProcessorBehavior<RegisterSensorCommand, RegisterSensorResponse>>();
 
-            Roles("Admin", "Producer");
+            Roles(AppRoles.Admin, AppRoles.Producer);
 
             Description(
                 x => x.Produces<RegisterSensorResponse>(201)

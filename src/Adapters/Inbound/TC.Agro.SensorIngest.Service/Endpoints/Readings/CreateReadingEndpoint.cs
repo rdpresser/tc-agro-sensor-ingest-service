@@ -9,7 +9,7 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Readings
             PostProcessor<LoggingCommandPostProcessorBehavior<CreateReadingCommand, CreateReadingResponse>>();
             PostProcessor<CacheInvalidationPostProcessorBehavior<CreateReadingCommand, CreateReadingResponse>>();
 
-            Roles("Admin", "Producer", "Sensor");
+            Roles(AppRoles.Admin, AppRoles.Producer, AppRoles.Sensor);
 
             Description(
                 x => x.Produces<CreateReadingResponse>(202)
@@ -49,7 +49,7 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Readings
 
             if (response.IsSuccess)
             {
-                await HttpContext.Response.SendAsync(response.Value, 202, cancellation: ct).ConfigureAwait(false);
+                await SendAsync(response.Value, 202, ct).ConfigureAwait(false);
                 return;
             }
 

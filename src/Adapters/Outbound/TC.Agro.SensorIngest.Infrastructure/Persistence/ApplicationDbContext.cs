@@ -24,6 +24,10 @@ namespace TC.Agro.SensorIngest.Infrastructure.Persistence
             modelBuilder.Ignore<BaseDomainEvent>();
 
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
+
+            // Global query filters for soft delete
+            modelBuilder.Entity<SensorAggregate>().HasQueryFilter(x => x.IsActive);
+            modelBuilder.Entity<AlertAggregate>().HasQueryFilter(x => x.IsActive);
         }
 
         /// <inheritdoc />

@@ -10,7 +10,7 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Dashboard
             PreProcessor<QueryCachingPreProcessorBehavior<GetLatestReadingsQuery, GetLatestReadingsResponse>>();
             PostProcessor<QueryCachingPostProcessorBehavior<GetLatestReadingsQuery, GetLatestReadingsResponse>>();
 
-            Roles("Admin", "Producer");
+            Roles(AppRoles.Admin, AppRoles.Producer);
 
             Description(
                 x => x.Produces<GetLatestReadingsResponse>(200)

@@ -11,7 +11,6 @@ namespace TC.Agro.SensorIngest.Infrastructure.Configurations
             builder.ToTable("alerts", DefaultSchemas.Default);
 
             builder.Property(x => x.Severity)
-                .HasColumnName("severity")
                 .HasMaxLength(20)
                 .IsRequired()
                 .HasConversion(
@@ -19,31 +18,25 @@ namespace TC.Agro.SensorIngest.Infrastructure.Configurations
                     v => AlertSeverity.FromDb(v).Value);
 
             builder.Property(x => x.Title)
-                .HasColumnName("title")
                 .HasMaxLength(200)
                 .IsRequired();
 
             builder.Property(x => x.Message)
-                .HasColumnName("message")
                 .HasMaxLength(1000)
                 .IsRequired();
 
             builder.Property(x => x.PlotId)
-                .HasColumnName("plot_id")
                 .IsRequired();
 
             builder.Property(x => x.PlotName)
-                .HasColumnName("plot_name")
                 .HasMaxLength(200)
                 .IsRequired();
 
             builder.Property(x => x.SensorId)
-                .HasColumnName("sensor_id")
                 .HasMaxLength(100)
                 .IsRequired();
 
             builder.Property(x => x.Status)
-                .HasColumnName("status")
                 .HasMaxLength(20)
                 .IsRequired()
                 .HasConversion(
@@ -51,7 +44,6 @@ namespace TC.Agro.SensorIngest.Infrastructure.Configurations
                     v => AlertStatus.FromDb(v).Value);
 
             builder.Property(x => x.ResolvedAt)
-                .HasColumnName("resolved_at")
                 .HasColumnType("timestamptz");
 
             // Indexes

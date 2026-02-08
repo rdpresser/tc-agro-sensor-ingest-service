@@ -10,7 +10,7 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Sensors
             PreProcessor<QueryCachingPreProcessorBehavior<GetSensorListQuery, GetSensorListResponse>>();
             PostProcessor<QueryCachingPostProcessorBehavior<GetSensorListQuery, GetSensorListResponse>>();
 
-            Roles("Admin", "Producer");
+            Roles(AppRoles.Admin, AppRoles.Producer);
 
             Description(
                 x => x.Produces<GetSensorListResponse>(200)

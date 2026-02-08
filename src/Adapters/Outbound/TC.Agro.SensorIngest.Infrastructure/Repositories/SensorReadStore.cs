@@ -15,7 +15,7 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
         {
             var query = _dbContext.Sensors
                 .AsNoTracking()
-                .Where(x => x.IsActive);
+                .AsQueryable();
 
             if (plotId.HasValue)
                 query = query.Where(x => x.PlotId == plotId.Value);
@@ -42,7 +42,7 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
         {
             var entity = await _dbContext.Sensors
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.SensorId == sensorId && x.IsActive, ct)
+                .FirstOrDefaultAsync(x => x.SensorId == sensorId, ct)
                 .ConfigureAwait(false);
 
             if (entity is null)
@@ -66,7 +66,7 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
         {
             return await _dbContext.Sensors
                 .AsNoTracking()
-                .CountAsync(x => x.IsActive, ct)
+                .CountAsync(ct)
                 .ConfigureAwait(false);
         }
     }

@@ -9,7 +9,7 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Alerts
             PostProcessor<LoggingCommandPostProcessorBehavior<CreateAlertCommand, CreateAlertResponse>>();
             PostProcessor<CacheInvalidationPostProcessorBehavior<CreateAlertCommand, CreateAlertResponse>>();
 
-            Roles("Admin", "Sensor");
+            Roles(AppRoles.Admin, AppRoles.Sensor);
 
             Description(
                 x => x.Produces<CreateAlertResponse>(201)

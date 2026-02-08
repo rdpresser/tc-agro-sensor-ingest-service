@@ -9,49 +9,36 @@ namespace TC.Agro.SensorIngest.Infrastructure.Configurations
             builder.HasKey(x => x.Id);
 
             builder.Property(x => x.Id)
-                .HasColumnName("id")
                 .ValueGeneratedNever();
 
             builder.Property(x => x.SensorId)
-                .HasColumnName("sensor_id")
                 .HasMaxLength(100)
                 .IsRequired();
 
             builder.Property(x => x.PlotId)
-                .HasColumnName("plot_id")
                 .IsRequired();
 
             builder.Property(x => x.Time)
-                .HasColumnName("time")
                 .HasColumnType("timestamptz")
                 .IsRequired();
 
             builder.Property(x => x.Temperature)
-                .HasColumnName("temperature")
                 .HasColumnType("double precision");
 
             builder.Property(x => x.Humidity)
-                .HasColumnName("humidity")
                 .HasColumnType("double precision");
 
             builder.Property(x => x.SoilMoisture)
-                .HasColumnName("soil_moisture")
                 .HasColumnType("double precision");
 
             builder.Property(x => x.Rainfall)
-                .HasColumnName("rainfall")
                 .HasColumnType("double precision");
 
             builder.Property(x => x.BatteryLevel)
-                .HasColumnName("battery_level")
                 .HasColumnType("double precision");
 
             builder.Property(x => x.CreatedAt)
-                .HasColumnName("created_at")
                 .HasColumnType("timestamptz");
-
-            builder.Property(x => x.IsActive)
-                .HasColumnName("is_active");
 
             // Indexes for common queries
             builder.HasIndex(x => new { x.SensorId, x.Time })
