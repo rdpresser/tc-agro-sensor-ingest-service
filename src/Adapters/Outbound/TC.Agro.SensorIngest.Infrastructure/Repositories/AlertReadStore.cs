@@ -22,7 +22,7 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
             {
                 var statusResult = AlertStatus.Create(status);
                 if (!statusResult.IsSuccess)
-                    return [];
+                    throw new ArgumentException($"Invalid alert status filter '{status}'. Valid values: Pending, Resolved.", nameof(status));
 
                 query = query.Where(x => x.Status == statusResult.Value);
             }

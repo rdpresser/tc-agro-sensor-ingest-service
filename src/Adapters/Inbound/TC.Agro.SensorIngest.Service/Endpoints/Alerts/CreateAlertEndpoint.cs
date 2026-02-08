@@ -41,7 +41,7 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Alerts
 
             if (response.IsSuccess)
             {
-                await HttpContext.Response.SendAsync(response.Value, 201, cancellation: ct).ConfigureAwait(false);
+                await SendAsync(response.Value, 201, ct).ConfigureAwait(false);
                 return;
             }
 

@@ -8,12 +8,18 @@ namespace TC.Agro.SensorIngest.Service.Hubs
     {
         public async Task JoinPlotGroup(string plotId)
         {
-            await Groups.AddToGroupAsync(Context.ConnectionId, $"plot:{plotId}");
+            if (!Guid.TryParse(plotId, out var parsedPlotId) || parsedPlotId == Guid.Empty)
+                throw new HubException("Invalid plotId. Must be a valid non-empty GUID.");
+
+            await Groups.AddToGroupAsync(Context.ConnectionId, $"plot:{parsedPlotId}");
         }
 
         public async Task LeavePlotGroup(string plotId)
         {
-            await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"plot:{plotId}");
+            if (!Guid.TryParse(plotId, out var parsedPlotId) || parsedPlotId == Guid.Empty)
+                throw new HubException("Invalid plotId. Must be a valid non-empty GUID.");
+
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"plot:{parsedPlotId}");
         }
     }
 }

@@ -23,7 +23,8 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateAlert
                 .NotEmpty().WithMessage("PlotId is required.");
 
             RuleFor(x => x.PlotName)
-                .NotEmpty().WithMessage("PlotName is required.");
+                .NotEmpty().WithMessage("PlotName is required.")
+                .MaximumLength(200).WithMessage("PlotName must be at most 200 characters.");
 
             RuleFor(x => x.SensorId)
                 .NotEmpty().WithMessage("SensorId is required.")

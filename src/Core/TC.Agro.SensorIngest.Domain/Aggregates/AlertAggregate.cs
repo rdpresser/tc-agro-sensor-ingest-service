@@ -49,9 +49,13 @@ namespace TC.Agro.SensorIngest.Domain.Aggregates
 
             if (string.IsNullOrWhiteSpace(plotName))
                 errors.Add(new ValidationError("PlotName.Required", "PlotName is required."));
+            else if (plotName.Length > 200)
+                errors.Add(new ValidationError("PlotName.TooLong", "PlotName must be at most 200 characters."));
 
             if (string.IsNullOrWhiteSpace(sensorId))
                 errors.Add(new ValidationError("SensorId.Required", "SensorId is required."));
+            else if (sensorId.Length > 100)
+                errors.Add(new ValidationError("SensorId.TooLong", "SensorId must be at most 100 characters."));
 
             if (errors.Count > 0)
                 return Result.Invalid(errors.ToArray());

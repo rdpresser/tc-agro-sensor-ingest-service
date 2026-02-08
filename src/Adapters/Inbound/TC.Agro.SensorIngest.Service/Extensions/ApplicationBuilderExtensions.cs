@@ -7,12 +7,13 @@ namespace TC.Agro.SensorIngest.Service.Extensions
         {
             using var scope = app.ApplicationServices.CreateScope();
             await using var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var logger = scope.ServiceProvider.GetService<ILogger<ApplicationDbContext>>();
 
             await dbContext.Database.MigrateAsync().ConfigureAwait(false);
-            await EnsureTimescaleDbAsync(dbContext).ConfigureAwait(false);
+            await EnsureTimescaleDbAsync(dbContext, logger).ConfigureAwait(false);
         }
 
-        private static async Task EnsureTimescaleDbAsync(ApplicationDbContext dbContext)
+        private static async Task EnsureTimescaleDbAsync(ApplicationDbContext dbContext, ILogger? logger = null)
         {
             var conn = dbContext.Database.GetDbConnection();
             await conn.OpenAsync().ConfigureAwait(false);
@@ -38,6 +39,10 @@ namespace TC.Agro.SensorIngest.Service.Extensions
                     htCmd.CommandText = "SELECT create_hypertable('sensor_readings', 'time', migrate_data => true, if_not_exists => true);";
                     await htCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
                 }
+            }
+            catch (Exception ex)
+            {
+                logger?.LogWarning(ex, "Failed to ensure TimescaleDB setup. This may require manual provisioning in managed environments");
             }
             finally
             {

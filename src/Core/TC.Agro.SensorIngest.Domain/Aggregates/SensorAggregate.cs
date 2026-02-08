@@ -39,6 +39,8 @@ namespace TC.Agro.SensorIngest.Domain.Aggregates
 
             if (string.IsNullOrWhiteSpace(plotName))
                 errors.Add(new ValidationError("PlotName.Required", "PlotName is required."));
+            else if (plotName.Length > 200)
+                errors.Add(new ValidationError("PlotName.TooLong", "PlotName must be at most 200 characters."));
 
             if (battery < 0 || battery > 100)
                 errors.Add(new ValidationError("Battery.OutOfRange", "Battery level must be between 0 and 100."));

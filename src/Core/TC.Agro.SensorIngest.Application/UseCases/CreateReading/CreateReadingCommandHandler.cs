@@ -64,7 +64,7 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateReading
                 aggregate.Temperature,
                 aggregate.Humidity,
                 aggregate.SoilMoisture,
-                aggregate.CreatedAt,
+                new DateTimeOffset(aggregate.Time, TimeSpan.Zero),
                 ct).ConfigureAwait(false);
 
             return CreateReadingMapper.FromAggregate(aggregate);
