@@ -1,5 +1,3 @@
-using TC.Agro.SensorIngest.Application.UseCases.CreateAlert;
-
 namespace TC.Agro.SensorIngest.Service.Endpoints.Alerts
 {
     public sealed class CreateAlertEndpoint : BaseApiEndpoint<CreateAlertCommand, CreateAlertResponse>
@@ -9,6 +7,7 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Alerts
             Post("alerts");
             RoutePrefixOverride("sensors");
             PostProcessor<LoggingCommandPostProcessorBehavior<CreateAlertCommand, CreateAlertResponse>>();
+            PostProcessor<CacheInvalidationPostProcessorBehavior<CreateAlertCommand, CreateAlertResponse>>();
 
             Roles("Admin", "Sensor");
 

@@ -1,20 +1,14 @@
-using TC.Agro.SensorIngest.Application.UseCases.GetSensorList;
-
 namespace TC.Agro.SensorIngest.Service.Endpoints.Sensors
 {
-    public sealed class GetSensorListEndpoint : Endpoint<GetSensorListRequest, GetSensorListResponse>
+    public sealed class GetSensorListEndpoint : BaseApiEndpoint<GetSensorListQuery, GetSensorListResponse>
     {
-        private readonly GetSensorListQueryHandler _handler;
-
-        public GetSensorListEndpoint(GetSensorListQueryHandler handler)
-        {
-            _handler = handler ?? throw new ArgumentNullException(nameof(handler));
-        }
-
         public override void Configure()
         {
             Get("");
             RoutePrefixOverride("sensors");
+            RequestBinder(new RequestBinder<GetSensorListQuery>(BindingSource.QueryParams));
+            PreProcessor<QueryCachingPreProcessorBehavior<GetSensorListQuery, GetSensorListResponse>>();
+            PostProcessor<QueryCachingPostProcessorBehavior<GetSensorListQuery, GetSensorListResponse>>();
 
             Roles("Admin", "Producer");
 
@@ -32,25 +26,10 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Sensors
             });
         }
 
-        public override async Task HandleAsync(GetSensorListRequest req, CancellationToken ct)
+        public override async Task HandleAsync(GetSensorListQuery req, CancellationToken ct)
         {
-            var query = new GetSensorListQuery(PlotId: req.PlotId);
-
-            var response = await _handler.Handle(query, ct).ConfigureAwait(false);
-
-            if (response.IsSuccess)
-            {
-                await Send.OkAsync(response.Value, cancellation: ct).ConfigureAwait(false);
-                return;
-            }
-
-            await Send.ErrorsAsync((int)HttpStatusCode.BadRequest, ct).ConfigureAwait(false);
+            var response = await req.ExecuteAsync(ct: ct).ConfigureAwait(false);
+            await MatchResultAsync(response, ct).ConfigureAwait(false);
         }
-    }
-
-    public sealed class GetSensorListRequest
-    {
-        [QueryParam]
-        public Guid? PlotId { get; set; }
     }
 }

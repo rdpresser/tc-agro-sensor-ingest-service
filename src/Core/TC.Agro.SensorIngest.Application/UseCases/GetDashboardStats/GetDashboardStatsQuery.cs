@@ -1,4 +1,20 @@
 namespace TC.Agro.SensorIngest.Application.UseCases.GetDashboardStats
 {
-    public sealed record GetDashboardStatsQuery() : IBaseQuery<DashboardStatsResponse>;
+    public sealed record GetDashboardStatsQuery : ICachedQuery<DashboardStatsResponse>
+    {
+        private string? _cacheKey;
+        public string GetCacheKey => _cacheKey ?? "GetDashboardStatsQuery";
+        public TimeSpan? Duration => null;
+        public TimeSpan? DistributedCacheDuration => null;
+
+        public IReadOnlyCollection<string> CacheTags =>
+        [
+            CacheTagCatalog.Dashboard,
+            CacheTagCatalog.Sensors,
+            CacheTagCatalog.Alerts
+        ];
+
+        public void SetCacheKey(string cacheKey)
+            => _cacheKey = $"GetDashboardStatsQuery-{cacheKey}";
+    }
 }

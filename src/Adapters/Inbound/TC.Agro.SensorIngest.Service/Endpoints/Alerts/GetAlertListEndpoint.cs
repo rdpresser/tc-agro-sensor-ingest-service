@@ -1,20 +1,14 @@
-using TC.Agro.SensorIngest.Application.UseCases.GetAlertList;
-
 namespace TC.Agro.SensorIngest.Service.Endpoints.Alerts
 {
-    public sealed class GetAlertListEndpoint : Endpoint<GetAlertListRequest, GetAlertListResponse>
+    public sealed class GetAlertListEndpoint : BaseApiEndpoint<GetAlertListQuery, GetAlertListResponse>
     {
-        private readonly GetAlertListQueryHandler _handler;
-
-        public GetAlertListEndpoint(GetAlertListQueryHandler handler)
-        {
-            _handler = handler ?? throw new ArgumentNullException(nameof(handler));
-        }
-
         public override void Configure()
         {
             Get("alerts");
             RoutePrefixOverride("sensors");
+            RequestBinder(new RequestBinder<GetAlertListQuery>(BindingSource.QueryParams));
+            PreProcessor<QueryCachingPreProcessorBehavior<GetAlertListQuery, GetAlertListResponse>>();
+            PostProcessor<QueryCachingPostProcessorBehavior<GetAlertListQuery, GetAlertListResponse>>();
 
             Roles("Admin", "Producer");
 
@@ -32,25 +26,10 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Alerts
             });
         }
 
-        public override async Task HandleAsync(GetAlertListRequest req, CancellationToken ct)
+        public override async Task HandleAsync(GetAlertListQuery req, CancellationToken ct)
         {
-            var query = new GetAlertListQuery(Status: req.Status);
-
-            var response = await _handler.Handle(query, ct).ConfigureAwait(false);
-
-            if (response.IsSuccess)
-            {
-                await Send.OkAsync(response.Value, cancellation: ct).ConfigureAwait(false);
-                return;
-            }
-
-            await Send.ErrorsAsync((int)HttpStatusCode.BadRequest, ct).ConfigureAwait(false);
+            var response = await req.ExecuteAsync(ct: ct).ConfigureAwait(false);
+            await MatchResultAsync(response, ct).ConfigureAwait(false);
         }
-    }
-
-    public sealed class GetAlertListRequest
-    {
-        [QueryParam]
-        public string? Status { get; set; }
     }
 }

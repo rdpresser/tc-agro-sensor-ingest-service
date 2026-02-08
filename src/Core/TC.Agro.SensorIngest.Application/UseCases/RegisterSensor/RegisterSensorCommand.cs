@@ -4,5 +4,12 @@ namespace TC.Agro.SensorIngest.Application.UseCases.RegisterSensor
         string SensorId,
         Guid PlotId,
         string PlotName,
-        double Battery) : IBaseCommand<RegisterSensorResponse>;
+        double Battery) : IBaseCommand<RegisterSensorResponse>, IInvalidateCache
+    {
+        public IReadOnlyCollection<string> CacheTags =>
+        [
+            CacheTagCatalog.Sensors,
+            CacheTagCatalog.Dashboard
+        ];
+    }
 }

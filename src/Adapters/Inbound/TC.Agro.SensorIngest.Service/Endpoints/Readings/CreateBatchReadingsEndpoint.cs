@@ -1,20 +1,14 @@
 namespace TC.Agro.SensorIngest.Service.Endpoints.Readings
 {
-    public sealed class CreateBatchReadingsEndpoint : Endpoint<CreateBatchReadingsCommand, CreateBatchReadingsResponse>
+    public sealed class CreateBatchReadingsEndpoint : BaseApiEndpoint<CreateBatchReadingsCommand, CreateBatchReadingsResponse>
     {
-        private readonly CreateBatchReadingsCommandHandler _handler;
-
-        public CreateBatchReadingsEndpoint(CreateBatchReadingsCommandHandler handler)
-        {
-            _handler = handler ?? throw new ArgumentNullException(nameof(handler));
-        }
-
         public override void Configure()
         {
             Post("batch");
             RoutePrefixOverride("sensors");
+            PostProcessor<LoggingCommandPostProcessorBehavior<CreateBatchReadingsCommand, CreateBatchReadingsResponse>>();
+            PostProcessor<CacheInvalidationPostProcessorBehavior<CreateBatchReadingsCommand, CreateBatchReadingsResponse>>();
 
-            // JWT Authentication required
             Roles("Admin", "Producer", "Sensor");
 
             Description(
@@ -65,7 +59,7 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Readings
 
         public override async Task HandleAsync(CreateBatchReadingsCommand req, CancellationToken ct)
         {
-            var response = await _handler.Handle(req, ct).ConfigureAwait(false);
+            var response = await req.ExecuteAsync(ct: ct).ConfigureAwait(false);
 
             if (response.IsSuccess)
             {
@@ -73,7 +67,7 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Readings
                 return;
             }
 
-            await Send.ErrorsAsync((int)HttpStatusCode.BadRequest, ct).ConfigureAwait(false);
+            await MatchResultAsync(response, ct).ConfigureAwait(false);
         }
     }
 }

@@ -1,20 +1,14 @@
-using TC.Agro.SensorIngest.Application.UseCases.GetLatestReadings;
-
 namespace TC.Agro.SensorIngest.Service.Endpoints.Dashboard
 {
-    public sealed class GetDashboardLatestEndpoint : Endpoint<GetDashboardLatestRequest, GetLatestReadingsResponse>
+    public sealed class GetDashboardLatestEndpoint : BaseApiEndpoint<GetLatestReadingsQuery, GetLatestReadingsResponse>
     {
-        private readonly GetLatestReadingsQueryHandler _handler;
-
-        public GetDashboardLatestEndpoint(GetLatestReadingsQueryHandler handler)
-        {
-            _handler = handler ?? throw new ArgumentNullException(nameof(handler));
-        }
-
         public override void Configure()
         {
             Get("dashboard/latest");
             RoutePrefixOverride("sensors");
+            RequestBinder(new RequestBinder<GetLatestReadingsQuery>(BindingSource.QueryParams));
+            PreProcessor<QueryCachingPreProcessorBehavior<GetLatestReadingsQuery, GetLatestReadingsResponse>>();
+            PostProcessor<QueryCachingPostProcessorBehavior<GetLatestReadingsQuery, GetLatestReadingsResponse>>();
 
             Roles("Admin", "Producer");
 
@@ -31,25 +25,10 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Dashboard
             });
         }
 
-        public override async Task HandleAsync(GetDashboardLatestRequest req, CancellationToken ct)
+        public override async Task HandleAsync(GetLatestReadingsQuery req, CancellationToken ct)
         {
-            var query = new GetLatestReadingsQuery(Limit: req.Limit ?? 5);
-
-            var response = await _handler.Handle(query, ct).ConfigureAwait(false);
-
-            if (response.IsSuccess)
-            {
-                await Send.OkAsync(response.Value, cancellation: ct).ConfigureAwait(false);
-                return;
-            }
-
-            await Send.ErrorsAsync((int)HttpStatusCode.BadRequest, ct).ConfigureAwait(false);
+            var response = await req.ExecuteAsync(ct: ct).ConfigureAwait(false);
+            await MatchResultAsync(response, ct).ConfigureAwait(false);
         }
-    }
-
-    public sealed class GetDashboardLatestRequest
-    {
-        [QueryParam]
-        public int? Limit { get; set; }
     }
 }

@@ -7,8 +7,8 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Readings
             Post("readings");
             RoutePrefixOverride("sensors");
             PostProcessor<LoggingCommandPostProcessorBehavior<CreateReadingCommand, CreateReadingResponse>>();
+            PostProcessor<CacheInvalidationPostProcessorBehavior<CreateReadingCommand, CreateReadingResponse>>();
 
-            // JWT Authentication required
             Roles("Admin", "Producer", "Sensor");
 
             Description(

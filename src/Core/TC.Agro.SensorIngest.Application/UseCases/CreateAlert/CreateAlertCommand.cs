@@ -6,5 +6,12 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateAlert
         string Message,
         Guid PlotId,
         string PlotName,
-        string SensorId) : IBaseCommand<CreateAlertResponse>;
+        string SensorId) : IBaseCommand<CreateAlertResponse>, IInvalidateCache
+    {
+        public IReadOnlyCollection<string> CacheTags =>
+        [
+            CacheTagCatalog.Alerts,
+            CacheTagCatalog.Dashboard
+        ];
+    }
 }

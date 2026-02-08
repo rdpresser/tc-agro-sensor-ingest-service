@@ -9,6 +9,7 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Sensors
             Post(string.Empty);
             RoutePrefixOverride("sensors");
             PostProcessor<LoggingCommandPostProcessorBehavior<RegisterSensorCommand, RegisterSensorResponse>>();
+            PostProcessor<CacheInvalidationPostProcessorBehavior<RegisterSensorCommand, RegisterSensorResponse>>();
 
             Roles("Admin", "Producer");
 

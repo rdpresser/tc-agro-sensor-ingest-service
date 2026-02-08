@@ -1,20 +1,13 @@
-using TC.Agro.SensorIngest.Application.UseCases.GetDashboardStats;
-
 namespace TC.Agro.SensorIngest.Service.Endpoints.Dashboard
 {
-    public sealed class GetDashboardStatsEndpoint : EndpointWithoutRequest<DashboardStatsResponse>
+    public sealed class GetDashboardStatsEndpoint : BaseApiEndpoint<GetDashboardStatsQuery, DashboardStatsResponse>
     {
-        private readonly GetDashboardStatsQueryHandler _handler;
-
-        public GetDashboardStatsEndpoint(GetDashboardStatsQueryHandler handler)
-        {
-            _handler = handler ?? throw new ArgumentNullException(nameof(handler));
-        }
-
         public override void Configure()
         {
             Get("dashboard/stats");
             RoutePrefixOverride("sensors");
+            PreProcessor<QueryCachingPreProcessorBehavior<GetDashboardStatsQuery, DashboardStatsResponse>>();
+            PostProcessor<QueryCachingPostProcessorBehavior<GetDashboardStatsQuery, DashboardStatsResponse>>();
 
             Roles("Admin", "Producer");
 
@@ -32,18 +25,10 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Dashboard
             });
         }
 
-        public override async Task HandleAsync(CancellationToken ct)
+        public override async Task HandleAsync(GetDashboardStatsQuery req, CancellationToken ct)
         {
-            var query = new GetDashboardStatsQuery();
-            var response = await _handler.Handle(query, ct).ConfigureAwait(false);
-
-            if (response.IsSuccess)
-            {
-                await SendOkAsync(response.Value, ct).ConfigureAwait(false);
-                return;
-            }
-
-            await SendErrorsAsync((int)HttpStatusCode.InternalServerError, ct).ConfigureAwait(false);
+            var response = await req.ExecuteAsync(ct: ct).ConfigureAwait(false);
+            await MatchResultAsync(response, ct).ConfigureAwait(false);
         }
     }
 }

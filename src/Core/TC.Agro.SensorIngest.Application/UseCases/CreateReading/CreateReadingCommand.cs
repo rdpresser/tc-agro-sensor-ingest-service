@@ -8,5 +8,12 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateReading
         double? Humidity,
         double? SoilMoisture,
         double? Rainfall,
-        double? BatteryLevel) : IBaseCommand<CreateReadingResponse>;
+        double? BatteryLevel) : IBaseCommand<CreateReadingResponse>, IInvalidateCache
+    {
+        public IReadOnlyCollection<string> CacheTags =>
+        [
+            CacheTagCatalog.Readings,
+            CacheTagCatalog.Dashboard
+        ];
+    }
 }

@@ -1,39 +1,30 @@
 namespace TC.Agro.SensorIngest.Application.UseCases.GetReadingsHistory
 {
-    public sealed class GetReadingsHistoryQueryHandler
+    internal sealed class GetReadingsHistoryQueryHandler : BaseQueryHandler<GetReadingsHistoryQuery, GetReadingsHistoryResponse>
     {
         private readonly ISensorReadingReadStore _readStore;
-        private readonly IFusionCache _cache;
         private readonly ILogger<GetReadingsHistoryQueryHandler> _logger;
 
         public GetReadingsHistoryQueryHandler(
             ISensorReadingReadStore readStore,
-            IFusionCache cache,
             ILogger<GetReadingsHistoryQueryHandler> logger)
         {
             _readStore = readStore ?? throw new ArgumentNullException(nameof(readStore));
-            _cache = cache ?? throw new ArgumentNullException(nameof(cache));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<Result<GetReadingsHistoryResponse>> Handle(
+        public override async Task<Result<GetReadingsHistoryResponse>> ExecuteAsync(
             GetReadingsHistoryQuery query,
-            CancellationToken ct)
+            CancellationToken ct = default)
         {
             var days = Math.Clamp(query.Days, 1, 30);
             var from = DateTime.UtcNow.AddDays(-days);
             var to = DateTime.UtcNow;
 
-            var cacheKey = $"{AppConstants.CacheKeys.LatestReadingsPrefix}history:{query.SensorId}:days:{days}";
-
-            var readings = await _cache.GetOrSetAsync(
-                cacheKey,
-                async _ => await _readStore.GetHistoryAsync(
-                    query.SensorId,
-                    from,
-                    to,
-                    ct).ConfigureAwait(false),
-                options => options.SetDuration(TimeSpan.FromSeconds(AppConstants.CacheTtlSeconds)),
+            var readings = await _readStore.GetHistoryAsync(
+                query.SensorId,
+                from,
+                to,
                 ct).ConfigureAwait(false);
 
             _logger.LogInformation(
@@ -42,8 +33,7 @@ namespace TC.Agro.SensorIngest.Application.UseCases.GetReadingsHistory
                 query.SensorId,
                 days);
 
-            var response = new GetReadingsHistoryResponse(readings?.ToList() ?? []);
-            return Result.Success(response);
+            return Result.Success(new GetReadingsHistoryResponse(readings?.ToList() ?? []));
         }
     }
 }

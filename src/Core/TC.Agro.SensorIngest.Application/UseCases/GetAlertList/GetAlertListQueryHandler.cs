@@ -1,40 +1,30 @@
 namespace TC.Agro.SensorIngest.Application.UseCases.GetAlertList
 {
-    public sealed class GetAlertListQueryHandler
+    internal sealed class GetAlertListQueryHandler : BaseQueryHandler<GetAlertListQuery, GetAlertListResponse>
     {
         private readonly IAlertReadStore _readStore;
-        private readonly IFusionCache _cache;
         private readonly ILogger<GetAlertListQueryHandler> _logger;
 
         public GetAlertListQueryHandler(
             IAlertReadStore readStore,
-            IFusionCache cache,
             ILogger<GetAlertListQueryHandler> logger)
         {
             _readStore = readStore ?? throw new ArgumentNullException(nameof(readStore));
-            _cache = cache ?? throw new ArgumentNullException(nameof(cache));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<Result<GetAlertListResponse>> Handle(
+        public override async Task<Result<GetAlertListResponse>> ExecuteAsync(
             GetAlertListQuery query,
-            CancellationToken ct)
+            CancellationToken ct = default)
         {
-            var cacheKey = $"{AppConstants.CacheKeys.AlertListPrefix}status:{query.Status ?? "all"}";
-
-            var alerts = await _cache.GetOrSetAsync(
-                cacheKey,
-                async _ => await _readStore.GetAlertsAsync(query.Status, ct).ConfigureAwait(false),
-                options => options.SetDuration(TimeSpan.FromSeconds(AppConstants.CacheTtlSeconds)),
-                ct).ConfigureAwait(false);
+            var alerts = await _readStore.GetAlertsAsync(query.Status, ct).ConfigureAwait(false);
 
             _logger.LogInformation(
                 "Retrieved {Count} alerts with Status={Status}",
-                alerts?.Count ?? 0,
+                alerts.Count,
                 query.Status ?? "all");
 
-            var response = new GetAlertListResponse(alerts ?? []);
-            return Result.Success(response);
+            return Result.Success(new GetAlertListResponse(alerts));
         }
     }
 }

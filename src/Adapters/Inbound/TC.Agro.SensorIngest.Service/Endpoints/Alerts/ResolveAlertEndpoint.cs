@@ -1,20 +1,13 @@
-using TC.Agro.SensorIngest.Application.UseCases.ResolveAlert;
-
 namespace TC.Agro.SensorIngest.Service.Endpoints.Alerts
 {
-    public sealed class ResolveAlertEndpoint : Endpoint<ResolveAlertRequest, ResolveAlertResponse>
+    public sealed class ResolveAlertEndpoint : BaseApiEndpoint<ResolveAlertCommand, ResolveAlertResponse>
     {
-        private readonly ResolveAlertCommandHandler _handler;
-
-        public ResolveAlertEndpoint(ResolveAlertCommandHandler handler)
-        {
-            _handler = handler ?? throw new ArgumentNullException(nameof(handler));
-        }
-
         public override void Configure()
         {
             Post("alerts/{AlertId}/resolve");
             RoutePrefixOverride("sensors");
+            PostProcessor<LoggingCommandPostProcessorBehavior<ResolveAlertCommand, ResolveAlertResponse>>();
+            PostProcessor<CacheInvalidationPostProcessorBehavior<ResolveAlertCommand, ResolveAlertResponse>>();
 
             Roles("Admin", "Producer");
 
@@ -35,39 +28,10 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Alerts
             });
         }
 
-        public override async Task HandleAsync(ResolveAlertRequest req, CancellationToken ct)
+        public override async Task HandleAsync(ResolveAlertCommand req, CancellationToken ct)
         {
-            var command = new ResolveAlertCommand(AlertId: req.AlertId);
-
-            var response = await _handler.Handle(command, ct).ConfigureAwait(false);
-
-            if (response.IsSuccess)
-            {
-                await Send.OkAsync(response.Value, cancellation: ct).ConfigureAwait(false);
-                return;
-            }
-
-            if (response.IsNotFound())
-            {
-                await Send.NotFoundAsync(ct).ConfigureAwait(false);
-                return;
-            }
-
-            await Send.ErrorsAsync((int)HttpStatusCode.BadRequest, ct).ConfigureAwait(false);
-        }
-    }
-
-    public sealed class ResolveAlertRequest
-    {
-        public Guid AlertId { get; set; }
-    }
-
-    public sealed class ResolveAlertRequestValidator : Validator<ResolveAlertRequest>
-    {
-        public ResolveAlertRequestValidator()
-        {
-            RuleFor(x => x.AlertId)
-                .NotEmpty().WithMessage("AlertId is required.");
+            var response = await req.ExecuteAsync(ct: ct).ConfigureAwait(false);
+            await MatchResultAsync(response, ct).ConfigureAwait(false);
         }
     }
 }
