@@ -64,6 +64,13 @@ global using TC.Agro.SensorIngest.Application.UseCases.GetDashboardStats;
 global using TC.Agro.SensorIngest.Infrastructure;
 global using TC.Agro.SensorIngest.Infrastructure.Persistence;
 
+// OpenTelemetry
+global using OpenTelemetry;
+global using OpenTelemetry.Metrics;
+global using OpenTelemetry.Trace;
+global using OpenTelemetry.Logs;
+global using OpenTelemetry.Resources;
+
 // Project - SharedKernel
 global using TC.Agro.SharedKernel.Api.Endpoints;
 global using TC.Agro.SharedKernel.Api.Extensions;
@@ -75,3 +82,4 @@ global using TC.Agro.SharedKernel.Infrastructure.Caching.Provider;
 global using TC.Agro.SharedKernel.Infrastructure.Database;
 global using TC.Agro.SharedKernel.Infrastructure.MessageBroker;
 global using TC.Agro.SharedKernel.Infrastructure.Middleware;
+global using TC.Agro.SharedKernel.Infrastructure.Telemetry;

@@ -1,4 +1,5 @@
 using TC.Agro.SensorIngest.Application.Abstractions.Ports;
+using TC.Agro.SensorIngest.Application.UseCases.GetSensorList;
 
 namespace TC.Agro.SensorIngest.Infrastructure.Repositories
 {
@@ -11,7 +12,7 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         }
 
-        public async Task<IReadOnlyList<SensorListDto>> GetSensorsAsync(Guid? plotId, CancellationToken ct)
+        public async Task<IReadOnlyList<SensorListItem>> GetSensorsAsync(Guid? plotId, CancellationToken ct)
         {
             var query = _dbContext.Sensors
                 .AsNoTracking()
@@ -25,7 +26,7 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
                 .ToListAsync(ct)
                 .ConfigureAwait(false);
 
-            return entities.Select(x => new SensorListDto(
+            return entities.Select(x => new SensorListItem(
                 x.Id,
                 x.SensorId,
                 x.PlotId,
@@ -38,7 +39,7 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
                 x.LastSoilMoisture)).ToList();
         }
 
-        public async Task<SensorDetailDto?> GetByIdAsync(string sensorId, CancellationToken ct)
+        public async Task<SensorDetailItem?> GetByIdAsync(string sensorId, CancellationToken ct)
         {
             var entity = await _dbContext.Sensors
                 .AsNoTracking()
@@ -48,7 +49,7 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
             if (entity is null)
                 return null;
 
-            return new SensorDetailDto(
+            return new SensorDetailItem(
                 entity.Id,
                 entity.SensorId,
                 entity.PlotId,

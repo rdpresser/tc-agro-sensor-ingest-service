@@ -1,4 +1,5 @@
 using TC.Agro.SensorIngest.Application.Abstractions.Ports;
+using TC.Agro.SensorIngest.Application.UseCases.GetAlertList;
 using TC.Agro.SensorIngest.Domain.ValueObjects;
 
 namespace TC.Agro.SensorIngest.Infrastructure.Repositories
@@ -12,7 +13,7 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         }
 
-        public async Task<IReadOnlyList<AlertListDto>> GetAlertsAsync(string? status, CancellationToken ct)
+        public async Task<IReadOnlyList<AlertListItem>> GetAlertsAsync(string? status, CancellationToken ct)
         {
             var query = _dbContext.Alerts
                 .AsNoTracking()
@@ -32,7 +33,7 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
                 .ToListAsync(ct)
                 .ConfigureAwait(false);
 
-            return entities.Select(x => new AlertListDto(
+            return entities.Select(x => new AlertListItem(
                 x.Id,
                 x.Severity.Value,
                 x.Title,

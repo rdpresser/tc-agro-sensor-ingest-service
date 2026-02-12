@@ -1,3 +1,7 @@
+using TC.Agro.SensorIngest.Application.Abstractions.Ports;
+using TC.Agro.SensorIngest.Application.UseCases.GetLatestReadings;
+using TC.Agro.SensorIngest.Application.UseCases.GetReadingsHistory;
+
 namespace TC.Agro.SensorIngest.Infrastructure.Repositories
 {
     public sealed class SensorReadingReadStore : ISensorReadingReadStore
@@ -9,7 +13,7 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         }
 
-        public async Task<IEnumerable<SensorReadingDto>> GetLatestReadingsAsync(
+        public async Task<IEnumerable<LatestReadingItem>> GetLatestReadingsAsync(
             string? sensorId = null,
             Guid? plotId = null,
             int limit = 10,
@@ -26,7 +30,7 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
             return await query
                 .OrderByDescending(x => x.Time)
                 .Take(limit)
-                .Select(x => new SensorReadingDto(
+                .Select(x => new LatestReadingItem(
                     x.Id,
                     x.SensorId,
                     x.PlotId,
@@ -40,7 +44,7 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
                 .ConfigureAwait(false);
         }
 
-        public async Task<IEnumerable<SensorReadingDto>> GetHistoryAsync(
+        public async Task<IEnumerable<ReadingHistoryItem>> GetHistoryAsync(
             string sensorId,
             DateTime from,
             DateTime to,
@@ -49,7 +53,7 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
             return await _dbContext.SensorReadings
                 .Where(x => x.SensorId == sensorId && x.Time >= from && x.Time <= to)
                 .OrderByDescending(x => x.Time)
-                .Select(x => new SensorReadingDto(
+                .Select(x => new ReadingHistoryItem(
                     x.Id,
                     x.SensorId,
                     x.PlotId,
@@ -63,15 +67,13 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
                 .ConfigureAwait(false);
         }
 
-        public async Task<IEnumerable<HourlyAggregateDto>> GetHourlyAggregatesAsync(
+        public async Task<IEnumerable<HourlyAggregateItem>> GetHourlyAggregatesAsync(
             string sensorId,
             int days = 7,
             CancellationToken cancellationToken = default)
         {
             var clampedDays = Math.Clamp(days, 1, 90);
 
-            // Using raw SQL for TimescaleDB time_bucket function
-            // days is clamped and cast to integer, safe for interpolation in interval
             var sql = $@"
                 SELECT
                     time_bucket('1 hour', time) AS hour,
@@ -87,7 +89,7 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
                 ORDER BY hour DESC";
 
             return await _dbContext.Database
-                .SqlQueryRaw<HourlyAggregateDto>(sql, new Npgsql.NpgsqlParameter("@sensorId", sensorId))
+                .SqlQueryRaw<HourlyAggregateItem>(sql, new Npgsql.NpgsqlParameter("@sensorId", sensorId))
                 .ToListAsync(cancellationToken)
                 .ConfigureAwait(false);
         }

@@ -201,7 +201,8 @@ namespace TC.Agro.SensorIngest.Service.Extensions
                 {
                     Predicate = check => check.Tags.Contains("live"),
                     ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
-                });
+                })
+                .UseOpenTelemetryPrometheusScrapingEndpoint("/metrics");
 
             return app;
         }
