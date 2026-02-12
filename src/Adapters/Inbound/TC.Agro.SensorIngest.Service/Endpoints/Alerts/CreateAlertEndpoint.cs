@@ -41,7 +41,7 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Alerts
 
             if (response.IsSuccess)
             {
-                await SendAsync(response.Value, 201, ct).ConfigureAwait(false);
+                await Send.CreatedAtAsync<CreateAlertEndpoint>(new { id = response.Value.Id }, response.Value, cancellation: ct).ConfigureAwait(false);
                 return;
             }
 

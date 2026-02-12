@@ -13,7 +13,7 @@ namespace TC.Agro.SensorIngest.Service.Extensions
             await EnsureTimescaleDbAsync(dbContext, logger).ConfigureAwait(false);
         }
 
-        private static async Task EnsureTimescaleDbAsync(ApplicationDbContext dbContext, ILogger? logger = null)
+        private static async Task EnsureTimescaleDbAsync(ApplicationDbContext dbContext, Microsoft.Extensions.Logging.ILogger? logger = null)
         {
             var conn = dbContext.Database.GetDbConnection();
             await conn.OpenAsync().ConfigureAwait(false);

@@ -63,7 +63,7 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Readings
 
             if (response.IsSuccess)
             {
-                await SendAsync(response.Value, 202, ct).ConfigureAwait(false);
+                await Send.OkAsync(response.Value, cancellation: ct).ConfigureAwait(false);
                 return;
             }
 

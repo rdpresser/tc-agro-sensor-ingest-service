@@ -21,7 +21,7 @@ namespace TC.Agro.SensorIngest.Application.UseCases.ResolveAlert
 
             var resolveResult = alert.Resolve();
             if (!resolveResult.IsSuccess)
-                return Result.Error(resolveResult.Errors.ToArray());
+                return Result.Error(new ErrorList(resolveResult.Errors.ToArray()));
 
             return Result.Success(alert);
         }

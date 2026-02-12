@@ -1,6 +1,6 @@
 namespace TC.Agro.SensorIngest.Service.Hubs
 {
-    public sealed record AlertHubDto(
+    public sealed record AlertRequest(
         Guid Id,
         string Severity,
         string Title,

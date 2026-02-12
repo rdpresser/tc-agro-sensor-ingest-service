@@ -24,11 +24,11 @@ namespace TC.Agro.SensorIngest.Service.Services
             double? humidity,
             double? soilMoisture,
             DateTimeOffset timestamp,
-            CancellationToken ct)
+            CancellationToken ct = default)
         {
             try
             {
-                var dto = new SensorReadingHubDto(
+                var dto = new SensorReadingRequest(
                     sensorId,
                     plotId,
                     temperature,
@@ -54,11 +54,11 @@ namespace TC.Agro.SensorIngest.Service.Services
             string sensorId,
             string status,
             DateTimeOffset createdAt,
-            CancellationToken ct)
+            CancellationToken ct = default)
         {
             try
             {
-                var dto = new AlertHubDto(id, severity, title, message, plotId, plotName, sensorId, status, createdAt);
+                var dto = new AlertRequest(id, severity, title, message, plotId, plotName, sensorId, status, createdAt);
 
                 await _hubContext.Clients.Group($"plot:{plotId}").NewAlert(dto).ConfigureAwait(false);
             }
@@ -72,11 +72,11 @@ namespace TC.Agro.SensorIngest.Service.Services
             string sensorId,
             Guid plotId,
             string status,
-            CancellationToken ct)
+            CancellationToken ct = default)
         {
             try
             {
-                var dto = new SensorStatusChangedDto(sensorId, status);
+                var dto = new SensorStatusChangedRequest(sensorId, status);
 
                 await _hubContext.Clients.Group($"plot:{plotId}").SensorStatusChanged(dto).ConfigureAwait(false);
             }

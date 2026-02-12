@@ -1,6 +1,6 @@
 namespace TC.Agro.SensorIngest.Service.Hubs
 {
-    public sealed record SensorStatusChangedDto(
+    public sealed record SensorStatusChangedRequest(
         string SensorId,
         string Status);
 }
