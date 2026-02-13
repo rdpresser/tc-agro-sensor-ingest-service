@@ -1,0 +1,34 @@
+namespace TC.Agro.SensorIngest.Service.Endpoints.Dashboard
+{
+    public sealed class GetDashboardLatestEndpoint : BaseApiEndpoint<GetLatestReadingsQuery, GetLatestReadingsResponse>
+    {
+        public override void Configure()
+        {
+            Get("latest");
+            RoutePrefixOverride("dashboard");
+            RequestBinder(new RequestBinder<GetLatestReadingsQuery>(BindingSource.QueryParams));
+            PreProcessor<QueryCachingPreProcessorBehavior<GetLatestReadingsQuery, GetLatestReadingsResponse>>();
+            PostProcessor<QueryCachingPostProcessorBehavior<GetLatestReadingsQuery, GetLatestReadingsResponse>>();
+
+            Roles(AppRoles.Admin, AppRoles.Producer);
+
+            Description(
+                x => x.Produces<GetLatestReadingsResponse>(200)
+                      .Produces(401));
+
+            Summary(s =>
+            {
+                s.Summary = "Gets latest readings for dashboard.";
+                s.Description = "Retrieves the most recent sensor readings for the dashboard overview.";
+                s.Responses[200] = "Latest readings retrieved successfully.";
+                s.Responses[401] = "Authentication required.";
+            });
+        }
+
+        public override async Task HandleAsync(GetLatestReadingsQuery req, CancellationToken ct)
+        {
+            var response = await req.ExecuteAsync(ct: ct).ConfigureAwait(false);
+            await MatchResultAsync(response, ct).ConfigureAwait(false);
+        }
+    }
+}

@@ -8,10 +8,6 @@ namespace TC.Agro.SensorIngest.Application
             // FluentValidation validators
             services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
 
-            // Handlers
-            services.AddScoped<CreateBatchReadingsCommandHandler>();
-            services.AddScoped<GetLatestReadingsQueryHandler>();
-
             return services;
         }
     }

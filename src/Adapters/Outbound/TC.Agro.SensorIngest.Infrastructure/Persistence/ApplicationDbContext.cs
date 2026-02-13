@@ -4,6 +4,8 @@ namespace TC.Agro.SensorIngest.Infrastructure.Persistence
     public sealed class ApplicationDbContext : DbContext, IApplicationDbContext
     {
         public DbSet<SensorReadingAggregate> SensorReadings => Set<SensorReadingAggregate>();
+        public DbSet<SensorAggregate> Sensors => Set<SensorAggregate>();
+        public DbSet<AlertAggregate> Alerts => Set<AlertAggregate>();
 
         /// <inheritdoc />
         public DbContext DbContext => this;
@@ -22,6 +24,10 @@ namespace TC.Agro.SensorIngest.Infrastructure.Persistence
             modelBuilder.Ignore<BaseDomainEvent>();
 
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
+
+            // Global query filters for soft delete
+            modelBuilder.Entity<SensorAggregate>().HasQueryFilter(x => x.IsActive);
+            modelBuilder.Entity<AlertAggregate>().HasQueryFilter(x => x.IsActive);
         }
 
         /// <inheritdoc />

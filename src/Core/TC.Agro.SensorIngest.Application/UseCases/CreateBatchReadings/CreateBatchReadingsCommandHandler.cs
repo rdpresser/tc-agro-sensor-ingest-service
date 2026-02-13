@@ -1,6 +1,7 @@
 namespace TC.Agro.SensorIngest.Application.UseCases.CreateBatchReadings
 {
-    public sealed class CreateBatchReadingsCommandHandler
+    internal sealed class CreateBatchReadingsCommandHandler
+        : BaseHandler<CreateBatchReadingsCommand, CreateBatchReadingsResponse>
     {
         private readonly ISensorReadingRepository _repository;
         private readonly ITransactionalOutbox _outbox;
@@ -16,9 +17,9 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateBatchReadings
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<Result<CreateBatchReadingsResponse>> Handle(
+        public override async Task<Result<CreateBatchReadingsResponse>> ExecuteAsync(
             CreateBatchReadingsCommand command,
-            CancellationToken ct)
+            CancellationToken ct = default)
         {
             var results = new List<BatchReadingResult>();
             var successfulAggregates = new List<SensorReadingAggregate>();
@@ -58,7 +59,6 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateBatchReadings
             {
                 await _repository.AddRangeAsync(successfulAggregates, ct).ConfigureAwait(false);
 
-                // Publish integration events for each successful reading
                 foreach (var aggregate in successfulAggregates)
                 {
                     foreach (var domainEvent in aggregate.UncommittedEvents)
@@ -92,12 +92,10 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateBatchReadings
                 results.Count - successfulAggregates.Count,
                 command.Readings.Count);
 
-            var response = new CreateBatchReadingsResponse(
+            return Result.Success(new CreateBatchReadingsResponse(
                 ProcessedCount: successfulAggregates.Count,
                 FailedCount: results.Count - successfulAggregates.Count,
-                Results: results);
-
-            return Result.Success(response);
+                Results: results));
         }
     }
 }

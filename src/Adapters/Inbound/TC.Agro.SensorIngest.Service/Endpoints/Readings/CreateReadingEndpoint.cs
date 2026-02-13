@@ -4,12 +4,12 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Readings
     {
         public override void Configure()
         {
-            Post("readings");
-            RoutePrefixOverride("sensors");
+            Post(string.Empty);
+            RoutePrefixOverride("readings");
             PostProcessor<LoggingCommandPostProcessorBehavior<CreateReadingCommand, CreateReadingResponse>>();
+            PostProcessor<CacheInvalidationPostProcessorBehavior<CreateReadingCommand, CreateReadingResponse>>();
 
-            // JWT Authentication required
-            Roles("Admin", "Producer", "Sensor");
+            Roles(AppRoles.Admin, AppRoles.Producer, AppRoles.Sensor);
 
             Description(
                 x => x.Produces<CreateReadingResponse>(202)

@@ -19,6 +19,13 @@ global using TC.Agro.SensorIngest.Application.IntegrationEvents;
 global using TC.Agro.SensorIngest.Application.UseCases.CreateBatchReadings;
 global using TC.Agro.SensorIngest.Application.UseCases.CreateReading;
 global using TC.Agro.SensorIngest.Application.UseCases.GetLatestReadings;
+global using TC.Agro.SensorIngest.Application.UseCases.RegisterSensor;
+global using TC.Agro.SensorIngest.Application.UseCases.GetSensorList;
+global using TC.Agro.SensorIngest.Application.UseCases.GetReadingsHistory;
+global using TC.Agro.SensorIngest.Application.UseCases.CreateAlert;
+global using TC.Agro.SensorIngest.Application.UseCases.GetAlertList;
+global using TC.Agro.SensorIngest.Application.UseCases.ResolveAlert;
+global using TC.Agro.SensorIngest.Application.UseCases.GetDashboardStats;
 global using TC.Agro.SensorIngest.Domain.Aggregates;
 
 global using TC.Agro.SharedKernel.Application.Commands;
