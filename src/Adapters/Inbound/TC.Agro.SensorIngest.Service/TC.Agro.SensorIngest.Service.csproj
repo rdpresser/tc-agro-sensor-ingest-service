@@ -7,10 +7,7 @@
 
   <ItemGroup>
     <!-- API / Endpoints -->
-    <PackageReference Include="FastEndpoints" />
     <PackageReference Include="FastEndpoints.Swagger" />
-    <PackageReference Include="Ardalis.Result.AspNetCore" />
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" />
 
     <!-- Health Check -->
     <PackageReference Include="AspNetCore.HealthChecks.NpgSql" />
@@ -18,7 +15,6 @@
 
     <!-- Misc -->
     <PackageReference Include="Bogus" />
-    <PackageReference Include="DotNetEnv" />
 
     <!-- EntityFramework Core (Design Tools) -->
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
@@ -39,28 +35,24 @@
     <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" />
     <PackageReference Include="OpenTelemetry.Instrumentation.StackExchangeRedis" />
     <PackageReference Include="Npgsql.OpenTelemetry" />
+    <PackageReference Include="Serilog.Formatting.Compact" />
+    <PackageReference Include="Serilog.Sinks.Console" />
     <PackageReference Include="ZiggyCreatures.FusionCache.OpenTelemetry" />
 
     <!-- Caching (FusionCache) -->
-    <PackageReference Include="ZiggyCreatures.FusionCache.Serialization.SystemTextJson" />
     <PackageReference Include="ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis" />
 
     <!-- Logging -->
-    <PackageReference Include="Serilog.AspNetCore" />
     <PackageReference Include="Serilog.Enrichers.Sensitive" />
-    <PackageReference Include="Serilog.Enrichers.Span" />
     <PackageReference Include="Serilog.Sinks.Grafana.Loki" />
     <PackageReference Include="Serilog.Sinks.OpenTelemetry" />
 
     <!-- Wolverine - MessageBroker / Outbox -->
-    <PackageReference Include="Weasel.Core" />
-    <PackageReference Include="WolverineFx" />
     <PackageReference Include="WolverineFx.Postgresql" />
-    <PackageReference Include="WolverineFx.EntityFrameworkCore" />
-    <PackageReference Include="WolverineFx.RabbitMQ" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\..\..\common\src\TC.Agro.Messaging\TC.Agro.Messaging.csproj" />
     <ProjectReference Include="..\..\..\Core\TC.Agro.SensorIngest.Application\TC.Agro.SensorIngest.Application.csproj" />
     <ProjectReference Include="..\..\Outbound\TC.Agro.SensorIngest.Infrastructure\TC.Agro.SensorIngest.Infrastructure.csproj" />
   </ItemGroup>
