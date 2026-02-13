@@ -1,6 +1,8 @@
+using TC.Agro.SharedKernel.Infrastructure.Pagination;
+
 namespace TC.Agro.SensorIngest.Application.UseCases.GetAlertList
 {
-    internal sealed class GetAlertListQueryHandler : BaseQueryHandler<GetAlertListQuery, GetAlertListResponse>
+    internal sealed class GetAlertListQueryHandler : BaseQueryHandler<GetAlertListQuery, PaginatedResponse<GetAlertListResponse>>
     {
         private readonly IAlertReadStore _readStore;
         private readonly ILogger<GetAlertListQueryHandler> _logger;
@@ -13,18 +15,24 @@ namespace TC.Agro.SensorIngest.Application.UseCases.GetAlertList
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public override async Task<Result<GetAlertListResponse>> ExecuteAsync(
+        public override async Task<Result<PaginatedResponse<GetAlertListResponse>>> ExecuteAsync(
             GetAlertListQuery query,
             CancellationToken ct = default)
         {
-            var alerts = await _readStore.GetAlertsAsync(query.Status, ct).ConfigureAwait(false);
+            var (alerts, totalCount) = await _readStore.GetAlertsAsync(query, ct).ConfigureAwait(false);
 
             _logger.LogInformation(
                 "Retrieved {Count} alerts with Status={Status}",
-                alerts.Count,
-                query.Status ?? "all");
+                alerts.Count, query.Status);
 
-            return Result.Success(new GetAlertListResponse(alerts));
+            var response = new PaginatedResponse<GetAlertListResponse>(
+                data: [.. alerts],
+                totalCount: totalCount,
+                pageNumber: query.PageNumber,
+                pageSize: query.PageSize
+            );
+
+            return Result.Success(response);
         }
     }
 }

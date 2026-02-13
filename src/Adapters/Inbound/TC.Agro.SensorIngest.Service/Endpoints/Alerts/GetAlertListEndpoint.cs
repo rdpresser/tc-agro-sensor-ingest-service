@@ -1,14 +1,16 @@
+using TC.Agro.SharedKernel.Infrastructure.Pagination;
+
 namespace TC.Agro.SensorIngest.Service.Endpoints.Alerts
 {
-    public sealed class GetAlertListEndpoint : BaseApiEndpoint<GetAlertListQuery, GetAlertListResponse>
+    public sealed class GetAlertListEndpoint : BaseApiEndpoint<GetAlertListQuery, PaginatedResponse<GetAlertListResponse>>
     {
         public override void Configure()
         {
             Get("alerts");
             RequestBinder(new RequestBinder<GetAlertListQuery>(BindingSource.QueryParams));
 
-            PreProcessor<QueryCachingPreProcessorBehavior<GetAlertListQuery, GetAlertListResponse>>();
-            PostProcessor<QueryCachingPostProcessorBehavior<GetAlertListQuery, GetAlertListResponse>>();
+            PreProcessor<QueryCachingPreProcessorBehavior<GetAlertListQuery, PaginatedResponse<GetAlertListResponse>>>();
+            PostProcessor<QueryCachingPostProcessorBehavior<GetAlertListQuery, PaginatedResponse<GetAlertListResponse>>>();
 
             Roles(AppRoles.Admin, AppRoles.Producer);
 

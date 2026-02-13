@@ -1,4 +1,5 @@
 using TC.Agro.SensorIngest.Application.UseCases.GetAlertList;
+using TC.Agro.SensorIngest.Infrastructure.Extensions;
 
 namespace TC.Agro.SensorIngest.Infrastructure.Repositories
 {
@@ -11,40 +12,46 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         }
 
-        public async Task<IReadOnlyList<AlertListItem>> GetAlertsAsync(string? status, CancellationToken ct)
+        public async Task<(IReadOnlyList<GetAlertListResponse>, int)> GetAlertsAsync(
+            GetAlertListQuery query,
+            CancellationToken ct = default)
         {
-            var query = _dbContext.Alerts
-                .AsNoTracking()
-                .AsQueryable();
+            var alertsQuery = _dbContext.Alerts
+                .AsNoTracking();
 
-            if (!string.IsNullOrWhiteSpace(status))
-            {
-                var statusResult = AlertStatus.Create(status);
-                if (!statusResult.IsSuccess)
-                    throw new ArgumentException($"Invalid alert status filter '{status}'. Valid values: Pending, Resolved.", nameof(status));
+            // Apply text filter
+            alertsQuery = alertsQuery.ApplyTextFilter(query.Filter);
 
-                query = query.Where(x => x.Status == statusResult.Value);
-            }
+            // Apply status filter
+            alertsQuery = alertsQuery.ApplyStatusFilter(query.Status);
 
-            var entities = await query
-                .OrderByDescending(x => x.CreatedAt)
+            // Get total count before pagination
+            var totalCount = await alertsQuery
+                .CountAsync(ct)
+                .ConfigureAwait(false);
+
+            // Apply sorting, pagination, and projection
+            var alerts = await alertsQuery
+                .ApplySorting(query.SortBy, query.SortDirection)
+                .ApplyPagination(query.PageNumber, query.PageSize)
+                .Select(x => new GetAlertListResponse(
+                    x.Id,
+                    x.Severity.Value,
+                    x.Title,
+                    x.Message,
+                    x.PlotId,
+                    x.PlotName,
+                    x.SensorId,
+                    x.Status.Value,
+                    x.CreatedAt,
+                    x.ResolvedAt))
                 .ToListAsync(ct)
                 .ConfigureAwait(false);
 
-            return entities.Select(x => new AlertListItem(
-                x.Id,
-                x.Severity.Value,
-                x.Title,
-                x.Message,
-                x.PlotId,
-                x.PlotName,
-                x.SensorId,
-                x.Status.Value,
-                x.CreatedAt,
-                x.ResolvedAt)).ToList();
+            return (alerts, totalCount);
         }
 
-        public async Task<int> CountPendingAsync(CancellationToken ct)
+        public async Task<int> CountPendingAsync(CancellationToken ct = default)
         {
             var pendingStatus = AlertStatus.CreatePending();
             return await _dbContext.Alerts
