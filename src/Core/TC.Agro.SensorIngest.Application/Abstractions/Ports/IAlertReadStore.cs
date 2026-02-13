@@ -1,5 +1,3 @@
-using TC.Agro.SensorIngest.Application.UseCases.GetAlertList;
-
 namespace TC.Agro.SensorIngest.Application.Abstractions.Ports
 {
     public interface IAlertReadStore

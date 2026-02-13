@@ -1,6 +1,3 @@
-global using System.Text.Json.Serialization;
-global using System.Text.RegularExpressions;
-
 global using Ardalis.Result;
 
 global using TC.Agro.SensorIngest.Domain.Abstractions;

@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using System.Security.Claims;
 using Serilog.Context;
-using TC.Agro.SensorIngest.Service.Telemetry;
 
 namespace TC.Agro.SensorIngest.Service.Middleware
 {

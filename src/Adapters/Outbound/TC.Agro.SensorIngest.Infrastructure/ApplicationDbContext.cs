@@ -1,4 +1,4 @@
-namespace TC.Agro.SensorIngest.Infrastructure.Persistence
+namespace TC.Agro.SensorIngest.Infrastructure
 {
     [ExcludeFromCodeCoverage]
     public sealed class ApplicationDbContext : DbContext, IApplicationDbContext

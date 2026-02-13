@@ -1,5 +1,3 @@
-using TC.Agro.SensorIngest.Domain.ValueObjects;
-
 namespace TC.Agro.SensorIngest.Infrastructure.Configurations
 {
     public sealed class AlertConfiguration : BaseEntityConfiguration<AlertAggregate>
