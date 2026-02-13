@@ -1,3 +1,5 @@
+using TC.Agro.SharedKernel.Infrastructure;
+
 namespace TC.Agro.SensorIngest.Infrastructure
 {
     [ExcludeFromCodeCoverage]
@@ -33,10 +35,16 @@ namespace TC.Agro.SensorIngest.Infrastructure
                 }
             });
 
+            // IApplicationDbContext (required for SharedKernel ApplyMigrations)
+            services.AddScoped<IApplicationDbContext>(sp => sp.GetRequiredService<ApplicationDbContext>());
+
+            // Unit of Work (for simple handlers that don't need outbox)
+            services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ApplicationDbContext>());
+
             // Transactional Outbox
             services.AddScoped<ITransactionalOutbox, SensorIngestOutbox>();
 
-            SharedKernel.Infrastructure.DependencyInjection.AddAgroInfrastructure(services, configuration);
+            services.AddAgroInfrastructure(configuration);
 
             return services;
         }

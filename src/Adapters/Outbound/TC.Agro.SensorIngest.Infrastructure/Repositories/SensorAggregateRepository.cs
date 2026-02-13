@@ -7,14 +7,14 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
         {
         }
 
-        public async Task<SensorAggregate?> GetBySensorIdAsync(string sensorId, CancellationToken ct = default)
+        public async Task<SensorAggregate?> GetBySensorIdAsync(Guid sensorId, CancellationToken ct = default)
         {
             return await DbSet
                 .FirstOrDefaultAsync(x => x.SensorId == sensorId, ct)
                 .ConfigureAwait(false);
         }
 
-        public async Task<bool> SensorIdExistsAsync(string sensorId, CancellationToken ct = default)
+        public async Task<bool> SensorIdExistsAsync(Guid sensorId, CancellationToken ct = default)
         {
             return await DbSet
                 .IgnoreQueryFilters()

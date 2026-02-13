@@ -10,7 +10,7 @@ namespace TC.Agro.SensorIngest.Application.IntegrationEvents
         DateTimeOffset OccurredOn,
         string EventName,
         IDictionary<string, Guid>? RelatedIds,
-        string SensorId,
+        Guid SensorId,
         Guid PlotId,
         DateTime Time,
         double? Temperature,

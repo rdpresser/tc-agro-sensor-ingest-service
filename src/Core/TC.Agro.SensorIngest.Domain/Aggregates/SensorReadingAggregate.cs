@@ -2,7 +2,7 @@ namespace TC.Agro.SensorIngest.Domain.Aggregates
 {
     public sealed class SensorReadingAggregate : BaseAggregateRoot
     {
-        public string SensorId { get; private set; } = default!;
+        public Guid SensorId { get; private set; }
         public Guid PlotId { get; private set; }
         public DateTime Time { get; private set; }
         public double? Temperature { get; private set; }
@@ -19,7 +19,7 @@ namespace TC.Agro.SensorIngest.Domain.Aggregates
         #region Factories
 
         public static Result<SensorReadingAggregate> Create(
-            string sensorId,
+            Guid sensorId,
             Guid plotId,
             DateTime time,
             double? temperature,
@@ -41,7 +41,7 @@ namespace TC.Agro.SensorIngest.Domain.Aggregates
         }
 
         private static Result<SensorReadingAggregate> CreateAggregate(
-            string sensorId,
+            Guid sensorId,
             Guid plotId,
             DateTime time,
             double? temperature,
@@ -101,12 +101,10 @@ namespace TC.Agro.SensorIngest.Domain.Aggregates
 
         #region Validation Helpers
 
-        private static IEnumerable<ValidationError> ValidateSensorId(string sensorId)
+        private static IEnumerable<ValidationError> ValidateSensorId(Guid sensorId)
         {
-            if (string.IsNullOrWhiteSpace(sensorId))
+            if (sensorId == Guid.Empty)
                 yield return new ValidationError($"{nameof(SensorId)}.Required", "SensorId is required.");
-            else if (sensorId.Length > 100)
-                yield return new ValidationError($"{nameof(SensorId)}.TooLong", "SensorId must be at most 100 characters.");
         }
 
         private static IEnumerable<ValidationError> ValidatePlotId(Guid plotId)
@@ -155,7 +153,7 @@ namespace TC.Agro.SensorIngest.Domain.Aggregates
 
         public record SensorReadingCreatedDomainEvent(
             Guid AggregateId,
-            string SensorId,
+            Guid SensorId,
             Guid PlotId,
             DateTime Time,
             double? Temperature,

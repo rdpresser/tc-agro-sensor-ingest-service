@@ -8,7 +8,7 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
         }
 
         public async Task<IEnumerable<SensorReadingAggregate>> GetLatestBySensorIdAsync(
-            string sensorId,
+            Guid sensorId,
             int limit = 10,
             CancellationToken cancellationToken = default)
         {

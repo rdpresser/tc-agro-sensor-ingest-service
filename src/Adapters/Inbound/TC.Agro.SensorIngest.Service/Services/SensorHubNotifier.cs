@@ -1,7 +1,3 @@
-using Microsoft.AspNetCore.SignalR;
-using TC.Agro.SensorIngest.Application.Abstractions.Ports;
-using TC.Agro.SensorIngest.Service.Hubs;
-
 namespace TC.Agro.SensorIngest.Service.Services
 {
     internal sealed class SensorHubNotifier : ISensorHubNotifier
@@ -18,7 +14,7 @@ namespace TC.Agro.SensorIngest.Service.Services
         }
 
         public async Task NotifySensorReadingAsync(
-            string sensorId,
+            Guid sensorId,
             Guid plotId,
             double? temperature,
             double? humidity,
@@ -51,7 +47,7 @@ namespace TC.Agro.SensorIngest.Service.Services
             string message,
             Guid plotId,
             string plotName,
-            string sensorId,
+            Guid sensorId,
             string status,
             DateTimeOffset createdAt,
             CancellationToken ct = default)
@@ -69,7 +65,7 @@ namespace TC.Agro.SensorIngest.Service.Services
         }
 
         public async Task NotifySensorStatusChangedAsync(
-            string sensorId,
+            Guid sensorId,
             Guid plotId,
             string status,
             CancellationToken ct = default)

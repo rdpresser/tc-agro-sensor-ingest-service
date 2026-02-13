@@ -25,7 +25,7 @@ namespace TC.Agro.SensorIngest.Infrastructure.Migrations
                     message = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
                     plot_id = table.Column<Guid>(type: "uuid", nullable: false),
                     plot_name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
-                    sensor_id = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    sensor_id = table.Column<Guid>(type: "uuid", maxLength: 100, nullable: false),
                     status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
                     resolved_at = table.Column<DateTimeOffset>(type: "timestamptz", nullable: true),
                     created_at = table.Column<DateTimeOffset>(type: "timestamptz", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
@@ -43,7 +43,7 @@ namespace TC.Agro.SensorIngest.Infrastructure.Migrations
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
-                    sensor_id = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    sensor_id = table.Column<Guid>(type: "uuid", maxLength: 100, nullable: false),
                     plot_id = table.Column<Guid>(type: "uuid", nullable: false),
                     time = table.Column<DateTime>(type: "timestamptz", nullable: false),
                     temperature = table.Column<double>(type: "double precision", nullable: true),
@@ -66,7 +66,7 @@ namespace TC.Agro.SensorIngest.Infrastructure.Migrations
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
-                    sensor_id = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    sensor_id = table.Column<Guid>(type: "uuid", maxLength: 100, nullable: false),
                     plot_id = table.Column<Guid>(type: "uuid", nullable: false),
                     plot_name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),

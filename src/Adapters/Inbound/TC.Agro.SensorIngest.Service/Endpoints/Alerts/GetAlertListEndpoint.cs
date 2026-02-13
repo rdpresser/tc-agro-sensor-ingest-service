@@ -4,9 +4,9 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Alerts
     {
         public override void Configure()
         {
-            Get(string.Empty);
-            RoutePrefixOverride("alerts");
+            Get("alerts");
             RequestBinder(new RequestBinder<GetAlertListQuery>(BindingSource.QueryParams));
+
             PreProcessor<QueryCachingPreProcessorBehavior<GetAlertListQuery, GetAlertListResponse>>();
             PostProcessor<QueryCachingPostProcessorBehavior<GetAlertListQuery, GetAlertListResponse>>();
 

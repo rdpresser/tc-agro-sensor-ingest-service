@@ -2,7 +2,7 @@ namespace TC.Agro.SensorIngest.Application.UseCases.GetSensorList
 {
     public sealed record SensorListItem(
         Guid Id,
-        string SensorId,
+        Guid SensorId,
         Guid PlotId,
         string PlotName,
         string Status,

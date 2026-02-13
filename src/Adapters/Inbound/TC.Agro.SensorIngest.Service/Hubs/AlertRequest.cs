@@ -7,7 +7,7 @@ namespace TC.Agro.SensorIngest.Service.Hubs
         string Message,
         Guid PlotId,
         string PlotName,
-        string SensorId,
+        Guid SensorId,
         string Status,
         DateTimeOffset CreatedAt);
 }

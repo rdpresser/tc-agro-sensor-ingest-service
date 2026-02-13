@@ -12,7 +12,7 @@ using TC.Agro.SensorIngest.Infrastructure.Persistence;
 namespace TC.Agro.SensorIngest.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260212013248_InitialCreate")]
+    [Migration("20260213054854_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -66,10 +66,9 @@ namespace TC.Agro.SensorIngest.Infrastructure.Migrations
                         .HasColumnType("timestamptz")
                         .HasColumnName("resolved_at");
 
-                    b.Property<string>("SensorId")
-                        .IsRequired()
+                    b.Property<Guid>("SensorId")
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
+                        .HasColumnType("uuid")
                         .HasColumnName("sensor_id");
 
                     b.Property<string>("Severity")
@@ -155,10 +154,9 @@ namespace TC.Agro.SensorIngest.Infrastructure.Migrations
                         .HasColumnType("character varying(200)")
                         .HasColumnName("plot_name");
 
-                    b.Property<string>("SensorId")
-                        .IsRequired()
+                    b.Property<Guid>("SensorId")
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
+                        .HasColumnType("uuid")
                         .HasColumnName("sensor_id");
 
                     b.Property<string>("Status")
@@ -214,10 +212,9 @@ namespace TC.Agro.SensorIngest.Infrastructure.Migrations
                         .HasColumnType("double precision")
                         .HasColumnName("rainfall");
 
-                    b.Property<string>("SensorId")
-                        .IsRequired()
+                    b.Property<Guid>("SensorId")
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
+                        .HasColumnType("uuid")
                         .HasColumnName("sensor_id");
 
                     b.Property<double?>("SoilMoisture")

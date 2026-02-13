@@ -2,7 +2,7 @@ namespace TC.Agro.SensorIngest.Application.UseCases.GetReadingsHistory
 {
     public sealed record GetReadingsHistoryQuery : ICachedQuery<GetReadingsHistoryResponse>
     {
-        public string SensorId { get; init; } = default!;
+        public Guid SensorId { get; init; }
         public int Days { get; init; } = 7;
 
         private string? _cacheKey;

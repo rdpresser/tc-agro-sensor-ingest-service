@@ -4,8 +4,7 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Readings
     {
         public override void Configure()
         {
-            Get("latest");
-            RoutePrefixOverride("readings");
+            Get("readings/latest");
             RequestBinder(new RequestBinder<GetLatestReadingsQuery>(BindingSource.QueryParams));
             PreProcessor<QueryCachingPreProcessorBehavior<GetLatestReadingsQuery, GetLatestReadingsResponse>>();
             PostProcessor<QueryCachingPostProcessorBehavior<GetLatestReadingsQuery, GetLatestReadingsResponse>>();

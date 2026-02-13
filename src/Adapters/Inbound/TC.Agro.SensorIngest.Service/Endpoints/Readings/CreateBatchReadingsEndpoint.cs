@@ -4,8 +4,7 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Readings
     {
         public override void Configure()
         {
-            Post("batch");
-            RoutePrefixOverride("readings");
+            Post("readings/batch");
             PostProcessor<LoggingCommandPostProcessorBehavior<CreateBatchReadingsCommand, CreateBatchReadingsResponse>>();
             PostProcessor<CacheInvalidationPostProcessorBehavior<CreateBatchReadingsCommand, CreateBatchReadingsResponse>>();
 
@@ -25,7 +24,7 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Readings
                 s.ExampleRequest = new CreateBatchReadingsCommand(
                 [
                     new SensorReadingInput(
-                        SensorId: "sensor-001",
+                        SensorId: Guid.NewGuid(),
                         PlotId: Guid.Parse("a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
                         Timestamp: DateTime.UtcNow,
                         Temperature: 28.5,
@@ -34,7 +33,7 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Readings
                         Rainfall: 0.0,
                         BatteryLevel: 85.0),
                     new SensorReadingInput(
-                        SensorId: "sensor-002",
+                        SensorId: Guid.NewGuid(),
                         PlotId: Guid.Parse("a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
                         Timestamp: DateTime.UtcNow,
                         Temperature: 29.1,
@@ -48,8 +47,8 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Readings
                     FailedCount: 0,
                     Results:
                     [
-                        new BatchReadingResult(Guid.NewGuid(), "sensor-001", true),
-                        new BatchReadingResult(Guid.NewGuid(), "sensor-002", true)
+                        new BatchReadingResult(Guid.NewGuid(), Guid.NewGuid(), true),
+                        new BatchReadingResult(Guid.NewGuid(), Guid.NewGuid(), true)
                     ]);
                 s.Responses[202] = "Batch accepted and processed.";
                 s.Responses[400] = "Invalid request data.";
@@ -60,13 +59,6 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Readings
         public override async Task HandleAsync(CreateBatchReadingsCommand req, CancellationToken ct)
         {
             var response = await req.ExecuteAsync(ct: ct).ConfigureAwait(false);
-
-            if (response.IsSuccess)
-            {
-                await HttpContext.Response.SendAsync(response.Value, 202, cancellation: ct).ConfigureAwait(false);
-                return;
-            }
-
             await MatchResultAsync(response, ct).ConfigureAwait(false);
         }
     }

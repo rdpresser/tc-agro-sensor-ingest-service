@@ -1,10 +1,8 @@
-using TC.Agro.SensorIngest.Domain.ValueObjects;
-
 namespace TC.Agro.SensorIngest.Domain.Aggregates
 {
     public sealed class SensorAggregate : BaseAggregateRoot
     {
-        public string SensorId { get; private set; } = default!;
+        public Guid SensorId { get; private set; }
         public Guid PlotId { get; private set; }
         public string PlotName { get; private set; } = default!;
         public SensorStatus Status { get; private set; } = default!;
@@ -22,17 +20,15 @@ namespace TC.Agro.SensorIngest.Domain.Aggregates
         #region Factories
 
         public static Result<SensorAggregate> Create(
-            string sensorId,
+            Guid sensorId,
             Guid plotId,
             string plotName,
             double battery)
         {
             var errors = new List<ValidationError>();
 
-            if (string.IsNullOrWhiteSpace(sensorId))
+            if (sensorId == Guid.Empty)
                 errors.Add(new ValidationError("SensorId.Required", "SensorId is required."));
-            else if (sensorId.Length > 100)
-                errors.Add(new ValidationError("SensorId.TooLong", "SensorId must be at most 100 characters."));
 
             if (plotId == Guid.Empty)
                 errors.Add(new ValidationError("PlotId.Required", "PlotId is required."));
@@ -141,7 +137,7 @@ namespace TC.Agro.SensorIngest.Domain.Aggregates
 
         public record SensorRegisteredDomainEvent(
             Guid AggregateId,
-            string SensorId,
+            Guid SensorId,
             Guid PlotId,
             string PlotName,
             double Battery,
@@ -149,7 +145,7 @@ namespace TC.Agro.SensorIngest.Domain.Aggregates
 
         public record SensorStatusChangedDomainEvent(
             Guid AggregateId,
-            string SensorId,
+            Guid SensorId,
             string OldStatus,
             string NewStatus,
             DateTimeOffset OccurredOn) : BaseDomainEvent(AggregateId, OccurredOn);

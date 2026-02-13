@@ -1,7 +1,3 @@
-using TC.Agro.SensorIngest.Application;
-using TC.Agro.SensorIngest.Service.Hubs;
-using TC.Agro.SensorIngest.Service.Telemetry;
-
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddSensorIngestServices(builder);
@@ -18,12 +14,8 @@ builder.Host.UseCustomSerilog(
 var app = builder.Build();
 
 if (!builder.Environment.IsEnvironment("Testing"))
-{
-    if (builder.Environment.IsDevelopment())
-    {
-        await app.CreateMessageDatabase().ConfigureAwait(false);
-    }
-
+{    
+    await app.CreateMessageDatabase().ConfigureAwait(false);
     await app.ApplyMigrations().ConfigureAwait(false);
 }
 
@@ -54,9 +46,6 @@ app.UseCustomMiddlewares();
 
 // CRITICAL: TelemetryMiddleware MUST come AFTER CorrelationMiddleware to access correlationIdGenerator.CorrelationId
 app.UseMiddleware<TC.Agro.SensorIngest.Service.Middleware.TelemetryMiddleware>();
-
-// Use metrics authentication middleware extension
-app.UseMetricsAuthentication();
 
 app.MapHub<SensorHub>("/sensorHub");
 

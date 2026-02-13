@@ -4,8 +4,12 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Sensors
     {
         public override void Configure()
         {
-            Get("{SensorId}/readings");
-            RoutePrefixOverride("sensors");
+            Get("sensors/{SensorId:guid}/readings");
+
+            // Force FastEndpoints to bind from query parameters
+            RequestBinder(new RequestBinder<GetReadingsHistoryQuery>(BindingSource.QueryParams));
+            RequestBinder(new RequestBinder<GetReadingsHistoryQuery>(BindingSource.RouteValues));
+
             PreProcessor<QueryCachingPreProcessorBehavior<GetReadingsHistoryQuery, GetReadingsHistoryResponse>>();
             PostProcessor<QueryCachingPostProcessorBehavior<GetReadingsHistoryQuery, GetReadingsHistoryResponse>>();
 

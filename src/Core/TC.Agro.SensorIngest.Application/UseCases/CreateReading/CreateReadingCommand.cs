@@ -1,7 +1,7 @@
 namespace TC.Agro.SensorIngest.Application.UseCases.CreateReading
 {
     public sealed record CreateReadingCommand(
-        string SensorId,
+        Guid SensorId,
         Guid PlotId,
         DateTime Timestamp,
         double? Temperature,

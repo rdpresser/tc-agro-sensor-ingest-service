@@ -37,6 +37,14 @@
     <PackageVersion Include="Serilog.Sinks.Grafana.Loki" Version="8.3.2" />
     <PackageVersion Include="Serilog.Sinks.OpenTelemetry" Version="4.2.0" />
     <!-- ========================= -->
+    <!-- Caching -->
+    <!-- ========================= -->
+    <PackageVersion Include="ZiggyCreatures.FusionCache" Version="2.5.0" />
+    <PackageVersion Include="ZiggyCreatures.FusionCache.Serialization.SystemTextJson" Version="2.5.0" />
+    <PackageVersion Include="ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis" Version="2.5.0" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.2" />
+    <PackageVersion Include="StackExchange.Redis" Version="2.9.56" />
+    <!-- ========================= -->
     <!-- Misc -->
     <!-- ========================= -->
     <PackageVersion Include="DotNetEnv" Version="3.1.1" />
@@ -78,12 +86,6 @@
     <PackageVersion Include="Npgsql.OpenTelemetry" Version="10.0.1" />
     <PackageVersion Include="ZiggyCreatures.FusionCache.OpenTelemetry" Version="2.5.0" />
     <!-- ========================= -->
-    <!-- Roslyn / Code Analysis -->
-    <!-- ========================= -->
-    <PackageVersion Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="5.0.0" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="5.0.0" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="5.0.0" />
-    <!-- ========================= -->
     <!-- EF Core / DB -->
     <!-- ========================= -->
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.3" />
@@ -96,7 +98,6 @@
     <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.3" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
     <PackageVersion Include="Npgsql" Version="10.0.1" />
-    <PackageVersion Include="Z.EntityFramework.Plus.EFCore" Version="10.105.2.1" />
     <!-- ========================= -->
     <!-- Domain / Application -->
     <!-- ========================= -->

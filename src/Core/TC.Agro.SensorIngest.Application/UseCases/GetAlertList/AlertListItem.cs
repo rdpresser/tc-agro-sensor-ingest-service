@@ -7,7 +7,7 @@ namespace TC.Agro.SensorIngest.Application.UseCases.GetAlertList
         string Message,
         Guid PlotId,
         string PlotName,
-        string SensorId,
+        Guid SensorId,
         string Status,
         DateTimeOffset CreatedAt,
         DateTimeOffset? ResolvedAt);

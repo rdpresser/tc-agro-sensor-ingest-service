@@ -3,7 +3,7 @@ namespace TC.Agro.SensorIngest.Application.Abstractions.Ports
     public interface ISensorReadingRepository : IBaseRepository<SensorReadingAggregate>
     {
         Task<IEnumerable<SensorReadingAggregate>> GetLatestBySensorIdAsync(
-            string sensorId,
+            Guid sensorId,
             int limit = 10,
             CancellationToken cancellationToken = default);
 

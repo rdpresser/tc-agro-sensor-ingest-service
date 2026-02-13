@@ -4,8 +4,7 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Alerts
     {
         public override void Configure()
         {
-            Post(string.Empty);
-            RoutePrefixOverride("alerts");
+            Post("alerts");
             PostProcessor<LoggingCommandPostProcessorBehavior<CreateAlertCommand, CreateAlertResponse>>();
             PostProcessor<CacheInvalidationPostProcessorBehavior<CreateAlertCommand, CreateAlertResponse>>();
 
@@ -27,7 +26,7 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Alerts
                     Message: "Temperature exceeded 40C threshold",
                     PlotId: Guid.Parse("a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
                     PlotName: "Plot Alpha",
-                    SensorId: "SENSOR-001");
+                    SensorId: Guid.NewGuid());
                 s.Responses[201] = "Alert created successfully.";
                 s.Responses[400] = "Invalid request data.";
                 s.Responses[401] = "Authentication required.";
@@ -38,13 +37,6 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Alerts
         public override async Task HandleAsync(CreateAlertCommand req, CancellationToken ct)
         {
             var response = await req.ExecuteAsync(ct: ct).ConfigureAwait(false);
-
-            if (response.IsSuccess)
-            {
-                await HttpContext.Response.SendAsync(response.Value, 201, cancellation: ct).ConfigureAwait(false);
-                return;
-            }
-
             await MatchResultAsync(response, ct).ConfigureAwait(false);
         }
     }

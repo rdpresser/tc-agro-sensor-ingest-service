@@ -1,13 +1,10 @@
-using TC.Agro.SensorIngest.Application.UseCases.RegisterSensor;
-
 namespace TC.Agro.SensorIngest.Service.Endpoints.Sensors
 {
     public sealed class RegisterSensorEndpoint : BaseApiEndpoint<RegisterSensorCommand, RegisterSensorResponse>
     {
         public override void Configure()
         {
-            Post(string.Empty);
-            RoutePrefixOverride("sensors");
+            Post("sensors");
             PostProcessor<LoggingCommandPostProcessorBehavior<RegisterSensorCommand, RegisterSensorResponse>>();
             PostProcessor<CacheInvalidationPostProcessorBehavior<RegisterSensorCommand, RegisterSensorResponse>>();
 
@@ -25,7 +22,7 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Sensors
                 s.Description = "Creates a new sensor entity associated with a plot. " +
                                "The sensor starts with Online status.";
                 s.ExampleRequest = new RegisterSensorCommand(
-                    SensorId: "SENSOR-001",
+                    SensorId: Guid.NewGuid(),
                     PlotId: Guid.Parse("a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
                     PlotName: "Plot Alpha",
                     Battery: 95.0);

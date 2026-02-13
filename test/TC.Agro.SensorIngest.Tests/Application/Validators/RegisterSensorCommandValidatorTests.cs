@@ -9,8 +9,10 @@ namespace TC.Agro.SensorIngest.Tests.Application.Validators
         [Fact]
         public void Validate_WithValidCommand_ShouldPass()
         {
+            var sensorId = Guid.NewGuid();
+
             var command = new RegisterSensorCommand(
-                SensorId: "SENSOR-001",
+                SensorId: sensorId,
                 PlotId: Guid.NewGuid(),
                 PlotName: "Plot Alpha",
                 Battery: 95.0);
@@ -24,7 +26,7 @@ namespace TC.Agro.SensorIngest.Tests.Application.Validators
         public void Validate_WithEmptySensorId_ShouldFail()
         {
             var command = new RegisterSensorCommand(
-                SensorId: "",
+                SensorId: Guid.Empty,
                 PlotId: Guid.NewGuid(),
                 PlotName: "Plot Alpha",
                 Battery: 95.0);
@@ -39,7 +41,7 @@ namespace TC.Agro.SensorIngest.Tests.Application.Validators
         public void Validate_WithEmptyPlotId_ShouldFail()
         {
             var command = new RegisterSensorCommand(
-                SensorId: "SENSOR-001",
+                SensorId: Guid.NewGuid(),
                 PlotId: Guid.Empty,
                 PlotName: "Plot Alpha",
                 Battery: 95.0);
@@ -54,7 +56,7 @@ namespace TC.Agro.SensorIngest.Tests.Application.Validators
         public void Validate_WithEmptyPlotName_ShouldFail()
         {
             var command = new RegisterSensorCommand(
-                SensorId: "SENSOR-001",
+                SensorId: Guid.NewGuid(),
                 PlotId: Guid.NewGuid(),
                 PlotName: "",
                 Battery: 95.0);
@@ -71,7 +73,7 @@ namespace TC.Agro.SensorIngest.Tests.Application.Validators
         public void Validate_WithInvalidBattery_ShouldFail(double battery)
         {
             var command = new RegisterSensorCommand(
-                SensorId: "SENSOR-001",
+                SensorId: Guid.NewGuid(),
                 PlotId: Guid.NewGuid(),
                 PlotName: "Plot Alpha",
                 Battery: battery);

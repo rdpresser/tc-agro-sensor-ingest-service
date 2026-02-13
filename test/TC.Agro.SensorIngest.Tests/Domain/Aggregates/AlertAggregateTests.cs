@@ -15,7 +15,7 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Aggregates
                 message: "Temperature exceeded 40C threshold",
                 plotId: Guid.NewGuid(),
                 plotName: "Plot Alpha",
-                sensorId: "SENSOR-001");
+                sensorId: Guid.NewGuid());
 
             result.IsSuccess.ShouldBeTrue();
             result.Value.Severity.Value.ShouldBe("Warning");
@@ -39,7 +39,7 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Aggregates
                 message: "Test message",
                 plotId: Guid.NewGuid(),
                 plotName: "Plot Alpha",
-                sensorId: "SENSOR-001");
+                sensorId: Guid.NewGuid());
 
             result.IsSuccess.ShouldBeFalse();
             result.ValidationErrors.ShouldContain(e => e.Identifier == "AlertSeverity.InvalidValue");
@@ -54,7 +54,7 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Aggregates
                 message: "Test message",
                 plotId: Guid.NewGuid(),
                 plotName: "Plot Alpha",
-                sensorId: "SENSOR-001");
+                sensorId: Guid.NewGuid());
 
             result.IsSuccess.ShouldBeFalse();
             result.ValidationErrors.ShouldContain(e => e.Identifier == "Title.Required");
@@ -69,7 +69,7 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Aggregates
                 message: "",
                 plotId: Guid.NewGuid(),
                 plotName: "Plot Alpha",
-                sensorId: "SENSOR-001");
+                sensorId: Guid.NewGuid());
 
             result.IsSuccess.ShouldBeFalse();
             result.ValidationErrors.ShouldContain(e => e.Identifier == "Message.Required");
@@ -84,7 +84,7 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Aggregates
                 message: "Test message",
                 plotId: Guid.Empty,
                 plotName: "Plot Alpha",
-                sensorId: "SENSOR-001");
+                sensorId: Guid.NewGuid());
 
             result.IsSuccess.ShouldBeFalse();
             result.ValidationErrors.ShouldContain(e => e.Identifier == "PlotId.Required");
@@ -99,7 +99,7 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Aggregates
                 message: "Test message",
                 plotId: Guid.NewGuid(),
                 plotName: "Plot Alpha",
-                sensorId: "");
+                sensorId: Guid.Empty);
 
             result.IsSuccess.ShouldBeFalse();
             result.ValidationErrors.ShouldContain(e => e.Identifier == "SensorId.Required");
@@ -118,7 +118,7 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Aggregates
                 message: "Test message",
                 plotId: Guid.NewGuid(),
                 plotName: "Plot Alpha",
-                sensorId: "SENSOR-001").Value;
+                sensorId: Guid.NewGuid()).Value;
 
             var result = alert.Resolve();
 
@@ -136,7 +136,7 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Aggregates
                 message: "Test message",
                 plotId: Guid.NewGuid(),
                 plotName: "Plot Alpha",
-                sensorId: "SENSOR-001").Value;
+                sensorId: Guid.NewGuid()).Value;
 
             alert.Resolve();
             var result = alert.Resolve();
@@ -153,7 +153,7 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Aggregates
                 message: "Test message",
                 plotId: Guid.NewGuid(),
                 plotName: "Plot Alpha",
-                sensorId: "SENSOR-001").Value;
+                sensorId: Guid.NewGuid()).Value;
 
             var initialEventCount = alert.UncommittedEvents.Count;
             alert.Resolve();

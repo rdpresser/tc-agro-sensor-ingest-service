@@ -1,3 +1,5 @@
+using TC.Agro.SharedKernel.Infrastructure.Database.EfCore;
+
 namespace TC.Agro.SensorIngest.Service.Extensions
 {
     [ExcludeFromCodeCoverage]
@@ -6,16 +8,17 @@ namespace TC.Agro.SensorIngest.Service.Extensions
         public static async Task ApplyMigrations(this IApplicationBuilder app)
         {
             using var scope = app.ApplicationServices.CreateScope();
-            await using var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            var logger = scope.ServiceProvider.GetService<ILogger<ApplicationDbContext>>();
+            var dbContext = scope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
 
-            await dbContext.Database.MigrateAsync().ConfigureAwait(false);
+            var logger = scope.ServiceProvider.GetService<ILogger<IApplicationDbContext>>();
+
+            await dbContext.DbContext.Database.MigrateAsync().ConfigureAwait(false);
             await EnsureTimescaleDbAsync(dbContext, logger).ConfigureAwait(false);
         }
 
-        private static async Task EnsureTimescaleDbAsync(ApplicationDbContext dbContext, Microsoft.Extensions.Logging.ILogger? logger = null)
+        private static async Task EnsureTimescaleDbAsync(IApplicationDbContext dbContext, Microsoft.Extensions.Logging.ILogger? logger = null)
         {
-            var conn = dbContext.Database.GetDbConnection();
+            var conn = dbContext.DbContext.Database.GetDbConnection();
             await conn.OpenAsync().ConfigureAwait(false);
 
             try

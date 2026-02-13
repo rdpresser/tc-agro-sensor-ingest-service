@@ -28,8 +28,8 @@ namespace TC.Agro.SensorIngest.Application.UseCases.GetLatestReadings
             _logger.LogInformation(
                 "Retrieved {Count} latest readings for SensorId={SensorId}, PlotId={PlotId}",
                 readings?.Count() ?? 0,
-                query.SensorId ?? "all",
-                query.PlotId?.ToString() ?? "all");
+                query.SensorId,
+                query.PlotId);
 
             return Result.Success(new GetLatestReadingsResponse(readings?.ToList() ?? []));
         }

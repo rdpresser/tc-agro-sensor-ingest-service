@@ -1,6 +1,4 @@
-using TC.Agro.SensorIngest.Application.Abstractions.Ports;
 using TC.Agro.SensorIngest.Application.UseCases.GetAlertList;
-using TC.Agro.SensorIngest.Domain.ValueObjects;
 
 namespace TC.Agro.SensorIngest.Infrastructure.Repositories
 {

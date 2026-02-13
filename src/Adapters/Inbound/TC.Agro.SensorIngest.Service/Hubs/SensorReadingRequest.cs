@@ -1,7 +1,7 @@
 namespace TC.Agro.SensorIngest.Service.Hubs
 {
     public sealed record SensorReadingRequest(
-        string SensorId,
+        Guid SensorId,
         Guid PlotId,
         double? Temperature,
         double? Humidity,

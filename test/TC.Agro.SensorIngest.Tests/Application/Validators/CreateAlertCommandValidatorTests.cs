@@ -15,7 +15,7 @@ namespace TC.Agro.SensorIngest.Tests.Application.Validators
                 Message: "Temperature exceeded 40C threshold",
                 PlotId: Guid.NewGuid(),
                 PlotName: "Plot Alpha",
-                SensorId: "SENSOR-001");
+                SensorId: Guid.NewGuid());
 
             var result = _validator.Validate(command);
 
@@ -31,7 +31,7 @@ namespace TC.Agro.SensorIngest.Tests.Application.Validators
                 Message: "Test message",
                 PlotId: Guid.NewGuid(),
                 PlotName: "Plot Alpha",
-                SensorId: "SENSOR-001");
+                SensorId: Guid.NewGuid());
 
             var result = _validator.Validate(command);
 
@@ -48,7 +48,7 @@ namespace TC.Agro.SensorIngest.Tests.Application.Validators
                 Message: "Test message",
                 PlotId: Guid.NewGuid(),
                 PlotName: "Plot Alpha",
-                SensorId: "SENSOR-001");
+                SensorId: Guid.NewGuid());
 
             var result = _validator.Validate(command);
 
@@ -65,7 +65,7 @@ namespace TC.Agro.SensorIngest.Tests.Application.Validators
                 Message: "Test message",
                 PlotId: Guid.NewGuid(),
                 PlotName: "Plot Alpha",
-                SensorId: "SENSOR-001");
+                SensorId: Guid.NewGuid());
 
             var result = _validator.Validate(command);
 
@@ -82,7 +82,7 @@ namespace TC.Agro.SensorIngest.Tests.Application.Validators
                 Message: "",
                 PlotId: Guid.NewGuid(),
                 PlotName: "Plot Alpha",
-                SensorId: "SENSOR-001");
+                SensorId: Guid.NewGuid());
 
             var result = _validator.Validate(command);
 
@@ -99,7 +99,7 @@ namespace TC.Agro.SensorIngest.Tests.Application.Validators
                 Message: "Test message",
                 PlotId: Guid.Empty,
                 PlotName: "Plot Alpha",
-                SensorId: "SENSOR-001");
+                SensorId: Guid.NewGuid());
 
             var result = _validator.Validate(command);
 
@@ -116,7 +116,7 @@ namespace TC.Agro.SensorIngest.Tests.Application.Validators
                 Message: "Test message",
                 PlotId: Guid.NewGuid(),
                 PlotName: "Plot Alpha",
-                SensorId: "");
+                SensorId: Guid.Empty);
 
             var result = _validator.Validate(command);
 

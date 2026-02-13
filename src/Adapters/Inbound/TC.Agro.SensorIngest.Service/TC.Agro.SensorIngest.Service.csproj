@@ -41,6 +41,10 @@
     <PackageReference Include="Npgsql.OpenTelemetry" />
     <PackageReference Include="ZiggyCreatures.FusionCache.OpenTelemetry" />
 
+    <!-- Caching (FusionCache) -->
+    <PackageReference Include="ZiggyCreatures.FusionCache.Serialization.SystemTextJson" />
+    <PackageReference Include="ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis" />
+
     <!-- Logging -->
     <PackageReference Include="Serilog.AspNetCore" />
     <PackageReference Include="Serilog.Enrichers.Sensitive" />

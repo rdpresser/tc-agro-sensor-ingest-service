@@ -1,18 +1,15 @@
-using TC.Agro.SensorIngest.Application.UseCases.GetLatestReadings;
-using TC.Agro.SensorIngest.Application.UseCases.GetReadingsHistory;
-
 namespace TC.Agro.SensorIngest.Application.Abstractions.Ports
 {
     public interface ISensorReadingReadStore
     {
         Task<IEnumerable<LatestReadingItem>> GetLatestReadingsAsync(
-            string? sensorId = null,
+            Guid? sensorId = null,
             Guid? plotId = null,
             int limit = 10,
             CancellationToken cancellationToken = default);
 
         Task<IEnumerable<ReadingHistoryItem>> GetHistoryAsync(
-            string sensorId,
+            Guid sensorId,
             DateTime from,
             DateTime to,
             CancellationToken cancellationToken = default);

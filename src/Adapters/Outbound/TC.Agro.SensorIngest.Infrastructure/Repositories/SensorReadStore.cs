@@ -1,4 +1,3 @@
-using TC.Agro.SensorIngest.Application.Abstractions.Ports;
 using TC.Agro.SensorIngest.Application.UseCases.GetSensorList;
 
 namespace TC.Agro.SensorIngest.Infrastructure.Repositories
@@ -39,7 +38,7 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
                 x.LastSoilMoisture)).ToList();
         }
 
-        public async Task<SensorDetailItem?> GetByIdAsync(string sensorId, CancellationToken ct)
+        public async Task<SensorDetailItem?> GetByIdAsync(Guid sensorId, CancellationToken ct)
         {
             var entity = await _dbContext.Sensors
                 .AsNoTracking()

@@ -12,14 +12,16 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateBatchReadings
             RuleForEach(x => x.Readings).ChildRules(reading =>
             {
                 reading.RuleFor(r => r.SensorId)
-                    .NotEmpty().WithMessage("SensorId is required.")
-                    .MaximumLength(100).WithMessage("SensorId must be at most 100 characters.");
+                    .NotEmpty()
+                        .WithMessage("SensorId is required.");
 
                 reading.RuleFor(r => r.PlotId)
-                    .NotEmpty().WithMessage("PlotId is required.");
+                    .NotEmpty()
+                        .WithMessage("PlotId is required.");
 
                 reading.RuleFor(r => r.Timestamp)
-                    .NotEmpty().WithMessage("Timestamp is required.");
+                    .NotEmpty()
+                        .WithMessage("Timestamp is required.");
 
                 reading.RuleFor(r => r)
                     .Must(r => r.Temperature.HasValue || r.Humidity.HasValue || r.SoilMoisture.HasValue || r.Rainfall.HasValue)

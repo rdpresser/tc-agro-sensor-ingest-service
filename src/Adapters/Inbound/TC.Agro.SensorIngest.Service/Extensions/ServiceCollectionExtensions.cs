@@ -1,3 +1,5 @@
+using JasperFx.Resources;
+
 namespace TC.Agro.SensorIngest.Service.Extensions
 {
     internal static class ServiceCollectionExtensions
@@ -19,27 +21,24 @@ namespace TC.Agro.SensorIngest.Service.Extensions
                 .AddCustomFastEndpoints(builder.Configuration)
                 .AddCustomHealthCheck()
                 .AddCustomOpenTelemetry(builder, builder.Configuration)
-                .AddSingleton<Telemetry.SensorIngestMetrics>()
-                .AddSingleton<Telemetry.SystemMetrics>();
+                .AddSingleton<SensorIngestMetrics>()
+                .AddSingleton<SystemMetrics>();
 
             services.AddSignalR();
 
-            services.AddScoped<ISensorHubNotifier, TC.Agro.SensorIngest.Service.Services.SensorHubNotifier>();
+            services.AddScoped<ISensorHubNotifier, Services.SensorHubNotifier>();
 
             return services;
         }
 
         public static IServiceCollection AddCustomCors(this IServiceCollection services, IConfiguration configuration)
         {
-            var allowedOrigins = configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
-                ?? ["http://localhost:3000", "http://localhost:5173"];
-
             services.AddCors(options =>
             {
                 options.AddPolicy("DefaultCorsPolicy", builder =>
                 {
                     builder
-                        .WithOrigins(allowedOrigins)
+                        .SetIsOriginAllowed((host) => true)
                         .AllowAnyMethod()
                         .AllowAnyHeader()
                         .AllowCredentials();
@@ -90,8 +89,8 @@ namespace TC.Agro.SensorIngest.Service.Extensions
             {
                 discoveryOptions.Assemblies =
                 [
-                    typeof(Application.DependencyInjection).Assembly,
-                    typeof(ServiceCollectionExtensions).Assembly
+                    typeof(Application.DependencyInjection).Assembly
+                    //typeof(ServiceCollectionExtensions).Assembly
                 ];
             })
             .SwaggerDocument(o =>
@@ -113,10 +112,33 @@ namespace TC.Agro.SensorIngest.Service.Extensions
 
         public static IServiceCollection AddCustomAuthentication(this IServiceCollection services, IConfiguration configuration)
         {
-            var jwtSettings = configuration.GetSection("Auth:Jwt").Get<JwtOptions>();
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(opt =>
+            {
+                var jwtSettings = JwtHelper.Build(configuration);
 
-            services.AddAuthenticationJwtBearer(s => s.SigningKey = jwtSettings!.SecretKey)
-                    .AddAuthorization()
+                opt.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidIssuer = jwtSettings!.Issuer, // Ensure this matches the issuer in your token
+                    ValidateAudience = true,
+                    ValidAudiences = jwtSettings!.Audience, // Ensure this matches the audience in your token
+                    ValidateLifetime = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(jwtSettings!.SecretKey ?? string.Empty)), // Use the same secret key
+                    ValidateIssuerSigningKey = true,
+                    RoleClaimType = "role",
+                    NameClaimType = JwtRegisteredClaimNames.Name
+                };
+
+                opt.MapInboundClaims = false; // Keep original claim types
+            });
+
+            services.AddAuthorization()
                     .AddHttpContextAccessor();
 
             return services;
@@ -136,19 +158,40 @@ namespace TC.Agro.SensorIngest.Service.Extensions
 
         private static IServiceCollection AddCaching(this IServiceCollection services)
         {
+            // Add FusionCache with Redis backplane for distributed cache coherence
             services.AddFusionCache()
                 .WithDefaultEntryOptions(options =>
                 {
+                    // L1 (Memory) cache duration - shorter to reduce incoherence window
                     options.Duration = TimeSpan.FromSeconds(20);
-                    options.DistributedCacheDuration = TimeSpan.FromSeconds(30);
+
+                    // L2 (Redis) cache duration - longer for persistence
+                    options.DistributedCacheDuration = TimeSpan.FromSeconds(60);
+
+                    // Reduce memory cache duration to mitigate incoherence
+                    options.MemoryCacheDuration = TimeSpan.FromSeconds(10);
                 })
                 .WithDistributedCache(sp =>
                 {
                     var cacheProvider = sp.GetRequiredService<ICacheProvider>();
 
-                    var options = new RedisCacheOptions { Configuration = cacheProvider.ConnectionString, InstanceName = cacheProvider.InstanceName };
+                    var options = new RedisCacheOptions
+                    {
+                        Configuration = cacheProvider.ConnectionString,
+                        InstanceName = cacheProvider.InstanceName
+                    };
 
                     return new RedisCache(options);
+                })
+                .WithBackplane(sp =>
+                {
+                    var cacheProvider = sp.GetRequiredService<ICacheProvider>();
+
+                    // Create Redis backplane for cache coherence across multiple pods
+                    return new RedisBackplane(new RedisBackplaneOptions
+                    {
+                        Configuration = cacheProvider.ConnectionString
+                    });
                 })
                 .WithSerializer(new FusionCacheSystemTextJsonSerializer())
                 .AsHybridCache();
@@ -161,11 +204,11 @@ namespace TC.Agro.SensorIngest.Service.Extensions
             IHostApplicationBuilder builder,
             IConfiguration configuration)
         {
-            var serviceVersion = typeof(Program).Assembly.GetName().Version?.ToString() ?? Telemetry.TelemetryConstants.Version;
+            var serviceVersion = typeof(Program).Assembly.GetName().Version?.ToString() ?? TelemetryConstants.Version;
             var environment = configuration["ASPNETCORE_ENVIRONMENT"] ?? "Development";
             var instanceId = Environment.MachineName;
-            var serviceName = Telemetry.TelemetryConstants.ServiceName;
-            var serviceNamespace = Telemetry.TelemetryConstants.ServiceNamespace;
+            var serviceName = TelemetryConstants.ServiceName;
+            var serviceNamespace = TelemetryConstants.ServiceNamespace;
 
             var otelBuilder = services.AddOpenTelemetry()
                 .ConfigureResource(resource => resource
@@ -192,13 +235,13 @@ namespace TC.Agro.SensorIngest.Service.Extensions
                         .AddHttpClientInstrumentation()
                         .AddRuntimeInstrumentation()
                         .AddFusionCacheInstrumentation()
-                        .AddMeter("Npgsql")
+                        .AddNpgsqlInstrumentation()
                         .AddMeter("Microsoft.AspNetCore.Hosting")
                         .AddMeter("Microsoft.AspNetCore.Server.Kestrel")
                         .AddMeter("System.Net.Http")
                         .AddMeter("System.Runtime")
                         .AddMeter("Wolverine")
-                        .AddMeter(Telemetry.TelemetryConstants.SensorIngestMeterName)
+                        .AddMeter(TelemetryConstants.SensorIngestMeterName)
                         .AddPrometheusExporter();
                 })
                 .WithTracing(tracing =>
@@ -233,7 +276,7 @@ namespace TC.Agro.SensorIngest.Service.Extensions
                                 if (!string.IsNullOrWhiteSpace(userId))
                                     activity.SetTag("user.id", userId);
 
-                                if (request.HttpContext.Request.Headers.TryGetValue(Telemetry.TelemetryConstants.CorrelationIdHeader, out var correlationId))
+                                if (request.HttpContext.Request.Headers.TryGetValue(TelemetryConstants.CorrelationIdHeader, out var correlationId))
                                     activity.SetTag("correlation_id", correlationId.ToString());
 
                                 var roles = string.Join(",", request.HttpContext.User?.FindAll(System.Security.Claims.ClaimTypes.Role).Select(c => c.Value) ?? []);
@@ -267,12 +310,12 @@ namespace TC.Agro.SensorIngest.Service.Extensions
                         })
                         .AddRedisInstrumentation()
                         .AddFusionCacheInstrumentation()
-                        .AddSource("Npgsql")
-                        .AddSource(Telemetry.TelemetryConstants.SensorIngestActivitySource)
-                        .AddSource(Telemetry.TelemetryConstants.DatabaseActivitySource)
-                        .AddSource(Telemetry.TelemetryConstants.CacheActivitySource)
-                        .AddSource(Telemetry.TelemetryConstants.HandlersActivitySource)
-                        .AddSource(Telemetry.TelemetryConstants.FastEndpointsActivitySource)
+                        .AddNpgsql()
+                        .AddSource(TelemetryConstants.SensorIngestActivitySource)
+                        .AddSource(TelemetryConstants.DatabaseActivitySource)
+                        .AddSource(TelemetryConstants.CacheActivitySource)
+                        .AddSource(TelemetryConstants.HandlersActivitySource)
+                        .AddSource(TelemetryConstants.FastEndpointsActivitySource)
                         .AddSource("Wolverine");
                 });
 
@@ -397,6 +440,11 @@ namespace TC.Agro.SensorIngest.Service.Extensions
                 if (mqConnectionFactory.AutoPurgeOnStartup)
                     rabbitOpts.AutoPurgeOnStartup();
             });
+
+            // -------------------------------
+            // Ensure all messaging resources and schema are created at startup
+            // -------------------------------
+            builder.Services.AddResourceSetupOnStartup();
 
             return builder;
         }

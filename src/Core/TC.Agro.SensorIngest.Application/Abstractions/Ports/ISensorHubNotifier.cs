@@ -3,7 +3,7 @@ namespace TC.Agro.SensorIngest.Application.Abstractions.Ports
     public interface ISensorHubNotifier
     {
         Task NotifySensorReadingAsync(
-            string sensorId,
+            Guid sensorId,
             Guid plotId,
             double? temperature,
             double? humidity,
@@ -18,13 +18,13 @@ namespace TC.Agro.SensorIngest.Application.Abstractions.Ports
             string message,
             Guid plotId,
             string plotName,
-            string sensorId,
+            Guid sensorId,
             string status,
             DateTimeOffset createdAt,
             CancellationToken ct = default);
 
         Task NotifySensorStatusChangedAsync(
-            string sensorId,
+            Guid sensorId,
             Guid plotId,
             string status,
             CancellationToken ct = default);

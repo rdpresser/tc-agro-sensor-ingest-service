@@ -1,4 +1,3 @@
-using TC.Agro.SensorIngest.Application.Abstractions.Ports;
 using TC.Agro.SensorIngest.Application.UseCases.GetLatestReadings;
 using TC.Agro.SensorIngest.Application.UseCases.GetReadingsHistory;
 
@@ -14,15 +13,15 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
         }
 
         public async Task<IEnumerable<LatestReadingItem>> GetLatestReadingsAsync(
-            string? sensorId = null,
+            Guid? sensorId = null,
             Guid? plotId = null,
             int limit = 10,
             CancellationToken cancellationToken = default)
         {
             var query = _dbContext.SensorReadings.AsQueryable();
 
-            if (!string.IsNullOrEmpty(sensorId))
-                query = query.Where(x => x.SensorId == sensorId);
+            if (sensorId.HasValue)
+                query = query.Where(x => x.SensorId == sensorId.Value);
 
             if (plotId.HasValue)
                 query = query.Where(x => x.PlotId == plotId.Value);
@@ -45,7 +44,7 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
         }
 
         public async Task<IEnumerable<ReadingHistoryItem>> GetHistoryAsync(
-            string sensorId,
+            Guid sensorId,
             DateTime from,
             DateTime to,
             CancellationToken cancellationToken = default)

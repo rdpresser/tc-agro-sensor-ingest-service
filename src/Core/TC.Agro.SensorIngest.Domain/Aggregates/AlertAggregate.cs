@@ -1,5 +1,3 @@
-using TC.Agro.SensorIngest.Domain.ValueObjects;
-
 namespace TC.Agro.SensorIngest.Domain.Aggregates
 {
     public sealed class AlertAggregate : BaseAggregateRoot
@@ -9,7 +7,7 @@ namespace TC.Agro.SensorIngest.Domain.Aggregates
         public string Message { get; private set; } = default!;
         public Guid PlotId { get; private set; }
         public string PlotName { get; private set; } = default!;
-        public string SensorId { get; private set; } = default!;
+        public Guid SensorId { get; private set; }
         public AlertStatus Status { get; private set; } = default!;
         public DateTimeOffset? ResolvedAt { get; private set; }
 
@@ -26,7 +24,7 @@ namespace TC.Agro.SensorIngest.Domain.Aggregates
             string message,
             Guid plotId,
             string plotName,
-            string sensorId)
+            Guid sensorId)
         {
             var errors = new List<ValidationError>();
 
@@ -52,10 +50,8 @@ namespace TC.Agro.SensorIngest.Domain.Aggregates
             else if (plotName.Length > 200)
                 errors.Add(new ValidationError("PlotName.TooLong", "PlotName must be at most 200 characters."));
 
-            if (string.IsNullOrWhiteSpace(sensorId))
+            if (sensorId == Guid.Empty)
                 errors.Add(new ValidationError("SensorId.Required", "SensorId is required."));
-            else if (sensorId.Length > 100)
-                errors.Add(new ValidationError("SensorId.TooLong", "SensorId must be at most 100 characters."));
 
             if (errors.Count > 0)
                 return Result.Invalid(errors.ToArray());
@@ -136,12 +132,12 @@ namespace TC.Agro.SensorIngest.Domain.Aggregates
             string Message,
             Guid PlotId,
             string PlotName,
-            string SensorId,
+            Guid SensorId,
             DateTimeOffset OccurredOn) : BaseDomainEvent(AggregateId, OccurredOn);
 
         public record AlertResolvedDomainEvent(
             Guid AggregateId,
-            string SensorId,
+            Guid SensorId,
             DateTimeOffset OccurredOn) : BaseDomainEvent(AggregateId, OccurredOn);
 
         #endregion

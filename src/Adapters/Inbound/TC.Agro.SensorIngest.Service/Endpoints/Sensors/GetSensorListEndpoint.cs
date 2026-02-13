@@ -4,8 +4,7 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Sensors
     {
         public override void Configure()
         {
-            Get("");
-            RoutePrefixOverride("sensors");
+            Get("sensors");
             RequestBinder(new RequestBinder<GetSensorListQuery>(BindingSource.QueryParams));
             PreProcessor<QueryCachingPreProcessorBehavior<GetSensorListQuery, GetSensorListResponse>>();
             PostProcessor<QueryCachingPostProcessorBehavior<GetSensorListQuery, GetSensorListResponse>>();
