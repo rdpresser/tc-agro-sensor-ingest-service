@@ -17,6 +17,7 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
         public async Task<bool> SensorIdExistsAsync(string sensorId, CancellationToken ct = default)
         {
             return await DbSet
+                .IgnoreQueryFilters()
                 .AsNoTracking()
                 .AnyAsync(x => x.SensorId == sensorId, ct)
                 .ConfigureAwait(false);

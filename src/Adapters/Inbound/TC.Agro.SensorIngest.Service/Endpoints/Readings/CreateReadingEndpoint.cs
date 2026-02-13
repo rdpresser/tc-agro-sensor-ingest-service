@@ -4,8 +4,8 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Readings
     {
         public override void Configure()
         {
-            Post("readings");
-            RoutePrefixOverride("sensors");
+            Post(string.Empty);
+            RoutePrefixOverride("readings");
             PostProcessor<LoggingCommandPostProcessorBehavior<CreateReadingCommand, CreateReadingResponse>>();
             PostProcessor<CacheInvalidationPostProcessorBehavior<CreateReadingCommand, CreateReadingResponse>>();
 
@@ -49,7 +49,7 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Readings
 
             if (response.IsSuccess)
             {
-                await Send.OkAsync(response.Value, cancellation: ct).ConfigureAwait(false);
+                await HttpContext.Response.SendAsync(response.Value, 202, cancellation: ct).ConfigureAwait(false);
                 return;
             }
 

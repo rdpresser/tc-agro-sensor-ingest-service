@@ -42,6 +42,9 @@ namespace TC.Agro.SensorIngest.Domain.ValueObjects
             if (string.IsNullOrWhiteSpace(value))
                 return Result.Invalid(Required);
 
+            if (!ValidSeverities.Contains(value))
+                return Result.Invalid(InvalidValue);
+
             return Result.Success(new AlertSeverity(value));
         }
 

@@ -40,6 +40,9 @@ namespace TC.Agro.SensorIngest.Domain.ValueObjects
             if (string.IsNullOrWhiteSpace(value))
                 return Result.Invalid(Required);
 
+            if (!ValidStatuses.Contains(value))
+                return Result.Invalid(InvalidValue);
+
             return Result.Success(new AlertStatus(value));
         }
 

@@ -42,7 +42,7 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Sensors
 
             if (response.IsSuccess)
             {
-                await Send.CreatedAtAsync<RegisterSensorEndpoint>(new { id = response.Value.Id }, response.Value, cancellation: ct).ConfigureAwait(false);
+                await HttpContext.Response.SendAsync(response.Value, 201, cancellation: ct).ConfigureAwait(false);
                 return;
             }
 

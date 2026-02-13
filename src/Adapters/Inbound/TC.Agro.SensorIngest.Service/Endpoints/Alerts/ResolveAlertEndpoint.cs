@@ -4,8 +4,8 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Alerts
     {
         public override void Configure()
         {
-            Post("alerts/{AlertId}/resolve");
-            RoutePrefixOverride("sensors");
+            Post("{AlertId}/resolve");
+            RoutePrefixOverride("alerts");
             PostProcessor<LoggingCommandPostProcessorBehavior<ResolveAlertCommand, ResolveAlertResponse>>();
             PostProcessor<CacheInvalidationPostProcessorBehavior<ResolveAlertCommand, ResolveAlertResponse>>();
 

@@ -2,8 +2,9 @@ using System.Diagnostics.Metrics;
 
 namespace TC.Agro.SensorIngest.Service.Telemetry
 {
-    public class SensorIngestMetrics
+    public sealed class SensorIngestMetrics : IDisposable
     {
+        private readonly Meter _meter;
         private readonly Counter<long> _ingestActionsCounter;
         private readonly Counter<long> _sensorReadingsCounter;
         private readonly Counter<long> _batchReadingsCounter;
@@ -13,32 +14,34 @@ namespace TC.Agro.SensorIngest.Service.Telemetry
 
         public SensorIngestMetrics()
         {
-            var meter = new Meter(TelemetryConstants.SensorIngestMeterName, TelemetryConstants.Version);
+            _meter = new Meter(TelemetryConstants.SensorIngestMeterName, TelemetryConstants.Version);
 
-            _ingestActionsCounter = meter.CreateCounter<long>(
+            _ingestActionsCounter = _meter.CreateCounter<long>(
                 "ingest_actions_total",
                 description: "Total number of ingest-related actions performed by users");
 
-            _sensorReadingsCounter = meter.CreateCounter<long>(
+            _sensorReadingsCounter = _meter.CreateCounter<long>(
                 "sensor_readings_total",
                 description: "Total number of sensor readings ingested");
 
-            _batchReadingsCounter = meter.CreateCounter<long>(
+            _batchReadingsCounter = _meter.CreateCounter<long>(
                 "batch_readings_total",
                 description: "Total number of batch reading operations");
 
-            _alertsCounter = meter.CreateCounter<long>(
+            _alertsCounter = _meter.CreateCounter<long>(
                 "alerts_total",
                 description: "Total number of alerts created or resolved");
 
-            _operationDurationHistogram = meter.CreateHistogram<double>(
+            _operationDurationHistogram = _meter.CreateHistogram<double>(
                 "ingest_operation_duration_seconds",
                 description: "Duration of ingest operations in seconds");
 
-            _ingestErrorsCounter = meter.CreateCounter<long>(
+            _ingestErrorsCounter = _meter.CreateCounter<long>(
                 "ingest_errors_total",
                 description: "Total number of errors in ingest operations");
         }
+
+        public void Dispose() => _meter.Dispose();
 
         public void RecordIngestAction(string action, string userId, string endpoint)
         {

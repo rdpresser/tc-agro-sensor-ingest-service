@@ -4,8 +4,8 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Alerts
     {
         public override void Configure()
         {
-            Post("alerts");
-            RoutePrefixOverride("sensors");
+            Post(string.Empty);
+            RoutePrefixOverride("alerts");
             PostProcessor<LoggingCommandPostProcessorBehavior<CreateAlertCommand, CreateAlertResponse>>();
             PostProcessor<CacheInvalidationPostProcessorBehavior<CreateAlertCommand, CreateAlertResponse>>();
 
@@ -41,7 +41,7 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Alerts
 
             if (response.IsSuccess)
             {
-                await Send.CreatedAtAsync<CreateAlertEndpoint>(new { id = response.Value.Id }, response.Value, cancellation: ct).ConfigureAwait(false);
+                await HttpContext.Response.SendAsync(response.Value, 201, cancellation: ct).ConfigureAwait(false);
                 return;
             }
 

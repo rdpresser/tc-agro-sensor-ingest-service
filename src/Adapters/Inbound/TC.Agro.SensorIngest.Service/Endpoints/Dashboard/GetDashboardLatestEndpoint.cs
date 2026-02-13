@@ -4,8 +4,8 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Dashboard
     {
         public override void Configure()
         {
-            Get("dashboard/latest");
-            RoutePrefixOverride("sensors");
+            Get("latest");
+            RoutePrefixOverride("dashboard");
             RequestBinder(new RequestBinder<GetLatestReadingsQuery>(BindingSource.QueryParams));
             PreProcessor<QueryCachingPreProcessorBehavior<GetLatestReadingsQuery, GetLatestReadingsResponse>>();
             PostProcessor<QueryCachingPostProcessorBehavior<GetLatestReadingsQuery, GetLatestReadingsResponse>>();

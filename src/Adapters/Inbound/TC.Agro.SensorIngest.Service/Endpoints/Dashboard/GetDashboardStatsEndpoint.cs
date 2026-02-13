@@ -4,8 +4,8 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Dashboard
     {
         public override void Configure()
         {
-            Get("dashboard/stats");
-            RoutePrefixOverride("sensors");
+            Get("stats");
+            RoutePrefixOverride("dashboard");
             PreProcessor<QueryCachingPreProcessorBehavior<GetDashboardStatsQuery, DashboardStatsResponse>>();
             PostProcessor<QueryCachingPostProcessorBehavior<GetDashboardStatsQuery, DashboardStatsResponse>>();
 

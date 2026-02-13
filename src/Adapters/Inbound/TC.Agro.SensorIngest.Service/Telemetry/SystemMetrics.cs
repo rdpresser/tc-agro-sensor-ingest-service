@@ -2,8 +2,9 @@ using System.Diagnostics.Metrics;
 
 namespace TC.Agro.SensorIngest.Service.Telemetry
 {
-    public class SystemMetrics
+    public sealed class SystemMetrics : IDisposable
     {
+        private readonly Meter _meter;
         private readonly Counter<long> _httpRequestsTotal;
         private readonly Counter<long> _httpErrorsTotal;
         private readonly Histogram<double> _httpRequestDuration;
@@ -15,39 +16,39 @@ namespace TC.Agro.SensorIngest.Service.Telemetry
 
         public SystemMetrics()
         {
-            var meter = new Meter(TelemetryConstants.SensorIngestMeterName, TelemetryConstants.Version);
+            _meter = new Meter(TelemetryConstants.SensorIngestMeterName, TelemetryConstants.Version);
 
-            _httpRequestsTotal = meter.CreateCounter<long>(
+            _httpRequestsTotal = _meter.CreateCounter<long>(
                 "ingest.http.requests_total",
                 description: "Total number of HTTP requests processed");
 
-            _httpErrorsTotal = meter.CreateCounter<long>(
+            _httpErrorsTotal = _meter.CreateCounter<long>(
                 "ingest.http.errors_total",
                 description: "Total number of HTTP errors (4xx, 5xx)");
 
-            _httpRequestDuration = meter.CreateHistogram<double>(
+            _httpRequestDuration = _meter.CreateHistogram<double>(
                 "ingest.http.request_duration_seconds",
                 unit: "s",
                 description: "Duration of HTTP requests in seconds");
 
-            _databaseQueryDuration = meter.CreateHistogram<double>(
+            _databaseQueryDuration = _meter.CreateHistogram<double>(
                 "ingest.database.query_duration_seconds",
                 unit: "s",
                 description: "Duration of database queries in seconds");
 
-            _databaseErrorsTotal = meter.CreateCounter<long>(
+            _databaseErrorsTotal = _meter.CreateCounter<long>(
                 "ingest.database.errors_total",
                 description: "Total number of database errors");
 
-            _cacheHits = meter.CreateCounter<long>(
+            _cacheHits = _meter.CreateCounter<long>(
                 "ingest.cache.hits_total",
                 description: "Total number of cache hits");
 
-            _cacheMisses = meter.CreateCounter<long>(
+            _cacheMisses = _meter.CreateCounter<long>(
                 "ingest.cache.misses_total",
                 description: "Total number of cache misses");
 
-            _activeConnections = meter.CreateUpDownCounter<long>(
+            _activeConnections = _meter.CreateUpDownCounter<long>(
                 "ingest.connections.active",
                 description: "Number of currently active connections");
         }
@@ -99,5 +100,7 @@ namespace TC.Agro.SensorIngest.Service.Telemetry
 
         public void ConnectionOpened() => _activeConnections.Add(1);
         public void ConnectionClosed() => _activeConnections.Add(-1);
+
+        public void Dispose() => _meter.Dispose();
     }
 }
