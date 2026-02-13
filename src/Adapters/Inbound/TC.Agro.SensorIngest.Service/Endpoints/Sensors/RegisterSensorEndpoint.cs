@@ -36,13 +36,6 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Sensors
         public override async Task HandleAsync(RegisterSensorCommand req, CancellationToken ct)
         {
             var response = await req.ExecuteAsync(ct: ct).ConfigureAwait(false);
-
-            if (response.IsSuccess)
-            {
-                await HttpContext.Response.SendAsync(response.Value, 201, cancellation: ct).ConfigureAwait(false);
-                return;
-            }
-
             await MatchResultAsync(response, ct).ConfigureAwait(false);
         }
     }
