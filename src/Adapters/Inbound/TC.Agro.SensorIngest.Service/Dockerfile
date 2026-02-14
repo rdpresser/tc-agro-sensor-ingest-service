@@ -7,7 +7,7 @@ EXPOSE 8080
 
 # Kerberos/GSSAPI dependency for providers (e.g., SQL client integrated auth)
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends libgssapi-krb5-2 \
+    && apt-get install -y --no-install-recommends libgssapi-krb5-2 adduser \
     && rm -rf /var/lib/apt/lists/*
 
 # This stage is used to build the service project

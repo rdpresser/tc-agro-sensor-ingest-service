@@ -89,8 +89,8 @@ namespace TC.Agro.SensorIngest.Service.Extensions
             {
                 discoveryOptions.Assemblies =
                 [
-                    typeof(Application.DependencyInjection).Assembly
-                    //typeof(ServiceCollectionExtensions).Assembly
+                    typeof(Application.DependencyInjection).Assembly,
+                    typeof(ServiceCollectionExtensions).Assembly
                 ];
             })
             .SwaggerDocument(o =>

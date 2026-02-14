@@ -12,7 +12,8 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Dashboard
 
             Description(
                 x => x.Produces<GetDashboardStatsResponse>(200)
-                      .Produces(401));
+                    .ProducesProblemDetails()
+                    .Produces(401));
 
             Summary(s =>
             {
