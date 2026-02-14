@@ -44,16 +44,18 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Aggregates
         }
 
         [Fact]
-        public void Create_WithTooLongSensorId_ShouldFail()
+        public void Create_WithTooLongPlotName_ShouldFail()
         {
+            var plotName = new string('A', 201);
+
             var result = SensorAggregate.Create(
                 sensorId: Guid.NewGuid(),
                 plotId: Guid.NewGuid(),
-                plotName: "Plot Alpha",
+                plotName: plotName,
                 battery: 95.0);
 
             result.IsSuccess.ShouldBeFalse();
-            result.ValidationErrors.ShouldContain(e => e.Identifier == "SensorId.TooLong");
+            result.ValidationErrors.ShouldContain(e => e.Identifier == "PlotName.TooLong");
         }
 
         [Fact]
