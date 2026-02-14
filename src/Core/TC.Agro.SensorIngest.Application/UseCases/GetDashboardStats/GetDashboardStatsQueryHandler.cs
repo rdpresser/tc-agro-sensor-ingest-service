@@ -1,6 +1,6 @@
 namespace TC.Agro.SensorIngest.Application.UseCases.GetDashboardStats
 {
-    internal sealed class GetDashboardStatsQueryHandler : BaseQueryHandler<GetDashboardStatsQuery, DashboardStatsResponse>
+    internal sealed class GetDashboardStatsQueryHandler : BaseQueryHandler<GetDashboardStatsQuery, GetDashboardStatsResponse>
     {
         private readonly ISensorReadStore _sensorReadStore;
         private readonly IAlertReadStore _alertReadStore;
@@ -16,7 +16,7 @@ namespace TC.Agro.SensorIngest.Application.UseCases.GetDashboardStats
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public override async Task<Result<DashboardStatsResponse>> ExecuteAsync(
+        public override async Task<Result<GetDashboardStatsResponse>> ExecuteAsync(
             GetDashboardStatsQuery query,
             CancellationToken ct = default)
         {
@@ -29,7 +29,7 @@ namespace TC.Agro.SensorIngest.Application.UseCases.GetDashboardStats
                 alertCount);
 
             // Properties and Plots return 0 until integration with farm-service via HTTP client
-            return Result.Success(new DashboardStatsResponse(
+            return Result.Success(new GetDashboardStatsResponse(
                 Properties: 0,
                 Plots: 0,
                 Sensors: sensorCount,

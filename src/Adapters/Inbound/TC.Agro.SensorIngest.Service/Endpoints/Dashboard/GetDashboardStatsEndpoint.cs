@@ -1,17 +1,17 @@
 namespace TC.Agro.SensorIngest.Service.Endpoints.Dashboard
 {
-    public sealed class GetDashboardStatsEndpoint : BaseApiEndpoint<GetDashboardStatsQuery, DashboardStatsResponse>
+    public sealed class GetDashboardStatsEndpoint : BaseApiEndpoint<GetDashboardStatsQuery, GetDashboardStatsResponse>
     {
         public override void Configure()
         {
             Get("dashboard/stats");
-            PreProcessor<QueryCachingPreProcessorBehavior<GetDashboardStatsQuery, DashboardStatsResponse>>();
-            PostProcessor<QueryCachingPostProcessorBehavior<GetDashboardStatsQuery, DashboardStatsResponse>>();
+            PreProcessor<QueryCachingPreProcessorBehavior<GetDashboardStatsQuery, GetDashboardStatsResponse>>();
+            PostProcessor<QueryCachingPostProcessorBehavior<GetDashboardStatsQuery, GetDashboardStatsResponse>>();
 
             Roles(AppRoles.Admin, AppRoles.Producer);
 
             Description(
-                x => x.Produces<DashboardStatsResponse>(200)
+                x => x.Produces<GetDashboardStatsResponse>(200)
                       .Produces(401));
 
             Summary(s =>

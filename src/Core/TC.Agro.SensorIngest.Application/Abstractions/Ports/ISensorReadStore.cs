@@ -1,8 +1,12 @@
+using TC.Agro.SensorIngest.Application.UseCases.GetSensorList;
+
 namespace TC.Agro.SensorIngest.Application.Abstractions.Ports
 {
     public interface ISensorReadStore
     {
-        Task<IReadOnlyList<SensorListItem>> GetSensorsAsync(Guid? plotId, CancellationToken ct);
+        Task<(IReadOnlyList<GetSensorListResponse>, int TotalCount)> GetSensorsAsync(
+            GetSensorListQuery query,
+            CancellationToken ct);
         Task<SensorDetailItem?> GetByIdAsync(Guid sensorId, CancellationToken ct);
         Task<int> CountAsync(CancellationToken ct);
     }

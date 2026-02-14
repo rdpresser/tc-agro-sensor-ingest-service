@@ -1,6 +1,6 @@
 namespace TC.Agro.SensorIngest.Application.UseCases.GetDashboardStats
 {
-    public sealed record GetDashboardStatsQuery : ICachedQuery<DashboardStatsResponse>
+    public sealed record GetDashboardStatsQuery : ICachedQuery<GetDashboardStatsResponse>
     {
         private string? _cacheKey;
         public string GetCacheKey => _cacheKey ?? "GetDashboardStatsQuery";

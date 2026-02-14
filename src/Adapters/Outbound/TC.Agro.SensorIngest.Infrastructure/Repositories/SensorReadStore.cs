@@ -1,4 +1,5 @@
 using TC.Agro.SensorIngest.Application.UseCases.GetSensorList;
+using TC.Agro.SensorIngest.Infrastructure.Extensions;
 
 namespace TC.Agro.SensorIngest.Infrastructure.Repositories
 {
@@ -11,31 +12,40 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         }
 
-        public async Task<IReadOnlyList<SensorListItem>> GetSensorsAsync(Guid? plotId, CancellationToken ct)
+        public async Task<(IReadOnlyList<GetSensorListResponse>, int TotalCount)> GetSensorsAsync(
+            GetSensorListQuery query,
+            CancellationToken ct)
         {
-            var query = _dbContext.Sensors
+            var sensorsQuery = _dbContext.Sensors
                 .AsNoTracking()
                 .AsQueryable();
 
-            if (plotId.HasValue)
-                query = query.Where(x => x.PlotId == plotId.Value);
+            sensorsQuery = sensorsQuery.ApplyPlotFilter(query.PlotId);
+            sensorsQuery = sensorsQuery.ApplyTextFilter(query.Filter);
+            sensorsQuery = sensorsQuery.ApplyStatusFilter(query.Status);
 
-            var entities = await query
-                .OrderBy(x => x.SensorId)
+            var totalCount = await sensorsQuery
+                .CountAsync(ct)
+                .ConfigureAwait(false);
+
+            var sensors = await sensorsQuery
+                .ApplySorting(query.SortBy, query.SortDirection)
+                .ApplyPagination(query.PageNumber, query.PageSize)
+                .Select(x => new GetSensorListResponse(
+                    x.Id,
+                    x.SensorId,
+                    x.PlotId,
+                    x.PlotName,
+                    x.Status.Value,
+                    x.Battery,
+                    x.LastReadingAt,
+                    x.LastTemperature,
+                    x.LastHumidity,
+                    x.LastSoilMoisture))
                 .ToListAsync(ct)
                 .ConfigureAwait(false);
 
-            return entities.Select(x => new SensorListItem(
-                x.Id,
-                x.SensorId,
-                x.PlotId,
-                x.PlotName,
-                x.Status.Value,
-                x.Battery,
-                x.LastReadingAt,
-                x.LastTemperature,
-                x.LastHumidity,
-                x.LastSoilMoisture)).ToList();
+            return (sensors, totalCount);
         }
 
         public async Task<SensorDetailItem?> GetByIdAsync(Guid sensorId, CancellationToken ct)

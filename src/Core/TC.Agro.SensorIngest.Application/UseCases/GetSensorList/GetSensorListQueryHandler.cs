@@ -1,6 +1,8 @@
+using TC.Agro.SharedKernel.Infrastructure.Pagination;
+
 namespace TC.Agro.SensorIngest.Application.UseCases.GetSensorList
 {
-    internal sealed class GetSensorListQueryHandler : BaseQueryHandler<GetSensorListQuery, GetSensorListResponse>
+    internal sealed class GetSensorListQueryHandler : BaseQueryHandler<GetSensorListQuery, PaginatedResponse<GetSensorListResponse>>
     {
         private readonly ISensorReadStore _readStore;
         private readonly ILogger<GetSensorListQueryHandler> _logger;
@@ -13,18 +15,25 @@ namespace TC.Agro.SensorIngest.Application.UseCases.GetSensorList
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public override async Task<Result<GetSensorListResponse>> ExecuteAsync(
+        public override async Task<Result<PaginatedResponse<GetSensorListResponse>>> ExecuteAsync(
             GetSensorListQuery query,
             CancellationToken ct = default)
         {
-            var sensors = await _readStore.GetSensorsAsync(query.PlotId, ct).ConfigureAwait(false);
+            var (sensors, totalCount) = await _readStore.GetSensorsAsync(query, ct).ConfigureAwait(false);
 
             _logger.LogInformation(
                 "Retrieved {Count} sensors for PlotId={PlotId}",
                 sensors.Count,
                 query.PlotId?.ToString() ?? "all");
 
-            return Result.Success(new GetSensorListResponse(sensors));
+            var response = new PaginatedResponse<GetSensorListResponse>(
+                data: [.. sensors],
+                totalCount: totalCount,
+                pageNumber: query.PageNumber,
+                pageSize: query.PageSize
+            );
+
+            return Result.Success(response);
         }
     }
 }
