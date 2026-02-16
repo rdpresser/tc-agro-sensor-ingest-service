@@ -10,7 +10,7 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
         public Guid PropertyId { get; private set; }
         public Guid PlotId { get; private set; }
 
-        public string SensorName { get; private set; } = default!;
+        public string? Label { get; private set; } = default!;
         public string PlotName { get; private set; } = default!;
         public string PropertyName { get; private set; } = default!;
 
@@ -28,7 +28,7 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
             Guid ownerId,
             Guid propertyId,
             Guid plotId,
-            string sensorName,
+            string? label,
             string plotName,
             string propertyName,
             bool isActive,
@@ -39,7 +39,7 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
             OwnerId = ownerId;
             PropertyId = propertyId;
             PlotId = plotId;
-            SensorName = sensorName;
+            Label = label;
             PlotName = plotName;
             PropertyName = propertyName;
             IsActive = isActive;
@@ -53,7 +53,7 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
             Guid ownerId,
             Guid propertyId,
             Guid plotId,
-            string sensorName,
+            string? label,
             string plotName,
             string propertyName)
         {
@@ -64,7 +64,7 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
                 ownerId,
                 propertyId,
                 plotId,
-                sensorName,
+                label,
                 plotName,
                 propertyName,
                 true,
@@ -78,7 +78,7 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
             Guid ownerId,
             Guid propertyId,
             Guid plotId,
-            string sensorName,
+            string? label,
             string plotName,
             string propertyName,
             DateTimeOffset createdAt)
@@ -88,7 +88,7 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
                 ownerId,
                 propertyId,
                 plotId,
-                sensorName,
+                label,
                 plotName,
                 propertyName,
                 true,
