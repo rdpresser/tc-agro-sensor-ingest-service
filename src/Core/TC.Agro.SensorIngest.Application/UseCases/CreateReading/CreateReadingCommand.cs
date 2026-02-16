@@ -12,8 +12,8 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateReading
     {
         public IReadOnlyCollection<string> CacheTags =>
         [
-            CacheTagCatalog.Readings,
-            CacheTagCatalog.Dashboard
+            Abstractions.CacheTags.Readings,
+            Abstractions.CacheTags.Dashboard
         ];
     }
 }

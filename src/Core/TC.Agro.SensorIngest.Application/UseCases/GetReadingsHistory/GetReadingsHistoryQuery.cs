@@ -12,8 +12,8 @@ namespace TC.Agro.SensorIngest.Application.UseCases.GetReadingsHistory
 
         public IReadOnlyCollection<string> CacheTags =>
         [
-            CacheTagCatalog.Readings,
-            CacheTagCatalog.ReadingsHistory
+            Abstractions.CacheTags.Readings,
+            Abstractions.CacheTags.ReadingsHistory
         ];
 
         public void SetCacheKey(string cacheKey)

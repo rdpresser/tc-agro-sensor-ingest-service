@@ -1,4 +1,5 @@
 using JasperFx.Resources;
+using TC.Agro.Messaging.Extensions;
 
 namespace TC.Agro.SensorIngest.Service.Extensions
 {
@@ -400,14 +401,24 @@ namespace TC.Agro.SensorIngest.Service.Extensions
                 opts.ServiceName = "tc-agro-sensor-ingest-service";
                 opts.ApplicationAssembly = typeof(Program).Assembly;
 
-                opts.Discovery.IncludeAssembly(typeof(Application.DependencyInjection).Assembly);
+                // Include Application assembly for handlers
+                opts.Discovery.IncludeAssembly(typeof(Application.MessageBrokerHandlers.OwnerSnapshotHandler).Assembly);
 
+                // -------------------------------
+                // Durability schema (same database, different schema)
+                // -------------------------------
                 opts.Durability.MessageStorageSchemaName = DefaultSchemas.Wolverine;
 
+                // IMPORTANT:
+                // Use the same Postgres DB as EF Core.
+                // This enables transactional outbox with EF Core.
                 opts.PersistMessagesWithPostgresql(
                     PostgresHelper.Build(builder.Configuration).ConnectionString,
                     DefaultSchemas.Wolverine);
 
+                // -------------------------------
+                // Retry policy
+                // -------------------------------
                 opts.Policies.OnAnyException()
                     .RetryWithCooldown(
                         TimeSpan.FromMilliseconds(200),
@@ -417,11 +428,24 @@ namespace TC.Agro.SensorIngest.Service.Extensions
                         TimeSpan.FromMilliseconds(1000)
                     );
 
+                // -------------------------------
+                // Enable durable local queues and auto transaction application
+                // -------------------------------
                 opts.Policies.UseDurableLocalQueues();
                 opts.Policies.AutoApplyTransactions();
                 opts.UseEntityFrameworkCoreTransactions();
 
+                // -------------------------------
+                // OUTBOX (for sending)
+                // -------------------------------
                 opts.Policies.UseDurableOutboxOnAllSendingEndpoints();
+
+                // -------------------------------
+                // INBOX (for receiving) - optional but recommended
+                // -------------------------------
+                // This makes message consumption safe in face of retries/crashes.
+                // It gives "at-least-once safe" processing with deduplication.
+                opts.Policies.UseDurableInboxOnAllListeners();
 
                 var mqConnectionFactory = RabbitMqHelper.Build(builder.Configuration);
 
@@ -439,6 +463,28 @@ namespace TC.Agro.SensorIngest.Service.Extensions
                     rabbitOpts.UseQuorumQueues();
                 if (mqConnectionFactory.AutoPurgeOnStartup)
                     rabbitOpts.AutoPurgeOnStartup();
+
+                // ============================================================
+                // CONSUMING - Sensor Ingest Service (Inbound)
+                // Uses TC.Agro.Messaging extension for Identity Service user events
+                // Exchange: identity.events-exchange (TOPIC)
+                // Binding Key: identity.user.* (wildcard - receives all 3 user events)
+                // ============================================================
+                opts.ConfigureIdentityUserEventsConsumption(
+                    exchangeName: "identity.events-exchange",
+                    queueName: "sensor-ingest-identity-user-events-queue"
+                );
+
+                // ============================================================
+                // CONSUMING - Sensor Ingest Service (Inbound)
+                // Uses TC.Agro.Messaging extension for Farm Sensor events
+                // Exchange: farm.events-exchange (TOPIC)
+                // Binding Key: farm.sensor.* (wildcard - receives all sensor events)
+                // ============================================================
+                opts.ConfigureFarmSensorEventsConsumption(
+                    exchangeName: "farm.events-exchange",
+                    queueName: "sensor-ingest-farm-sensor-events-queue"
+                );
             });
 
             // -------------------------------

@@ -4,7 +4,7 @@ namespace TC.Agro.SensorIngest.Domain.Aggregates
     {
         public Guid SensorId { get; private set; }
         public Guid PlotId { get; private set; }
-        public DateTime Time { get; private set; }
+        public DateTimeOffset Time { get; private set; }
         public double? Temperature { get; private set; }
         public double? Humidity { get; private set; }
         public double? SoilMoisture { get; private set; }

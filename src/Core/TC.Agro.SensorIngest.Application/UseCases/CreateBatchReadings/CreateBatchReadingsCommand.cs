@@ -5,8 +5,8 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateBatchReadings
     {
         public IReadOnlyCollection<string> CacheTags =>
         [
-            CacheTagCatalog.Readings,
-            CacheTagCatalog.Dashboard
+            Abstractions.CacheTags.Readings,
+            Abstractions.CacheTags.Dashboard
         ];
     }
 

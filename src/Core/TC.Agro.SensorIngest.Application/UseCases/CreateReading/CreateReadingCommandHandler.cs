@@ -1,3 +1,5 @@
+using TC.Agro.Contracts.Events.SensorIngested;
+
 namespace TC.Agro.SensorIngest.Application.UseCases.CreateReading
 {
     internal sealed class CreateReadingCommandHandler
@@ -64,7 +66,7 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateReading
                 aggregate.Temperature,
                 aggregate.Humidity,
                 aggregate.SoilMoisture,
-                new DateTimeOffset(aggregate.Time, TimeSpan.Zero),
+                aggregate.Time,
                 ct).ConfigureAwait(false);
 
             return CreateReadingMapper.FromAggregate(aggregate);

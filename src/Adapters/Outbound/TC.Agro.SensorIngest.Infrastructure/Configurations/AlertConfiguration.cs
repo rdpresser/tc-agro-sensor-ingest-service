@@ -5,8 +5,7 @@ namespace TC.Agro.SensorIngest.Infrastructure.Configurations
         public override void Configure(EntityTypeBuilder<AlertAggregate> builder)
         {
             base.Configure(builder);
-
-            builder.ToTable("alerts", DefaultSchemas.Default);
+            builder.ToTable("alerts");
 
             builder.Property(x => x.Severity)
                 .HasMaxLength(20)

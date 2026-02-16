@@ -1,6 +1,6 @@
 namespace TC.Agro.SensorIngest.Application.Abstractions
 {
-    public static class CacheTagCatalog
+    public static class CacheTags
     {
         public const string Sensors = "sensors";
         public const string SensorList = "sensors:list";

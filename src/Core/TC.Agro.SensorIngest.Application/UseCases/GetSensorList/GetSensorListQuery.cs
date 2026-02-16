@@ -20,8 +20,8 @@ namespace TC.Agro.SensorIngest.Application.UseCases.GetSensorList
 
         public IReadOnlyCollection<string> CacheTags =>
         [
-            CacheTagCatalog.Sensors,
-            CacheTagCatalog.SensorList
+            Abstractions.CacheTags.Sensors,
+            Abstractions.CacheTags.SensorList
         ];
 
         public void SetCacheKey(string cacheKey)

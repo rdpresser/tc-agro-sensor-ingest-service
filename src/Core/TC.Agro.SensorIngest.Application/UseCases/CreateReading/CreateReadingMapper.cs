@@ -1,3 +1,5 @@
+using TC.Agro.Contracts.Events.SensorIngested;
+
 namespace TC.Agro.SensorIngest.Application.UseCases.CreateReading
 {
     internal static class CreateReadingMapper
@@ -21,7 +23,7 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateReading
                 ReadingId: aggregate.Id,
                 SensorId: aggregate.SensorId,
                 PlotId: aggregate.PlotId,
-                Timestamp: aggregate.Time);
+                Timestamp: aggregate.Time.Date);
         }
 
         public static SensorIngestedIntegrationEvent ToIntegrationEvent(
@@ -29,10 +31,10 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateReading
         {
             return new SensorIngestedIntegrationEvent(
                 EventId: Guid.NewGuid(),
-                AggregateId: domainEvent.AggregateId,
+                SensorReadingId: domainEvent.AggregateId,
                 OccurredOn: domainEvent.OccurredOn,
                 EventName: nameof(SensorIngestedIntegrationEvent),
-                RelatedIds: new Dictionary<string, Guid> { { "PlotId", domainEvent.PlotId } },
+                RelatedIds: new Dictionary<string, Guid> { { "PlotId", domainEvent.PlotId }, { "SensorId", domainEvent.SensorId } },
                 SensorId: domainEvent.SensorId,
                 PlotId: domainEvent.PlotId,
                 Time: domainEvent.Time,

@@ -8,8 +8,8 @@ namespace TC.Agro.SensorIngest.Application.UseCases.RegisterSensor
     {
         public IReadOnlyCollection<string> CacheTags =>
         [
-            CacheTagCatalog.Sensors,
-            CacheTagCatalog.Dashboard
+            Abstractions.CacheTags.Sensors,
+            Abstractions.CacheTags.Dashboard
         ];
     }
 }

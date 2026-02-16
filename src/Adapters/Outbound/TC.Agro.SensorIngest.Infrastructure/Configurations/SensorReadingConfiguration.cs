@@ -1,12 +1,11 @@
 namespace TC.Agro.SensorIngest.Infrastructure.Configurations
 {
-    public sealed class SensorReadingConfiguration : IEntityTypeConfiguration<SensorReadingAggregate>
+    public sealed class SensorReadingConfiguration : BaseEntityConfiguration<SensorReadingAggregate>
     {
-        public void Configure(EntityTypeBuilder<SensorReadingAggregate> builder)
+        public override void Configure(EntityTypeBuilder<SensorReadingAggregate> builder)
         {
-            builder.ToTable("sensor_readings", DefaultSchemas.Default);
-
-            builder.HasKey(x => x.Id);
+            base.Configure(builder);
+            builder.ToTable("sensor_readings");
 
             builder.Property(x => x.Id)
                 .ValueGeneratedNever();
@@ -36,9 +35,6 @@ namespace TC.Agro.SensorIngest.Infrastructure.Configurations
 
             builder.Property(x => x.BatteryLevel)
                 .HasColumnType("double precision");
-
-            builder.Property(x => x.CreatedAt)
-                .HasColumnType("timestamptz");
 
             // Indexes for common queries
             builder.HasIndex(x => new { x.SensorId, x.Time })

@@ -9,9 +9,9 @@ namespace TC.Agro.SensorIngest.Application.UseCases.GetDashboardStats
 
         public IReadOnlyCollection<string> CacheTags =>
         [
-            CacheTagCatalog.Dashboard,
-            CacheTagCatalog.Sensors,
-            CacheTagCatalog.Alerts
+            Abstractions.CacheTags.Dashboard,
+            Abstractions.CacheTags.Sensors,
+            Abstractions.CacheTags.Alerts
         ];
 
         public void SetCacheKey(string cacheKey)

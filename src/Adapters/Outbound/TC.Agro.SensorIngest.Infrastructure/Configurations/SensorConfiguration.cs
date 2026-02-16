@@ -5,8 +5,7 @@ namespace TC.Agro.SensorIngest.Infrastructure.Configurations
         public override void Configure(EntityTypeBuilder<SensorAggregate> builder)
         {
             base.Configure(builder);
-
-            builder.ToTable("sensors", DefaultSchemas.Default);
+            builder.ToTable("sensors");
 
             builder.Property(x => x.SensorId)
                 .HasMaxLength(100)

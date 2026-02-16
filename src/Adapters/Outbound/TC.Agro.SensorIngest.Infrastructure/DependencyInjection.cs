@@ -15,6 +15,12 @@ namespace TC.Agro.SensorIngest.Infrastructure
             services.AddScoped<IAlertAggregateRepository, AlertAggregateRepository>();
             services.AddScoped<IAlertReadStore, AlertReadStore>();
 
+            // Owner snapshot store
+            services.AddScoped<IOwnerSnapshotStore, OwnerSnapshotStore>();
+
+            // Sensor snapshot store
+            services.AddScoped<ISensorSnapshotStore, SensorSnapshotStore>();
+
             // EF Core with Wolverine Integration
             services.AddDbContextWithWolverineIntegration<ApplicationDbContext>((sp, opts) =>
             {

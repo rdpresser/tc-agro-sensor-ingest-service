@@ -18,8 +18,8 @@ namespace TC.Agro.SensorIngest.Application.UseCases.GetAlertList
 
         public IReadOnlyCollection<string> CacheTags =>
         [
-            CacheTagCatalog.Alerts,
-            CacheTagCatalog.AlertList
+            Abstractions.CacheTags.Alerts,
+            Abstractions.CacheTags.AlertList
         ];
 
         public void SetCacheKey(string cacheKey)

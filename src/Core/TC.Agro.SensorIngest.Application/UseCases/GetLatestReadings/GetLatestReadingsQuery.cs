@@ -13,8 +13,8 @@ namespace TC.Agro.SensorIngest.Application.UseCases.GetLatestReadings
 
         public IReadOnlyCollection<string> CacheTags =>
         [
-            CacheTagCatalog.Readings,
-            CacheTagCatalog.ReadingsLatest
+            Abstractions.CacheTags.Readings,
+            Abstractions.CacheTags.ReadingsLatest
         ];
 
         public void SetCacheKey(string cacheKey)

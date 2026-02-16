@@ -1,11 +1,15 @@
+using TC.Agro.SensorIngest.Domain.Snapshots;
+
 namespace TC.Agro.SensorIngest.Infrastructure
 {
     [ExcludeFromCodeCoverage]
     public sealed class ApplicationDbContext : DbContext, IApplicationDbContext
     {
-        public DbSet<SensorReadingAggregate> SensorReadings => Set<SensorReadingAggregate>();
-        public DbSet<SensorAggregate> Sensors => Set<SensorAggregate>();
-        public DbSet<AlertAggregate> Alerts => Set<AlertAggregate>();
+        public DbSet<SensorReadingAggregate> SensorReadings { get; set; }
+        public DbSet<SensorAggregate> Sensors { get; set; }
+        public DbSet<AlertAggregate> Alerts { get; set; }
+        public DbSet<OwnerSnapshot> OwnerSnapshots { get; set; }
+        public DbSet<SensorSnapshot> SensorSnapshots { get; set; }
 
         /// <inheritdoc />
         public DbContext DbContext => this;

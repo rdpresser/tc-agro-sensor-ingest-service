@@ -1,5 +1,3 @@
-using TC.Agro.SensorIngest.Application.UseCases.GetSensorList;
-
 namespace TC.Agro.SensorIngest.Application.Abstractions.Ports
 {
     public interface ISensorReadStore

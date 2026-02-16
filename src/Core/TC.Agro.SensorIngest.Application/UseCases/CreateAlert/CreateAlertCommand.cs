@@ -10,8 +10,8 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateAlert
     {
         public IReadOnlyCollection<string> CacheTags =>
         [
-            CacheTagCatalog.Alerts,
-            CacheTagCatalog.Dashboard
+            Abstractions.CacheTags.Alerts,
+            Abstractions.CacheTags.Dashboard
         ];
     }
 }
