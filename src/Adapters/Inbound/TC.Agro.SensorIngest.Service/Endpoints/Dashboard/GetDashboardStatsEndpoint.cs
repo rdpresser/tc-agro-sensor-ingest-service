@@ -5,6 +5,7 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Dashboard
         public override void Configure()
         {
             Get("dashboard/stats");
+            RequestBinder(new RequestBinder<GetDashboardStatsQuery>(BindingSource.QueryParams));
             PreProcessor<QueryCachingPreProcessorBehavior<GetDashboardStatsQuery, GetDashboardStatsResponse>>();
             PostProcessor<QueryCachingPostProcessorBehavior<GetDashboardStatsQuery, GetDashboardStatsResponse>>();
 

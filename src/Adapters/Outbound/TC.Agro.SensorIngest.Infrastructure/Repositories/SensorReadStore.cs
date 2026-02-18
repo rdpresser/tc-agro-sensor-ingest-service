@@ -82,23 +82,24 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
 
             var sorted = ApplySorting(projected, query.SortBy, query.SortDirection);
 
-            var sensors = await sorted
+            var projections = await sorted
                 .ApplyPagination(query.PageNumber, query.PageSize)
+                .ToListAsync(ct)
+                .ConfigureAwait(false);
+
+            var sensors = projections
                 .Select(s => new GetSensorListResponse(
                     s.Id,
                     s.Id,
                     s.PlotId,
                     s.PlotName,
-                    s.LastReadingTime != null && s.LastReadingTime > now.Add(-OnlineThreshold) ? "Online"
-                        : s.LastReadingTime != null && s.LastReadingTime > now.Add(-WarningThreshold) ? "Warning"
-                        : "Offline",
+                    DeriveStatus(s.LastReadingTime, now),
                     s.LastBatteryLevel ?? 0,
                     s.LastReadingTime,
                     s.LastTemperature,
                     s.LastHumidity,
                     s.LastSoilMoisture))
-                .ToListAsync(ct)
-                .ConfigureAwait(false);
+                .ToList();
 
             return (sensors, totalCount);
         }
@@ -134,9 +135,10 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
             if (result is null)
                 return null;
 
-            var status = result.LatestReading != null && result.LatestReading.Time > now.Add(-OnlineThreshold) ? "Online"
-                : result.LatestReading != null && result.LatestReading.Time > now.Add(-WarningThreshold) ? "Warning"
-                : "Offline";
+            var lastReadingTime = result.LatestReading != null
+                ? (DateTimeOffset?)result.LatestReading.Time
+                : null;
+            var status = DeriveStatus(lastReadingTime, now);
 
             return new SensorDetailItem(
                 result.Id,
@@ -159,6 +161,20 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
                 .Where(s => s.IsActive)
                 .CountAsync(ct)
                 .ConfigureAwait(false);
+        }
+
+        private static string DeriveStatus(DateTimeOffset? lastReadingTime, DateTimeOffset now)
+        {
+            if (lastReadingTime == null)
+                return "Offline";
+
+            if (lastReadingTime > now.Add(-OnlineThreshold))
+                return "Online";
+
+            if (lastReadingTime > now.Add(-WarningThreshold))
+                return "Warning";
+
+            return "Offline";
         }
 
         private static IQueryable<SensorProjection> ApplySorting(
