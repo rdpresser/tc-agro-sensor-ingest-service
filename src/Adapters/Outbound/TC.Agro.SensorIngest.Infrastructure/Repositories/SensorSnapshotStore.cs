@@ -55,5 +55,14 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
                 .FirstOrDefaultAsync(o => o.Id == id, cancellationToken)
                 .ConfigureAwait(false);
         }
+
+        /// <inheritdoc />
+        public async Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default)
+        {
+            return await _dbContext.SensorSnapshots
+                .AsNoTracking()
+                .AnyAsync(s => s.Id == id && s.IsActive, cancellationToken)
+                .ConfigureAwait(false);
+        }
     }
 }

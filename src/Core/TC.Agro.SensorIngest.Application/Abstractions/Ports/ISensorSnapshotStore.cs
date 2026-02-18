@@ -36,5 +36,14 @@ namespace TC.Agro.SensorIngest.Application.Abstractions.Ports
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns>The sensor snapshot, or null if not found</returns>
         Task<SensorSnapshot?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Checks whether an active sensor snapshot exists for the given identifier.
+        /// Used to validate sensor existence before accepting readings.
+        /// </summary>
+        /// <param name="id">The sensor identifier</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>True if an active sensor snapshot exists</returns>
+        Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default);
     }
 }
