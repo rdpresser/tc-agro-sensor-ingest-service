@@ -5,7 +5,11 @@ namespace TC.Agro.SensorIngest.Domain.Aggregates
         public Guid SensorId { get; private set; }
         public Guid PlotId { get; private set; }
         public string PlotName { get; private set; } = default!;
-        public SensorStatus Status { get; private set; } = default!;
+        public SensorStatus Status { get; private set; } = default!;                          // Connectivity status: Online, Warning, Offline
+        public string OperationalStatus { get; private set; } = "Active";                     // From Farm: Active, Inactive, Maintenance, Faulty
+        public string? OperationalStatusReason { get; private set; }                          // Reason for status change
+        public DateTimeOffset? LastStatusChangeAt { get; private set; }                       // When operational status last changed (from Farm)
+        public Guid? LastStatusChangedByUserId { get; private set; }                          // Who changed it
         public double Battery { get; private set; }
         public DateTimeOffset? LastReadingAt { get; private set; }
         public double? LastTemperature { get; private set; }
@@ -104,6 +108,36 @@ namespace TC.Agro.SensorIngest.Domain.Aggregates
             SetUpdatedAt(DateTimeOffset.UtcNow);
         }
 
+        /// <summary>
+        /// Updates the operational status synchronized from Farm Service.
+        /// This reflects the logical status managed in the Farm microservice (Active, Maintenance, Faulty, Inactive).
+        /// Different from connectivity status (Online/Offline) which is local to this service.
+        /// </summary>
+        public void UpdateOperationalStatus(string newStatus, string? reason, DateTimeOffset changedAt, Guid? changedByUserId)
+        {
+            if (string.IsNullOrWhiteSpace(newStatus))
+                return;
+
+            var previousStatus = OperationalStatus;
+            OperationalStatus = newStatus;
+            OperationalStatusReason = reason;
+            LastStatusChangeAt = changedAt;
+            LastStatusChangedByUserId = changedByUserId;
+            SetUpdatedAt(DateTimeOffset.UtcNow);
+
+            // Publish domain event for local projections/analytics
+            if (previousStatus != newStatus)
+            {
+                AddNewEvent(new OperationalStatusChangedDomainEvent(
+                    Id,
+                    SensorId,
+                    previousStatus,
+                    newStatus,
+                    reason,
+                    changedAt));
+            }
+        }
+
         #endregion
 
         #region Domain Events Apply
@@ -148,6 +182,14 @@ namespace TC.Agro.SensorIngest.Domain.Aggregates
             Guid SensorId,
             string OldStatus,
             string NewStatus,
+            DateTimeOffset OccurredOn) : BaseDomainEvent(AggregateId, OccurredOn);
+
+        public record OperationalStatusChangedDomainEvent(
+            Guid AggregateId,
+            Guid SensorId,
+            string PreviousStatus,
+            string NewStatus,
+            string? Reason,
             DateTimeOffset OccurredOn) : BaseDomainEvent(AggregateId, OccurredOn);
 
         #endregion
