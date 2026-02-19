@@ -1,6 +1,5 @@
 using JasperFx.Resources;
-using TC.Agro.Contracts.Events.Farm;
-using TC.Agro.Farm.Service.Extensions;
+using TC.Agro.Contracts.Events.SensorIngested;
 using TC.Agro.Messaging.Extensions;
 using TC.Agro.SharedKernel.Infrastructure.Messaging;
 
@@ -467,25 +466,24 @@ namespace TC.Agro.SensorIngest.Service.Extensions
                 if (mqConnectionFactory.AutoPurgeOnStartup)
                     rabbitOpts.AutoPurgeOnStartup();
 
-                ////var exchangeName = $"{mqConnectionFactory.Exchange}-exchange";
+                var exchangeName = $"{mqConnectionFactory.Exchange}-exchange";
 
                 // ============================================================
-                // CONFIGURE PUBLISHING - Farm Service Events
-                // Register all farm events (Property, Plot, Sensor) with explicit routing keys
+                // CONFIGURE PUBLISHING - Sensor Ingest Service Events
+                // Register all sensor ingest events with explicit routing keys
                 // ============================================================
 
-                //Criar uma extensão para registrar os eventos do Farm Service com as chaves de roteamento corretas,
-                //usando o padrão "farm.{entity}.{action}"
-                ////opts.ConfigureFarmEventPublishing();
+                //Keep the pattern of "sensor-ingest.sensor.{action}"
+                opts.ConfigureSensorIngestedEventPublishing();
 
                 // ============================================================
-                // PUBLISHING ENDPOINTS - Farm Service Events (TOPIC Exchange)
+                // PUBLISHING ENDPOINTS - Sensor Ingest Service Events (TOPIC Exchange)
                 // Messages are routed with specific routing keys via the extension above
                 // ============================================================
-                ////opts.PublishMessage<EventContext<PropertyCreatedIntegrationEvent>>()
-                ////    .ToRabbitExchange(exchangeName)
-                ////    .BufferedInMemory()
-                ////    .UseDurableOutbox();
+                opts.PublishMessage<EventContext<SensorIngestedIntegrationEvent>>()
+                    .ToRabbitExchange(exchangeName)
+                    .BufferedInMemory()
+                    .UseDurableOutbox();
 
                 // ============================================================
                 // CONSUMING - Sensor Ingest Service (Inbound)
