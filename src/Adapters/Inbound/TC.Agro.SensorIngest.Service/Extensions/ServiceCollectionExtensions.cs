@@ -1,5 +1,7 @@
 using JasperFx.Resources;
+using TC.Agro.Contracts.Events.SensorIngested;
 using TC.Agro.Messaging.Extensions;
+using TC.Agro.SharedKernel.Infrastructure.Messaging;
 
 namespace TC.Agro.SensorIngest.Service.Extensions
 {
@@ -463,6 +465,25 @@ namespace TC.Agro.SensorIngest.Service.Extensions
                     rabbitOpts.UseQuorumQueues();
                 if (mqConnectionFactory.AutoPurgeOnStartup)
                     rabbitOpts.AutoPurgeOnStartup();
+
+                var exchangeName = $"{mqConnectionFactory.Exchange}-exchange";
+
+                // ============================================================
+                // CONFIGURE PUBLISHING - Sensor Ingest Service Events
+                // Register all sensor ingest events with explicit routing keys
+                // ============================================================
+
+                //Keep the pattern of "sensor-ingest.sensor.{action}"
+                opts.ConfigureSensorIngestedEventPublishing();
+
+                // ============================================================
+                // PUBLISHING ENDPOINTS - Sensor Ingest Service Events (TOPIC Exchange)
+                // Messages are routed with specific routing keys via the extension above
+                // ============================================================
+                opts.PublishMessage<EventContext<SensorIngestedIntegrationEvent>>()
+                    .ToRabbitExchange(exchangeName)
+                    .BufferedInMemory()
+                    .UseDurableOutbox();
 
                 // ============================================================
                 // CONSUMING - Sensor Ingest Service (Inbound)

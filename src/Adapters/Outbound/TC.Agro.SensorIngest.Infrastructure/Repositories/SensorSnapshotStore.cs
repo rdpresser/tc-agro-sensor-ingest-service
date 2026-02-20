@@ -19,20 +19,20 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
             await _dbContext.SensorSnapshots.AddAsync(snapshot, cancellationToken).ConfigureAwait(false);
         }
 
-        /////// <inheritdoc />
-        ////public async Task UpdateAsync(SensorSnapshot snapshot, CancellationToken cancellationToken = default)
-        ////{
-        ////    ArgumentNullException.ThrowIfNull(snapshot);
+        /// <inheritdoc />
+        public async Task UpdateAsync(SensorSnapshot snapshot, CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(snapshot);
 
-        ////    var existingSnapshot = await _dbContext.SensorSnapshots
-        ////        .FirstOrDefaultAsync(o => o.Id == snapshot.Id, cancellationToken)
-        ////        .ConfigureAwait(false);
+            var existingSnapshot = await _dbContext.SensorSnapshots
+                .FirstOrDefaultAsync(o => o.Id == snapshot.Id, cancellationToken)
+                .ConfigureAwait(false);
 
-        ////    if (existingSnapshot == null)
-        ////        return;
+            if (existingSnapshot == null)
+                return;
 
-        ////    _dbContext.SensorSnapshots.Update(snapshot);
-        ////}
+            _dbContext.SensorSnapshots.Update(snapshot);
+        }
 
         /// <inheritdoc />
         public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
