@@ -68,11 +68,8 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateBatchReadings
                         if (domainEvent is SensorReadingAggregate.SensorReadingCreatedDomainEvent createdEvent)
                         {
                             var integrationEvent = new SensorIngestedIntegrationEvent(
-                                EventId: Guid.NewGuid(),
                                 SensorReadingId: createdEvent.AggregateId,
                                 OccurredOn: createdEvent.OccurredOn,
-                                EventName: nameof(SensorIngestedIntegrationEvent),
-                                RelatedIds: new Dictionary<string, Guid> { { "PlotId", createdEvent.PlotId }, { "SensorId", createdEvent.SensorId } },
                                 SensorId: createdEvent.SensorId,
                                 PlotId: createdEvent.PlotId,
                                 Time: createdEvent.Time,

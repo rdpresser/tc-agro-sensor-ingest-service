@@ -30,11 +30,8 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateReading
             SensorReadingAggregate.SensorReadingCreatedDomainEvent domainEvent)
         {
             return new SensorIngestedIntegrationEvent(
-                EventId: Guid.NewGuid(),
                 SensorReadingId: domainEvent.AggregateId,
                 OccurredOn: domainEvent.OccurredOn,
-                EventName: nameof(SensorIngestedIntegrationEvent),
-                RelatedIds: new Dictionary<string, Guid> { { "PlotId", domainEvent.PlotId }, { "SensorId", domainEvent.SensorId } },
                 SensorId: domainEvent.SensorId,
                 PlotId: domainEvent.PlotId,
                 Time: domainEvent.Time,
