@@ -20,16 +20,16 @@ namespace TC.Agro.SensorIngest.Application.MessageBrokerHandlers
     /// </summary>
     public sealed class SensorOperationalStatusChangedHandler : IWolverineHandler
     {
-        private readonly ISensorAggregateRepository _sensorStore;
+        private readonly ISensorAggregateRepository _sensorAggregate;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<SensorOperationalStatusChangedHandler> _logger;
 
         public SensorOperationalStatusChangedHandler(
-            ISensorAggregateRepository sensorStore,
+            ISensorAggregateRepository sensorAggregate,
             IUnitOfWork unitOfWork,
             ILogger<SensorOperationalStatusChangedHandler> logger)
         {
-            _sensorStore = sensorStore ?? throw new ArgumentNullException(nameof(sensorStore));
+            _sensorAggregate = sensorAggregate ?? throw new ArgumentNullException(nameof(sensorAggregate));
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -45,7 +45,7 @@ namespace TC.Agro.SensorIngest.Application.MessageBrokerHandlers
             try
             {
                 _logger.LogInformation(
-                    "🔄 Processing SensorOperationalStatusChangedIntegrationEvent for SensorId: {SensorId}, " +
+                    "Processing SensorOperationalStatusChangedIntegrationEvent for SensorId: {SensorId}, " +
                     "Status: {PreviousStatus} → {NewStatus}, EventId: {EventId}, CorrelationId: {CorrelationId}",
                     evt.SensorId,
                     evt.PreviousStatus,
@@ -54,22 +54,20 @@ namespace TC.Agro.SensorIngest.Application.MessageBrokerHandlers
                     @event.CorrelationId);
 
                 // IDEMPOTENCY: Validate event
-                if (string.IsNullOrEmpty(evt.NewStatus))
+                if (string.IsNullOrWhiteSpace(evt.NewStatus))
                 {
                     _logger.LogWarning(
-                        "⚠️ Invalid event: NewStatus is empty. Skipping (idempotent). EventId: {EventId}",
+                        "Invalid event: NewStatus is empty. Skipping (idempotent). EventId: {EventId}",
                         evt.EventId);
                     return;  // Skip silently - this is idempotent
                 }
 
                 // IDEMPOTENCY: Load sensor by SensorId (from Farm)
-                var sensor = await _sensorStore.GetBySensorIdAsync(evt.SensorId, cancellationToken)
-                    .ConfigureAwait(false);
-
+                var sensor = await _sensorAggregate.GetBySensorIdAsync(evt.SensorId, cancellationToken).ConfigureAwait(false);
                 if (sensor == null)
                 {
                     _logger.LogWarning(
-                        "⚠️ Sensor {SensorId} not found in Sensor-Ingest. Possibly deleted. " +
+                        "Sensor {SensorId} not found in Sensor-Ingest. Possibly deleted. " +
                         "Skipping update (idempotent). EventId: {EventId}",
                         evt.SensorId,
                         evt.EventId);
@@ -82,7 +80,7 @@ namespace TC.Agro.SensorIngest.Application.MessageBrokerHandlers
                     sensor.LastStatusChangeAt.Value >= evt.OccurredOn.Subtract(TimeSpan.FromSeconds(5)))
                 {
                     _logger.LogInformation(
-                        "✓ Status already applied (duplicate event). SensorId: {SensorId}, Status: {Status}, " +
+                        "Status already applied (duplicate event). SensorId: {SensorId}, Status: {Status}, " +
                         "Skipping. EventId: {EventId}",
                         evt.SensorId,
                         evt.NewStatus,
@@ -97,12 +95,11 @@ namespace TC.Agro.SensorIngest.Application.MessageBrokerHandlers
                     evt.OccurredOn,
                     evt.ChangedByUserId);
 
-                // PERSIST: Save to database within transaction
-                await _sensorStore.UpdateAsync(sensor, cancellationToken).ConfigureAwait(false);
+                // PERSIST: Save to database within transaction                
                 await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
                 _logger.LogInformation(
-                    "✅ Sensor {SensorId} operational status updated: {PreviousStatus} → {NewStatus}. " +
+                    "Sensor {SensorId} operational status updated: {PreviousStatus} → {NewStatus}. " +
                     "Reason: {Reason}. EventId: {EventId}",
                     evt.SensorId,
                     evt.PreviousStatus,

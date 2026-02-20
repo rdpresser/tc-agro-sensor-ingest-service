@@ -21,18 +21,18 @@ namespace TC.Agro.SensorIngest.Application.MessageBrokerHandlers
     /// </summary>
     public sealed class SensorDeactivatedHandler : IWolverineHandler
     {
-        private readonly ISensorAggregateRepository _sensorStore;
+        private readonly ISensorAggregateRepository _sensorAggregate;
         private readonly ISensorSnapshotStore _snapshotStore;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<SensorDeactivatedHandler> _logger;
 
         public SensorDeactivatedHandler(
-            ISensorAggregateRepository sensorStore,
+            ISensorAggregateRepository sensorAggregate,
             ISensorSnapshotStore snapshotStore,
             IUnitOfWork unitOfWork,
             ILogger<SensorDeactivatedHandler> logger)
         {
-            _sensorStore = sensorStore ?? throw new ArgumentNullException(nameof(sensorStore));
+            _sensorAggregate = sensorAggregate ?? throw new ArgumentNullException(nameof(sensorAggregate));
             _snapshotStore = snapshotStore ?? throw new ArgumentNullException(nameof(snapshotStore));
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -49,54 +49,44 @@ namespace TC.Agro.SensorIngest.Application.MessageBrokerHandlers
             try
             {
                 _logger.LogInformation(
-                    "🔴 Processing SensorDeactivatedIntegrationEvent for SensorId: {SensorId}. " +
+                    "Processing SensorDeactivatedIntegrationEvent for SensorId: {SensorId}. " +
                     "Reason: {Reason}. EventId: {EventId}",
                     evt.SensorId,
                     evt.Reason,
                     evt.EventId);
 
                 // IDEMPOTENCY: Load sensor by SensorId
-                var sensor = await _sensorStore.GetBySensorIdAsync(evt.SensorId, cancellationToken)
-                    .ConfigureAwait(false);
-
+                var sensor = await _sensorAggregate.GetBySensorIdAsync(evt.SensorId, cancellationToken).ConfigureAwait(false);
                 if (sensor == null)
                 {
                     _logger.LogWarning(
-                        "⚠️ Sensor {SensorId} not found. Skipping deactivation (idempotent). EventId: {EventId}",
+                        "Sensor {SensorId} not found. Skipping deactivation (idempotent). EventId: {EventId}",
                         evt.SensorId,
                         evt.EventId);
                     return;  // Idempotent: sensor may not have synced yet or already deleted
                 }
 
-                // IDEMPOTENCY: Check if already deactivated
-                if (!sensor.IsActive)
-                {
-                    _logger.LogInformation(
-                        "✓ Sensor already deactivated (duplicate event). SensorId: {SensorId}. Skipping. EventId: {EventId}",
-                        evt.SensorId,
-                        evt.EventId);
-                    return;  // Idempotent
-                }
-
                 // DEACTIVATE: Mark sensor as inactive
-                sensor.Deactivate();
+                var deactivateResult = sensor.Deactivate();
+                if (!deactivateResult.IsSuccess)
+                {
+                    _logger.LogWarning(
+                        "Sensor {SensorId} could not be deactivated. Reason: {Reason}. EventId: {EventId}",
+                        evt.SensorId,
+                        deactivateResult.Errors,
+                        evt.EventId);
+                    return;  // Idempotent: sensor may not have synced yet or already deleted
+                }
 
                 // SYNC SNAPSHOT: Mark snapshot as inactive
-                var snapshot = await _snapshotStore.GetByIdAsync(evt.SensorId, cancellationToken)
-                    .ConfigureAwait(false);
-
-                if (snapshot != null)
-                {
-                    snapshot.Delete();
-                    await _snapshotStore.UpdateAsync(snapshot, cancellationToken).ConfigureAwait(false);
-                }
+                var snapshot = await _snapshotStore.GetByIdAsync(evt.SensorId, cancellationToken).ConfigureAwait(false);
+                snapshot?.Delete();
 
                 // PERSIST: Save both to database
-                await _sensorStore.UpdateAsync(sensor, cancellationToken).ConfigureAwait(false);
                 await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
                 _logger.LogInformation(
-                    "✅ Sensor {SensorId} deactivated successfully. Reason: {Reason}. EventId: {EventId}",
+                    "Sensor {SensorId} deactivated successfully. Reason: {Reason}. EventId: {EventId}",
                     evt.SensorId,
                     evt.Reason,
                     evt.EventId);
@@ -104,7 +94,7 @@ namespace TC.Agro.SensorIngest.Application.MessageBrokerHandlers
             catch (Exception ex)
             {
                 _logger.LogError(ex,
-                    "❌ Error processing SensorDeactivatedIntegrationEvent: SensorId={SensorId}, " +
+                    "Error processing SensorDeactivatedIntegrationEvent: SensorId={SensorId}, " +
                     "EventId={EventId}, CorrelationId={CorrelationId}, Reason={Reason}. " +
                     "Exception={ExceptionType}. Will retry.",
                     evt.SensorId,

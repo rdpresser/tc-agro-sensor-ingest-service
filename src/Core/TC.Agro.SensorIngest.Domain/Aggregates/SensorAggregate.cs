@@ -101,11 +101,18 @@ namespace TC.Agro.SensorIngest.Domain.Aggregates
             }
         }
 
-        public void Deactivate()
+        public Result Deactivate()
         {
+            if (!IsActive)
+            {
+                return Result.Invalid(SensorReadingDomainErrors.SensorAlreadyDeactivated);
+            }
+
             SetDeactivate();
             Status = SensorStatus.CreateOffline();
             SetUpdatedAt(DateTimeOffset.UtcNow);
+
+            return Result.Success();
         }
 
         /// <summary>

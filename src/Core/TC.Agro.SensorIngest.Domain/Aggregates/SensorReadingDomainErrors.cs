@@ -12,5 +12,6 @@ namespace TC.Agro.SensorIngest.Domain.Aggregates
         public static readonly DomainError InvalidRainfall = new("SensorReading.InvalidRainfall", "Rainfall cannot be negative.");
         public static readonly DomainError SensorNotFound = new("SensorReading.SensorNotFound", "Sensor not found.");
         public static readonly DomainError PlotNotFound = new("SensorReading.PlotNotFound", "Plot not found.");
+        public static readonly ValidationError SensorAlreadyDeactivated = new("Sensor.AlreadyDeactivated", "Sensor is already deactivated.");
     }
 }
