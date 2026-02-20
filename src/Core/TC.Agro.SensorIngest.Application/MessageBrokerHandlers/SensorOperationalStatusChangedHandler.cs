@@ -75,25 +75,25 @@ namespace TC.Agro.SensorIngest.Application.MessageBrokerHandlers
                 }
 
                 // IDEMPOTENCY: Check if status already applied (within time window)
-                if (sensor.OperationalStatus == evt.NewStatus &&
-                    sensor.LastStatusChangeAt.HasValue &&
-                    sensor.LastStatusChangeAt.Value >= evt.OccurredOn.Subtract(TimeSpan.FromSeconds(5)))
-                {
-                    _logger.LogInformation(
-                        "Status already applied (duplicate event). SensorId: {SensorId}, Status: {Status}, " +
-                        "Skipping. EventId: {EventId}",
-                        evt.SensorId,
-                        evt.NewStatus,
-                        evt.EventId);
-                    return;  // Idempotent
-                }
+                ////if (sensor.OperationalStatus == evt.NewStatus &&
+                ////    sensor.LastStatusChangeAt.HasValue &&
+                ////    sensor.LastStatusChangeAt.Value >= evt.OccurredOn.Subtract(TimeSpan.FromSeconds(5)))
+                ////{
+                ////    _logger.LogInformation(
+                ////        "Status already applied (duplicate event). SensorId: {SensorId}, Status: {Status}, " +
+                ////        "Skipping. EventId: {EventId}",
+                ////        evt.SensorId,
+                ////        evt.NewStatus,
+                ////        evt.EventId);
+                ////    return;  // Idempotent
+                ////}
 
-                // UPDATE: Apply operational status change
-                sensor.UpdateOperationalStatus(
-                    evt.NewStatus,
-                    evt.Reason,
-                    evt.OccurredOn,
-                    evt.ChangedByUserId);
+                ////// UPDATE: Apply operational status change
+                ////sensor.UpdateOperationalStatus(
+                ////    evt.NewStatus,
+                ////    evt.Reason,
+                ////    evt.OccurredOn,
+                ////    evt.ChangedByUserId);
 
                 // PERSIST: Save to database within transaction                
                 await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
