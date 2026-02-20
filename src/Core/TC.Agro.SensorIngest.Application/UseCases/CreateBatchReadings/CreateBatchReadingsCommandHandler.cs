@@ -7,15 +7,18 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateBatchReadings
     {
         private readonly ISensorReadingRepository _repository;
         private readonly ITransactionalOutbox _outbox;
+        private readonly ISensorSnapshotStore _sensorSnapshotStore;
         private readonly ILogger<CreateBatchReadingsCommandHandler> _logger;
 
         public CreateBatchReadingsCommandHandler(
             ISensorReadingRepository repository,
             ITransactionalOutbox outbox,
+            ISensorSnapshotStore sensorSnapshotStore,
             ILogger<CreateBatchReadingsCommandHandler> logger)
         {
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
             _outbox = outbox ?? throw new ArgumentNullException(nameof(outbox));
+            _sensorSnapshotStore = sensorSnapshotStore ?? throw new ArgumentNullException(nameof(sensorSnapshotStore));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -28,6 +31,21 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateBatchReadings
 
             foreach (var input in command.Readings)
             {
+                var sensorExists = await _sensorSnapshotStore.ExistsAsync(input.SensorId, ct).ConfigureAwait(false);
+                if (!sensorExists)
+                {
+                    _logger.LogWarning(
+                        "Rejected batch reading for unknown sensor {SensorId}",
+                        input.SensorId);
+
+                    results.Add(new BatchReadingResult(
+                        ReadingId: null,
+                        SensorId: input.SensorId,
+                        Success: false,
+                        ErrorMessage: $"Sensor with ID '{input.SensorId}' is not registered."));
+                    continue;
+                }
+
                 var aggregateResult = SensorReadingAggregate.Create(
                     sensorId: input.SensorId,
                     plotId: input.PlotId,

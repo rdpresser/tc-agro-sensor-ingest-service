@@ -7,17 +7,20 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateReading
     {
         private readonly ILogger<CreateReadingCommandHandler> _logger;
         private readonly ISensorHubNotifier _hubNotifier;
+        private readonly ISensorSnapshotStore _sensorSnapshotStore;
 
         public CreateReadingCommandHandler(
             ISensorReadingRepository repository,
             IUserContext userContext,
             ITransactionalOutbox outbox,
             ISensorHubNotifier hubNotifier,
+            ISensorSnapshotStore sensorSnapshotStore,
             ILogger<CreateReadingCommandHandler> logger)
             : base(repository, userContext, outbox, logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _hubNotifier = hubNotifier ?? throw new ArgumentNullException(nameof(hubNotifier));
+            _sensorSnapshotStore = sensorSnapshotStore ?? throw new ArgumentNullException(nameof(sensorSnapshotStore));
         }
 
         protected override Task<Result<SensorReadingAggregate>> MapAsync(CreateReadingCommand command, CancellationToken ct)
@@ -26,11 +29,19 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateReading
             return Task.FromResult(aggregateResult);
         }
 
-        protected override Task<Result> ValidateAsync(SensorReadingAggregate aggregate, CancellationToken ct)
+        protected override async Task<Result> ValidateAsync(SensorReadingAggregate aggregate, CancellationToken ct)
         {
-            // Additional business validation can be added here
-            // e.g., verify sensor exists in Farm service, verify plot belongs to user, etc.
-            return Task.FromResult(Result.Success());
+            var sensorExists = await _sensorSnapshotStore.ExistsAsync(aggregate.SensorId, ct).ConfigureAwait(false);
+            if (!sensorExists)
+            {
+                _logger.LogWarning(
+                    "Rejected reading for unknown sensor {SensorId}",
+                    aggregate.SensorId);
+
+                return Result.Error($"Sensor with ID '{aggregate.SensorId}' is not registered.");
+            }
+
+            return Result.Success();
         }
 
         protected override async Task PublishIntegrationEventsAsync(SensorReadingAggregate aggregate, CancellationToken ct)
