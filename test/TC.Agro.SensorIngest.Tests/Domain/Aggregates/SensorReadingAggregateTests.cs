@@ -165,7 +165,7 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Aggregates
         {
             var result = SensorReadingAggregate.Create(
                 sensorId: Guid.NewGuid(),
-                time: DateTime.UtcNow.AddMinutes(10),
+                time: DateTime.UtcNow.AddMinutes(6),
                 temperature: 25.0,
                 humidity: null,
                 soilMoisture: null,
@@ -193,6 +193,8 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Aggregates
         }
 
         [Theory]
+        [InlineData(-50.1)]
+        [InlineData(70.1)]
         [InlineData(-51)]
         [InlineData(71)]
         public void Create_WithTemperatureOutOfRange_ShouldFail(double temperature)

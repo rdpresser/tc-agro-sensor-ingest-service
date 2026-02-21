@@ -86,6 +86,24 @@ namespace TC.Agro.SensorIngest.Tests.Application.Validators
             result.Errors.ShouldContain(e => e.PropertyName == "Timestamp");
         }
 
+        [Fact]
+        public void Validate_WithTimestampMoreThanFiveMinutesInFuture_ShouldFail()
+        {
+            var command = new CreateReadingCommand(
+                SensorId: Guid.NewGuid(),
+                Timestamp: DateTime.UtcNow.AddMinutes(6),
+                Temperature: 25.0,
+                Humidity: null,
+                SoilMoisture: null,
+                Rainfall: null,
+                BatteryLevel: null);
+
+            var result = _validator.Validate(command);
+
+            result.IsValid.ShouldBeFalse();
+            result.Errors.ShouldContain(e => e.PropertyName == "Timestamp");
+        }
+
         #endregion
 
         #region Metric Range Validation
