@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace TC.Agro.SensorIngest.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class Initial_Create : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -52,30 +52,6 @@ namespace TC.Agro.SensorIngest.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("pk_owner_snapshots", x => x.id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "sensors",
-                schema: "public",
-                columns: table => new
-                {
-                    id = table.Column<Guid>(type: "uuid", nullable: false),
-                    sensor_id = table.Column<Guid>(type: "uuid", maxLength: 100, nullable: false),
-                    plot_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    plot_name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
-                    status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
-                    battery = table.Column<double>(type: "double precision", nullable: false),
-                    last_reading_at = table.Column<DateTimeOffset>(type: "timestamptz", nullable: true),
-                    last_temperature = table.Column<double>(type: "double precision", nullable: true),
-                    last_humidity = table.Column<double>(type: "double precision", nullable: true),
-                    last_soil_moisture = table.Column<double>(type: "double precision", nullable: true),
-                    created_at = table.Column<DateTimeOffset>(type: "timestamptz", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
-                    updated_at = table.Column<DateTimeOffset>(type: "timestamptz", nullable: true),
-                    is_active = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_sensors", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -196,19 +172,6 @@ namespace TC.Agro.SensorIngest.Infrastructure.Migrations
                 schema: "public",
                 table: "sensor_snapshots",
                 columns: new[] { "plot_id", "is_active" });
-
-            migrationBuilder.CreateIndex(
-                name: "ix_sensors_plot_id",
-                schema: "public",
-                table: "sensors",
-                column: "plot_id");
-
-            migrationBuilder.CreateIndex(
-                name: "ix_sensors_sensor_id",
-                schema: "public",
-                table: "sensors",
-                column: "sensor_id",
-                unique: true);
         }
 
         /// <inheritdoc />
@@ -220,10 +183,6 @@ namespace TC.Agro.SensorIngest.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "sensor_readings",
-                schema: "public");
-
-            migrationBuilder.DropTable(
-                name: "sensors",
                 schema: "public");
 
             migrationBuilder.DropTable(

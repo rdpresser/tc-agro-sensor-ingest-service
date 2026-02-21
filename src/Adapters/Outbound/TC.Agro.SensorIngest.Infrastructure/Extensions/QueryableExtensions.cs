@@ -47,36 +47,6 @@ namespace TC.Agro.SensorIngest.Infrastructure.Extensions
         }
 
         /// <summary>
-        /// Applies plot filter to SensorSnapshot queries.
-        /// </summary>
-        public static IQueryable<SensorSnapshot> ApplyPlotFilter(
-            this IQueryable<SensorSnapshot> query,
-            Guid? plotId)
-        {
-            if (!plotId.HasValue)
-                return query;
-
-            return query.Where(s => s.PlotId == plotId.Value);
-        }
-
-        /// <summary>
-        /// Applies text search filter to SensorSnapshot queries.
-        /// </summary>
-        public static IQueryable<SensorSnapshot> ApplyTextFilter(
-            this IQueryable<SensorSnapshot> query,
-            string? filter)
-        {
-            if (string.IsNullOrWhiteSpace(filter))
-                return query;
-
-            var pattern = $"%{filter}%";
-            return query.Where(s =>
-                EF.Functions.ILike(s.PlotName, pattern) ||
-                (s.Label != null && EF.Functions.ILike(s.Label, pattern)) ||
-                EF.Functions.ILike(s.PropertyName, pattern));
-        }
-
-        /// <summary>
         /// Applies text search filter to AlertAggregate queries.
         /// </summary>
         public static IQueryable<AlertAggregate> ApplyTextFilter(

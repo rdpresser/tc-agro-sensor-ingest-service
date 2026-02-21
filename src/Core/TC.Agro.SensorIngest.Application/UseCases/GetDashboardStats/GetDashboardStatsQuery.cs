@@ -4,13 +4,12 @@ namespace TC.Agro.SensorIngest.Application.UseCases.GetDashboardStats
     {
         private string? _cacheKey;
         public string GetCacheKey => _cacheKey ?? "GetDashboardStatsQuery";
-        public TimeSpan? Duration { get; init; }
-        public TimeSpan? DistributedCacheDuration { get; init; }
+        public TimeSpan? Duration => null;
+        public TimeSpan? DistributedCacheDuration => null;
 
         public IReadOnlyCollection<string> CacheTags =>
         [
             Abstractions.CacheTags.Dashboard,
-            Abstractions.CacheTags.Sensors,
             Abstractions.CacheTags.Alerts
         ];
 
