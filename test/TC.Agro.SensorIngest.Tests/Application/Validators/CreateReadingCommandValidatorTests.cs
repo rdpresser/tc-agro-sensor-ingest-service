@@ -207,6 +207,7 @@ namespace TC.Agro.SensorIngest.Tests.Application.Validators
             var result = _validator.Validate(command);
 
             result.IsValid.ShouldBeFalse();
+            result.Errors.ShouldContain(e => e.ErrorMessage.Contains("At least one metric"));
         }
 
         #endregion

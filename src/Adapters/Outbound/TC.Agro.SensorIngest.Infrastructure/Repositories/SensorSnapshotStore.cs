@@ -61,7 +61,7 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
         {
             return await _dbContext.SensorSnapshots
                 .AsNoTracking()
-                .AnyAsync(s => s.Id == id && s.IsActive, cancellationToken)
+                .AnyAsync(s => s.Id == id, cancellationToken)
                 .ConfigureAwait(false);
         }
 
@@ -72,7 +72,7 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
 
             return await _dbContext.SensorSnapshots
                 .AsNoTracking()
-                .Where(s => idList.Contains(s.Id) && s.IsActive)
+                .Where(s => idList.Contains(s.Id))
                 .ToDictionaryAsync(s => s.Id, cancellationToken)
                 .ConfigureAwait(false);
         }
