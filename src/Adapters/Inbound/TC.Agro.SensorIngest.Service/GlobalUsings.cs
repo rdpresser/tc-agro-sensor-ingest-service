@@ -41,8 +41,6 @@ global using TC.Agro.SensorIngest.Application.UseCases.GetAlertList;
 global using TC.Agro.SensorIngest.Application.UseCases.GetDashboardStats;
 global using TC.Agro.SensorIngest.Application.UseCases.GetLatestReadings;
 global using TC.Agro.SensorIngest.Application.UseCases.GetReadingsHistory;
-global using TC.Agro.SensorIngest.Application.UseCases.GetSensorList;
-global using TC.Agro.SensorIngest.Application.UseCases.RegisterSensor;
 global using TC.Agro.SensorIngest.Application.UseCases.ResolveAlert;
 // Project - Infrastructure
 global using TC.Agro.SensorIngest.Infrastructure;

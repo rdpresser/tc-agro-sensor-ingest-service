@@ -12,7 +12,6 @@ global using TC.Agro.SensorIngest.Application.Abstractions.Ports;
 global using TC.Agro.SensorIngest.Application.UseCases.GetAlertList;
 global using TC.Agro.SensorIngest.Application.UseCases.GetLatestReadings;
 global using TC.Agro.SensorIngest.Application.UseCases.GetReadingsHistory;
-global using TC.Agro.SensorIngest.Application.UseCases.GetSensorList;
 global using TC.Agro.SensorIngest.Domain.Aggregates;
 global using TC.Agro.SensorIngest.Domain.Snapshots;
 global using TC.Agro.SharedKernel.Application.Commands;

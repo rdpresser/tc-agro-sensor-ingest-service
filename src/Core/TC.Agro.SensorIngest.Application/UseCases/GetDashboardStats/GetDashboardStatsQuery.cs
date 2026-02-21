@@ -10,7 +10,6 @@ namespace TC.Agro.SensorIngest.Application.UseCases.GetDashboardStats
         public IReadOnlyCollection<string> CacheTags =>
         [
             Abstractions.CacheTags.Dashboard,
-            Abstractions.CacheTags.Sensors,
             Abstractions.CacheTags.Alerts
         ];
 

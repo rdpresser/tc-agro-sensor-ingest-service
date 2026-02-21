@@ -47,43 +47,6 @@ namespace TC.Agro.SensorIngest.Infrastructure.Extensions
         }
 
         /// <summary>
-        /// Applies dynamic sorting to SensorAggregate queries.
-        /// </summary>
-        public static IQueryable<SensorAggregate> ApplySorting(
-            this IQueryable<SensorAggregate> query,
-            string? sortBy,
-            string? sortDirection)
-        {
-            if (string.IsNullOrWhiteSpace(sortBy))
-                return query.OrderByDescending(s => s.CreatedAt);
-
-            var isAscending = string.Equals(sortDirection, "asc", StringComparison.OrdinalIgnoreCase);
-
-            return sortBy.ToLowerInvariant() switch
-            {
-                "sensorid" => isAscending
-                    ? query.OrderBy(s => s.SensorId)
-                    : query.OrderByDescending(s => s.SensorId),
-                "plotname" => isAscending
-                    ? query.OrderBy(s => s.PlotName)
-                    : query.OrderByDescending(s => s.PlotName),
-                "status" => isAscending
-                    ? query.OrderBy(s => s.Status)
-                    : query.OrderByDescending(s => s.Status),
-                "battery" => isAscending
-                    ? query.OrderBy(s => s.Battery)
-                    : query.OrderByDescending(s => s.Battery),
-                "lastreadingat" => isAscending
-                    ? query.OrderBy(s => s.LastReadingAt)
-                    : query.OrderByDescending(s => s.LastReadingAt),
-                "createdat" => isAscending
-                    ? query.OrderBy(s => s.CreatedAt)
-                    : query.OrderByDescending(s => s.CreatedAt),
-                _ => query.OrderByDescending(s => s.CreatedAt)
-            };
-        }
-
-        /// <summary>
         /// Applies text search filter to AlertAggregate queries.
         /// </summary>
         public static IQueryable<AlertAggregate> ApplyTextFilter(
@@ -102,22 +65,6 @@ namespace TC.Agro.SensorIngest.Infrastructure.Extensions
         }
 
         /// <summary>
-        /// Applies text search filter to SensorAggregate queries.
-        /// </summary>
-        public static IQueryable<SensorAggregate> ApplyTextFilter(
-            this IQueryable<SensorAggregate> query,
-            string? filter)
-        {
-            if (string.IsNullOrWhiteSpace(filter))
-                return query;
-
-            var pattern = $"%{filter}%";
-            return query.Where(s =>
-                EF.Functions.ILike(s.PlotName, pattern) ||
-                EF.Functions.ILike(s.Status, pattern));
-        }
-
-        /// <summary>
         /// Applies status filter to AlertAggregate queries.
         /// </summary>
         public static IQueryable<AlertAggregate> ApplyStatusFilter(
@@ -128,32 +75,6 @@ namespace TC.Agro.SensorIngest.Infrastructure.Extensions
                 return query;
 
             return query.Where(a => EF.Functions.ILike(a.Status, status));
-        }
-
-        /// <summary>
-        /// Applies status filter to SensorAggregate queries.
-        /// </summary>
-        public static IQueryable<SensorAggregate> ApplyStatusFilter(
-            this IQueryable<SensorAggregate> query,
-            string? status)
-        {
-            if (string.IsNullOrWhiteSpace(status))
-                return query;
-
-            return query.Where(s => EF.Functions.ILike(s.Status, status));
-        }
-
-        /// <summary>
-        /// Applies plot filter to SensorAggregate queries.
-        /// </summary>
-        public static IQueryable<SensorAggregate> ApplyPlotFilter(
-            this IQueryable<SensorAggregate> query,
-            Guid? plotId)
-        {
-            if (!plotId.HasValue)
-                return query;
-
-            return query.Where(s => s.PlotId == plotId.Value);
         }
 
         /// <summary>
