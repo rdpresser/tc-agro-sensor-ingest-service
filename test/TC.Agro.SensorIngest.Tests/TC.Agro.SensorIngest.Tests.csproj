@@ -30,4 +30,9 @@
     <ProjectReference Include="..\..\src\Core\TC.Agro.SensorIngest.Application\TC.Agro.SensorIngest.Application.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Application\" />
+    <Folder Include="Domain\Aggregates\" />
+  </ItemGroup>
+
 </Project>

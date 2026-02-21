@@ -27,7 +27,7 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
             int limit = 100,
             CancellationToken cancellationToken = default)
         {
-            var query = DbSet.Where(x => x.PlotId == plotId);
+            var query = DbSet.Where(x => x.Sensor.PlotId == plotId);
 
             if (from.HasValue)
                 query = query.Where(x => x.Time >= from.Value);

@@ -54,7 +54,6 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateBatchReadings
 
                 var aggregateResult = SensorReadingAggregate.Create(
                     sensorId: input.SensorId,
-                    plotId: input.PlotId,
                     time: input.Timestamp,
                     temperature: input.Temperature,
                     humidity: input.Humidity,
@@ -66,7 +65,7 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateBatchReadings
                 {
                     successfulAggregates.Add(aggregateResult.Value);
                     results.Add(new BatchReadingResult(
-                        ReadingId: aggregateResult.Value.Id,
+                        SensorReadingId: aggregateResult.Value.Id,
                         SensorId: input.SensorId,
                         Success: true));
                 }
@@ -74,7 +73,7 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateBatchReadings
                 {
                     var errorMessage = string.Join("; ", aggregateResult.ValidationErrors.Select(e => e.ErrorMessage));
                     results.Add(new BatchReadingResult(
-                        ReadingId: null,
+                        SensorReadingId: null,
                         SensorId: input.SensorId,
                         Success: false,
                         ErrorMessage: errorMessage));
@@ -95,7 +94,6 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateBatchReadings
                                 SensorReadingId: createdEvent.AggregateId,
                                 OccurredOn: createdEvent.OccurredOn,
                                 SensorId: createdEvent.SensorId,
-                                PlotId: createdEvent.PlotId,
                                 Time: createdEvent.Time,
                                 Temperature: createdEvent.Temperature,
                                 Humidity: createdEvent.Humidity,

@@ -25,7 +25,6 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Readings
                 [
                     new SensorReadingInput(
                         SensorId: Guid.NewGuid(),
-                        PlotId: Guid.Parse("a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
                         Timestamp: DateTime.UtcNow,
                         Temperature: 28.5,
                         Humidity: 65.2,
@@ -34,7 +33,6 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Readings
                         BatteryLevel: 85.0),
                     new SensorReadingInput(
                         SensorId: Guid.NewGuid(),
-                        PlotId: Guid.Parse("a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
                         Timestamp: DateTime.UtcNow,
                         Temperature: 29.1,
                         Humidity: 62.8,

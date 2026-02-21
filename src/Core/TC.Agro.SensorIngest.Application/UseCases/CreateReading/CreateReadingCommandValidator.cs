@@ -7,9 +7,6 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateReading
             RuleFor(x => x.SensorId)
                 .NotEmpty().WithMessage("SensorId is required.");
 
-            RuleFor(x => x.PlotId)
-                .NotEmpty().WithMessage("PlotId is required.");
-
             RuleFor(x => x.Timestamp)
                 .NotEmpty().WithMessage("Timestamp is required.")
                 .LessThanOrEqualTo(DateTime.UtcNow.AddMinutes(5)).WithMessage("Timestamp cannot be in the future.");

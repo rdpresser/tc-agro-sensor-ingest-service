@@ -5,10 +5,9 @@ namespace TC.Agro.SensorIngest.Infrastructure
     [ExcludeFromCodeCoverage]
     public sealed class ApplicationDbContext : DbContext, IApplicationDbContext
     {
-        public DbSet<SensorReadingAggregate> SensorReadings { get; set; }
-        public DbSet<AlertAggregate> Alerts { get; set; }
-        public DbSet<OwnerSnapshot> OwnerSnapshots { get; set; }
-        public DbSet<SensorSnapshot> SensorSnapshots { get; set; }
+        public DbSet<SensorReadingAggregate> SensorReadings { get; set; } = default!;
+        public DbSet<OwnerSnapshot> OwnerSnapshots { get; set; } = default!;
+        public DbSet<SensorSnapshot> SensorSnapshots { get; set; } = default!;
 
         /// <inheritdoc />
         public DbContext DbContext => this;
@@ -28,8 +27,11 @@ namespace TC.Agro.SensorIngest.Infrastructure
 
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
 
-            // Global query filters for soft delete
-            modelBuilder.Entity<AlertAggregate>().HasQueryFilter(x => x.IsActive);
+            // OwnerSnapshot: Only soft delete (no owner filter needed)
+            modelBuilder.Entity<OwnerSnapshot>().HasQueryFilter(o => o.IsActive);
+
+            // SensorSnapshot: Only soft delete (no owner filter needed)
+            modelBuilder.Entity<SensorSnapshot>().HasQueryFilter(s => s.IsActive);
         }
 
         /// <inheritdoc />

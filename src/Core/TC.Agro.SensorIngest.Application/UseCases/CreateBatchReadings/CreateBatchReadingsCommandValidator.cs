@@ -15,10 +15,6 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateBatchReadings
                     .NotEmpty()
                         .WithMessage("SensorId is required.");
 
-                reading.RuleFor(r => r.PlotId)
-                    .NotEmpty()
-                        .WithMessage("PlotId is required.");
-
                 reading.RuleFor(r => r.Timestamp)
                     .NotEmpty()
                         .WithMessage("Timestamp is required.");

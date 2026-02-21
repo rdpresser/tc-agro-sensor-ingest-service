@@ -63,7 +63,7 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateReading
             }
 
             _logger.LogInformation(
-                "Enqueued {Count} integration events for sensor reading {ReadingId} from sensor {SensorId}",
+                "Enqueued {Count} integration events for sensor reading {SensorReadingId} from sensor {SensorId}",
                 integrationEvents.Count(),
                 aggregate.Id,
                 aggregate.SensorId);
@@ -73,12 +73,10 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateReading
         {
             await _hubNotifier.NotifySensorReadingAsync(
                 aggregate.SensorId,
-                aggregate.PlotId,
                 aggregate.Temperature,
                 aggregate.Humidity,
                 aggregate.SoilMoisture,
-                aggregate.Time,
-                ct).ConfigureAwait(false);
+                aggregate.Time).ConfigureAwait(false);
 
             return CreateReadingMapper.FromAggregate(aggregate);
         }

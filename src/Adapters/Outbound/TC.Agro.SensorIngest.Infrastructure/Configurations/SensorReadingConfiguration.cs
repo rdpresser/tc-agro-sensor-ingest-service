@@ -14,9 +14,6 @@ namespace TC.Agro.SensorIngest.Infrastructure.Configurations
                 .HasMaxLength(100)
                 .IsRequired();
 
-            builder.Property(x => x.PlotId)
-                .IsRequired();
-
             builder.Property(x => x.Time)
                 .HasColumnType("timestamptz")
                 .IsRequired();
@@ -39,9 +36,6 @@ namespace TC.Agro.SensorIngest.Infrastructure.Configurations
             // Indexes for common queries
             builder.HasIndex(x => new { x.SensorId, x.Time })
                 .HasDatabaseName("ix_sensor_readings_sensor_id_time");
-
-            builder.HasIndex(x => new { x.PlotId, x.Time })
-                .HasDatabaseName("ix_sensor_readings_plot_id_time");
 
             builder.HasIndex(x => x.Time)
                 .HasDatabaseName("ix_sensor_readings_time");
