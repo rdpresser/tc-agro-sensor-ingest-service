@@ -1,4 +1,3 @@
-using TC.Agro.SensorIngest.Domain.Aggregates;
 using TC.Agro.SensorIngest.Domain.Snapshots;
 
 namespace TC.Agro.SensorIngest.Infrastructure.Configurations
@@ -48,17 +47,13 @@ namespace TC.Agro.SensorIngest.Infrastructure.Configurations
 
             // Relationship with OwnerSnapshot
             builder.HasOne(s => s.Owner)
-                .WithMany()
+                .WithMany(x => x.Sensors)
                 .HasForeignKey(s => s.OwnerId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Relationship with SensorReadingAggregate
-            builder.HasMany(s => s.SensorReadings)
-                .WithOne()
-                .HasForeignKey(sr => sr.SensorId)
-                .IsRequired()
-                .OnDelete(DeleteBehavior.Restrict);
+            // NOTE: Relationship with SensorReadingAggregate is configured in SensorReadingAggregateConfiguration
+            // to avoid duplicate configuration (EF Core rule: configure relationships on ONE side only)
 
             // Indexes
             builder.HasIndex(s => s.OwnerId);

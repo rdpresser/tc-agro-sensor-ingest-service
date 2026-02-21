@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
 using TC.Agro.SensorIngest.Domain.Snapshots;
 
 namespace TC.Agro.SensorIngest.Infrastructure.Configurations
@@ -38,6 +35,12 @@ namespace TC.Agro.SensorIngest.Infrastructure.Configurations
 
             builder.Property(o => o.UpdatedAt)
                 .HasColumnType("timestamptz");
+
+            // Navigation property to SensorSnapshots owned by this owner
+            builder.HasMany(o => o.Sensors)
+                .WithOne(s => s.Owner)
+                .HasForeignKey(s => s.OwnerId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

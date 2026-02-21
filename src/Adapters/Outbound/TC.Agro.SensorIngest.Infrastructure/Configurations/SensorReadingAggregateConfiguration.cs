@@ -1,6 +1,6 @@
 namespace TC.Agro.SensorIngest.Infrastructure.Configurations
 {
-    public sealed class SensorReadingConfiguration : BaseEntityConfiguration<SensorReadingAggregate>
+    public sealed class SensorReadingAggregateConfiguration : BaseEntityConfiguration<SensorReadingAggregate>
     {
         public override void Configure(EntityTypeBuilder<SensorReadingAggregate> builder)
         {
@@ -10,8 +10,8 @@ namespace TC.Agro.SensorIngest.Infrastructure.Configurations
             builder.Property(x => x.Id)
                 .ValueGeneratedNever();
 
+            // SensorId is a Guid (FK to sensor_snapshots.id)
             builder.Property(x => x.SensorId)
-                .HasMaxLength(100)
                 .IsRequired();
 
             builder.Property(x => x.Time)
@@ -32,6 +32,13 @@ namespace TC.Agro.SensorIngest.Infrastructure.Configurations
 
             builder.Property(x => x.BatteryLevel)
                 .HasColumnType("double precision");
+
+            // Relationship with SensorSnapshot
+            builder.HasOne(sr => sr.Sensor)
+                .WithMany(s => s.SensorReadings)
+                .HasForeignKey(sr => sr.SensorId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Indexes for common queries
             builder.HasIndex(x => new { x.SensorId, x.Time })

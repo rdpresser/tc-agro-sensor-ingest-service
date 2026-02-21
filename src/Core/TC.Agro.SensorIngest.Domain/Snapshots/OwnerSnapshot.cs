@@ -9,7 +9,7 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
         public DateTimeOffset CreatedAt { get; private set; }
         public DateTimeOffset? UpdatedAt { get; private set; }
 
-        //incluir as propriedades de navegação para os sensores, caso necessário
+        public ICollection<SensorSnapshot> Sensors { get; private set; } = [];
 
         private OwnerSnapshot() { } // EF
 

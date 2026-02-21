@@ -24,84 +24,6 @@ namespace TC.Agro.SensorIngest.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("TC.Agro.SensorIngest.Domain.Aggregates.AlertAggregate", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamptz")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(true)
-                        .HasColumnName("is_active");
-
-                    b.Property<string>("Message")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)")
-                        .HasColumnName("message");
-
-                    b.Property<Guid>("PlotId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("plot_id");
-
-                    b.Property<string>("PlotName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("plot_name");
-
-                    b.Property<DateTimeOffset?>("ResolvedAt")
-                        .HasColumnType("timestamptz")
-                        .HasColumnName("resolved_at");
-
-                    b.Property<Guid>("SensorId")
-                        .HasMaxLength(100)
-                        .HasColumnType("uuid")
-                        .HasColumnName("sensor_id");
-
-                    b.Property<string>("Severity")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("severity");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("status");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("title");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("timestamptz")
-                        .HasColumnName("updated_at");
-
-                    b.HasKey("Id")
-                        .HasName("pk_alerts");
-
-                    b.HasIndex("Status")
-                        .HasDatabaseName("ix_alerts_status");
-
-                    b.HasIndex("SensorId", "CreatedAt")
-                        .HasDatabaseName("ix_alerts_sensor_created");
-
-                    b.ToTable("alerts", "public");
-                });
-
             modelBuilder.Entity("TC.Agro.SensorIngest.Domain.Aggregates.SensorReadingAggregate", b =>
                 {
                     b.Property<Guid>("Id")
@@ -128,16 +50,11 @@ namespace TC.Agro.SensorIngest.Infrastructure.Migrations
                         .HasDefaultValue(true)
                         .HasColumnName("is_active");
 
-                    b.Property<Guid>("PlotId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("plot_id");
-
                     b.Property<double?>("Rainfall")
                         .HasColumnType("double precision")
                         .HasColumnName("rainfall");
 
                     b.Property<Guid>("SensorId")
-                        .HasMaxLength(100)
                         .HasColumnType("uuid")
                         .HasColumnName("sensor_id");
 
@@ -162,9 +79,6 @@ namespace TC.Agro.SensorIngest.Infrastructure.Migrations
 
                     b.HasIndex("Time")
                         .HasDatabaseName("ix_sensor_readings_time");
-
-                    b.HasIndex("PlotId", "Time")
-                        .HasDatabaseName("ix_sensor_readings_plot_id_time");
 
                     b.HasIndex("SensorId", "Time")
                         .HasDatabaseName("ix_sensor_readings_sensor_id_time");
@@ -378,24 +292,31 @@ namespace TC.Agro.SensorIngest.Infrastructure.Migrations
 
             modelBuilder.Entity("TC.Agro.SensorIngest.Domain.Aggregates.SensorReadingAggregate", b =>
                 {
-                    b.HasOne("TC.Agro.SensorIngest.Domain.Snapshots.SensorSnapshot", null)
+                    b.HasOne("TC.Agro.SensorIngest.Domain.Snapshots.SensorSnapshot", "Sensor")
                         .WithMany("SensorReadings")
                         .HasForeignKey("SensorId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_sensor_readings_sensor_snapshots_sensor_id");
+
+                    b.Navigation("Sensor");
                 });
 
             modelBuilder.Entity("TC.Agro.SensorIngest.Domain.Snapshots.SensorSnapshot", b =>
                 {
                     b.HasOne("TC.Agro.SensorIngest.Domain.Snapshots.OwnerSnapshot", "Owner")
-                        .WithMany()
+                        .WithMany("Sensors")
                         .HasForeignKey("OwnerId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_sensor_snapshots_owner_snapshots_owner_id");
 
                     b.Navigation("Owner");
+                });
+
+            modelBuilder.Entity("TC.Agro.SensorIngest.Domain.Snapshots.OwnerSnapshot", b =>
+                {
+                    b.Navigation("Sensors");
                 });
 
             modelBuilder.Entity("TC.Agro.SensorIngest.Domain.Snapshots.SensorSnapshot", b =>
