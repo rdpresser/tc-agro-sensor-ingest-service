@@ -15,29 +15,6 @@ namespace TC.Agro.SensorIngest.Infrastructure.Migrations
                 name: "public");
 
             migrationBuilder.CreateTable(
-                name: "alerts",
-                schema: "public",
-                columns: table => new
-                {
-                    id = table.Column<Guid>(type: "uuid", nullable: false),
-                    severity = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
-                    title = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
-                    message = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
-                    plot_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    plot_name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
-                    sensor_id = table.Column<Guid>(type: "uuid", maxLength: 100, nullable: false),
-                    status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
-                    resolved_at = table.Column<DateTimeOffset>(type: "timestamptz", nullable: true),
-                    created_at = table.Column<DateTimeOffset>(type: "timestamptz", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
-                    updated_at = table.Column<DateTimeOffset>(type: "timestamptz", nullable: true),
-                    is_active = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_alerts", x => x.id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "owner_snapshots",
                 schema: "public",
                 columns: table => new
@@ -88,8 +65,7 @@ namespace TC.Agro.SensorIngest.Infrastructure.Migrations
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
-                    sensor_id = table.Column<Guid>(type: "uuid", maxLength: 100, nullable: false),
-                    plot_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    sensor_id = table.Column<Guid>(type: "uuid", nullable: false),
                     time = table.Column<DateTimeOffset>(type: "timestamptz", nullable: false),
                     temperature = table.Column<double>(type: "double precision", nullable: true),
                     humidity = table.Column<double>(type: "double precision", nullable: true),
@@ -113,29 +89,11 @@ namespace TC.Agro.SensorIngest.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "ix_alerts_sensor_created",
-                schema: "public",
-                table: "alerts",
-                columns: new[] { "sensor_id", "created_at" });
-
-            migrationBuilder.CreateIndex(
-                name: "ix_alerts_status",
-                schema: "public",
-                table: "alerts",
-                column: "status");
-
-            migrationBuilder.CreateIndex(
                 name: "ix_owner_snapshots_email",
                 schema: "public",
                 table: "owner_snapshots",
                 column: "email",
                 unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "ix_sensor_readings_plot_id_time",
-                schema: "public",
-                table: "sensor_readings",
-                columns: new[] { "plot_id", "time" });
 
             migrationBuilder.CreateIndex(
                 name: "ix_sensor_readings_sensor_id_time",
@@ -177,10 +135,6 @@ namespace TC.Agro.SensorIngest.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "alerts",
-                schema: "public");
-
             migrationBuilder.DropTable(
                 name: "sensor_readings",
                 schema: "public");
