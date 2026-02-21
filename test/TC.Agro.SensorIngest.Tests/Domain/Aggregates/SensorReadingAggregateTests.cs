@@ -293,7 +293,7 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Aggregates
                 batteryLevel: null);
 
             result.IsSuccess.ShouldBeFalse();
-            result.ValidationErrors.Count.ShouldBeGreaterThanOrEqualTo(3);
+            result.ValidationErrors.Count().ShouldBeGreaterThanOrEqualTo(3);
         }
 
         #endregion
@@ -316,7 +316,7 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Aggregates
 
             result.IsSuccess.ShouldBeTrue();
             result.Value.UncommittedEvents.Count.ShouldBe(1);
-            result.Value.UncommittedEvents.First()
+            result.Value.UncommittedEvents[0]
                 .ShouldBeOfType<SensorReadingAggregate.SensorReadingCreatedDomainEvent>();
         }
 

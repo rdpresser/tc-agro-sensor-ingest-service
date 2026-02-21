@@ -64,5 +64,17 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
                 .AnyAsync(s => s.Id == id && s.IsActive, cancellationToken)
                 .ConfigureAwait(false);
         }
+
+        /// <inheritdoc />
+        public async Task<IReadOnlyDictionary<Guid, SensorSnapshot>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken = default)
+        {
+            var idList = ids.Distinct().ToList();
+
+            return await _dbContext.SensorSnapshots
+                .AsNoTracking()
+                .Where(s => idList.Contains(s.Id) && s.IsActive)
+                .ToDictionaryAsync(s => s.Id, cancellationToken)
+                .ConfigureAwait(false);
+        }
     }
 }

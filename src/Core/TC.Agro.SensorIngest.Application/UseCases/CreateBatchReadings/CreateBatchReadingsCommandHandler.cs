@@ -28,17 +28,13 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateBatchReadings
         {
             var results = new List<BatchReadingResult>();
             var successfulAggregates = new List<SensorReadingAggregate>();
-            var sensorExistsCache = new Dictionary<Guid, bool>();
+
+            var distinctSensorIds = command.Readings.Select(r => r.SensorId).Distinct();
+            var activeSensors = await _sensorSnapshotStore.GetByIdsAsync(distinctSensorIds, ct).ConfigureAwait(false);
 
             foreach (var input in command.Readings)
             {
-                if (!sensorExistsCache.TryGetValue(input.SensorId, out var sensorExists))
-                {
-                    sensorExists = await _sensorSnapshotStore.ExistsAsync(input.SensorId, ct).ConfigureAwait(false);
-                    sensorExistsCache[input.SensorId] = sensorExists;
-                }
-
-                if (!sensorExists)
+                if (!activeSensors.ContainsKey(input.SensorId))
                 {
                     _logger.LogWarning(
                         "Rejected batch reading for unknown sensor {SensorId}",
@@ -90,16 +86,18 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateBatchReadings
                     {
                         if (domainEvent is SensorReadingAggregate.SensorReadingCreatedDomainEvent createdEvent)
                         {
+                            var sensor = activeSensors[createdEvent.SensorId];
                             var integrationEvent = new SensorIngestedIntegrationEvent(
                                 SensorReadingId: createdEvent.AggregateId,
-                                OccurredOn: createdEvent.OccurredOn,
                                 SensorId: createdEvent.SensorId,
+                                PlotId: sensor.PlotId,
                                 Time: createdEvent.Time,
                                 Temperature: createdEvent.Temperature,
                                 Humidity: createdEvent.Humidity,
                                 SoilMoisture: createdEvent.SoilMoisture,
                                 Rainfall: createdEvent.Rainfall,
-                                BatteryLevel: createdEvent.BatteryLevel);
+                                BatteryLevel: createdEvent.BatteryLevel,
+                                OccurredOn: createdEvent.OccurredOn);
 
                             await _outbox.EnqueueAsync(integrationEvent, ct).ConfigureAwait(false);
                         }

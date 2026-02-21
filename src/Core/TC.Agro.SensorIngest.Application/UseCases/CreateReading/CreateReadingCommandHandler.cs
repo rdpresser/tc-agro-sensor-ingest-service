@@ -8,6 +8,7 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateReading
         private readonly ILogger<CreateReadingCommandHandler> _logger;
         private readonly ISensorHubNotifier _hubNotifier;
         private readonly ISensorSnapshotStore _sensorSnapshotStore;
+        private SensorSnapshot? _sensorSnapshot;
 
         public CreateReadingCommandHandler(
             ISensorReadingRepository repository,
@@ -31,8 +32,8 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateReading
 
         protected override async Task<Result> ValidateAsync(SensorReadingAggregate aggregate, CancellationToken ct)
         {
-            var sensorExists = await _sensorSnapshotStore.ExistsAsync(aggregate.SensorId, ct).ConfigureAwait(false);
-            if (!sensorExists)
+            _sensorSnapshot = await _sensorSnapshotStore.GetByIdAsync(aggregate.SensorId, ct).ConfigureAwait(false);
+            if (_sensorSnapshot is null || !_sensorSnapshot.IsActive)
             {
                 _logger.LogWarning(
                     "Rejected reading for unknown sensor {SensorId}",
@@ -46,6 +47,7 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateReading
 
         protected override async Task PublishIntegrationEventsAsync(SensorReadingAggregate aggregate, CancellationToken ct)
         {
+            var plotId = _sensorSnapshot!.PlotId;
             var integrationEvents = aggregate.UncommittedEvents
                 .MapToIntegrationEvents(
                     aggregate: aggregate,
@@ -54,7 +56,7 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateReading
                     mappings: new Dictionary<Type, Func<BaseDomainEvent, SensorIngestedIntegrationEvent>>
                     {
                         { typeof(SensorReadingAggregate.SensorReadingCreatedDomainEvent), e =>
-                            CreateReadingMapper.ToIntegrationEvent((SensorReadingAggregate.SensorReadingCreatedDomainEvent)e) }
+                            CreateReadingMapper.ToIntegrationEvent((SensorReadingAggregate.SensorReadingCreatedDomainEvent)e, plotId) }
                     });
 
             foreach (var evt in integrationEvents)

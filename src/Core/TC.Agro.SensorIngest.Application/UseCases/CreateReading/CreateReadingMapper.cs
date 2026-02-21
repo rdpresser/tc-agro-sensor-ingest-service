@@ -25,18 +25,20 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateReading
         }
 
         public static SensorIngestedIntegrationEvent ToIntegrationEvent(
-            SensorReadingAggregate.SensorReadingCreatedDomainEvent domainEvent)
+            SensorReadingAggregate.SensorReadingCreatedDomainEvent domainEvent,
+            Guid plotId)
         {
             return new SensorIngestedIntegrationEvent(
                 SensorReadingId: domainEvent.AggregateId,
-                OccurredOn: domainEvent.OccurredOn,
                 SensorId: domainEvent.SensorId,
+                PlotId: plotId,
                 Time: domainEvent.Time,
                 Temperature: domainEvent.Temperature,
                 Humidity: domainEvent.Humidity,
                 SoilMoisture: domainEvent.SoilMoisture,
                 Rainfall: domainEvent.Rainfall,
-                BatteryLevel: domainEvent.BatteryLevel);
+                BatteryLevel: domainEvent.BatteryLevel,
+                OccurredOn: domainEvent.OccurredOn);
         }
     }
 }
