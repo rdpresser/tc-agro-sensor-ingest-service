@@ -29,14 +29,14 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateReading
         {
             return new SensorIngestedIntegrationEvent(
                 SensorReadingId: domainEvent.AggregateId,
-                OccurredOn: domainEvent.OccurredOn,
                 SensorId: domainEvent.SensorId,
                 Time: domainEvent.Time,
                 Temperature: domainEvent.Temperature,
                 Humidity: domainEvent.Humidity,
                 SoilMoisture: domainEvent.SoilMoisture,
                 Rainfall: domainEvent.Rainfall,
-                BatteryLevel: domainEvent.BatteryLevel);
+                BatteryLevel: domainEvent.BatteryLevel,
+                OccurredOn: domainEvent.OccurredOn);
         }
     }
 }

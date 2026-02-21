@@ -55,5 +55,31 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
                 .FirstOrDefaultAsync(o => o.Id == id, cancellationToken)
                 .ConfigureAwait(false);
         }
+
+        /// <inheritdoc />
+        public async Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default)
+        {
+            return await _dbContext.SensorSnapshots
+                .AsNoTracking()
+                .AnyAsync(s => s.Id == id, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
+        public async Task<IReadOnlyDictionary<Guid, SensorSnapshot>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(ids);
+
+            var idList = ids.Distinct().ToList();
+
+            if (idList.Count == 0)
+                return new Dictionary<Guid, SensorSnapshot>();
+
+            return await _dbContext.SensorSnapshots
+                .AsNoTracking()
+                .Where(s => idList.Contains(s.Id))
+                .ToDictionaryAsync(s => s.Id, cancellationToken)
+                .ConfigureAwait(false);
+        }
     }
 }

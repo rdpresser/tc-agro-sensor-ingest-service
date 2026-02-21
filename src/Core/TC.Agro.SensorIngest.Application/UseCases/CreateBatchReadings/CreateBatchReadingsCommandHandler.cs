@@ -7,15 +7,18 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateBatchReadings
     {
         private readonly ISensorReadingRepository _repository;
         private readonly ITransactionalOutbox _outbox;
+        private readonly ISensorSnapshotStore _sensorSnapshotStore;
         private readonly ILogger<CreateBatchReadingsCommandHandler> _logger;
 
         public CreateBatchReadingsCommandHandler(
             ISensorReadingRepository repository,
             ITransactionalOutbox outbox,
+            ISensorSnapshotStore sensorSnapshotStore,
             ILogger<CreateBatchReadingsCommandHandler> logger)
         {
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
             _outbox = outbox ?? throw new ArgumentNullException(nameof(outbox));
+            _sensorSnapshotStore = sensorSnapshotStore ?? throw new ArgumentNullException(nameof(sensorSnapshotStore));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -26,8 +29,25 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateBatchReadings
             var results = new List<BatchReadingResult>();
             var successfulAggregates = new List<SensorReadingAggregate>();
 
+            var distinctSensorIds = command.Readings.Select(r => r.SensorId).Distinct();
+            var activeSensors = await _sensorSnapshotStore.GetByIdsAsync(distinctSensorIds, ct).ConfigureAwait(false);
+
             foreach (var input in command.Readings)
             {
+                if (!activeSensors.ContainsKey(input.SensorId))
+                {
+                    _logger.LogWarning(
+                        "Rejected batch reading for unknown sensor {SensorId}",
+                        input.SensorId);
+
+                    results.Add(new BatchReadingResult(
+                        SensorReadingId: null,
+                        SensorId: input.SensorId,
+                        Success: false,
+                        ErrorMessage: $"Sensor with ID '{input.SensorId}' is not registered."));
+                    continue;
+                }
+
                 var aggregateResult = SensorReadingAggregate.Create(
                     sensorId: input.SensorId,
                     time: input.Timestamp,
@@ -68,14 +88,14 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateBatchReadings
                         {
                             var integrationEvent = new SensorIngestedIntegrationEvent(
                                 SensorReadingId: createdEvent.AggregateId,
-                                OccurredOn: createdEvent.OccurredOn,
                                 SensorId: createdEvent.SensorId,
                                 Time: createdEvent.Time,
                                 Temperature: createdEvent.Temperature,
                                 Humidity: createdEvent.Humidity,
                                 SoilMoisture: createdEvent.SoilMoisture,
                                 Rainfall: createdEvent.Rainfall,
-                                BatteryLevel: createdEvent.BatteryLevel);
+                                BatteryLevel: createdEvent.BatteryLevel,
+                                OccurredOn: createdEvent.OccurredOn);
 
                             await _outbox.EnqueueAsync(integrationEvent, ct).ConfigureAwait(false);
                         }

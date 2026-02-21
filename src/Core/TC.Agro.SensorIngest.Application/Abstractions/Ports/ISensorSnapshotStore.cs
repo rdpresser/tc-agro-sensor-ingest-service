@@ -27,5 +27,23 @@ namespace TC.Agro.SensorIngest.Application.Abstractions.Ports
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns>The sensor snapshot, or null if not found</returns>
         Task<SensorSnapshot?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Checks whether an active sensor snapshot exists for the given identifier.
+        /// Used to validate sensor existence before accepting readings.
+        /// </summary>
+        /// <param name="id">The sensor identifier</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>True if an active sensor snapshot exists</returns>
+        Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Retrieves active sensor snapshots for the given identifiers in a single query.
+        /// Used for batch validation to avoid N+1 queries.
+        /// </summary>
+        /// <param name="ids">The sensor identifiers</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>Dictionary mapping sensor ID to its snapshot (only active sensors)</returns>
+        Task<IReadOnlyDictionary<Guid, SensorSnapshot>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken = default);
     }
 }
