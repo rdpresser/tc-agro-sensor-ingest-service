@@ -10,9 +10,7 @@ namespace TC.Agro.SensorIngest.Infrastructure
             // Repositories
             services.AddScoped<ISensorReadingRepository, SensorReadingRepository>();
             services.AddScoped<ISensorReadingReadStore, SensorReadingReadStore>();
-            services.AddScoped<IAlertAggregateRepository, AlertAggregateRepository>();
-            services.AddScoped<IAlertReadStore, AlertReadStore>();
-
+            
             // Owner snapshot store
             services.AddScoped<IOwnerSnapshotStore, OwnerSnapshotStore>();
 

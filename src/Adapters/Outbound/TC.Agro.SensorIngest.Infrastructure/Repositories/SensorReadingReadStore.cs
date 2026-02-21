@@ -23,16 +23,13 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
             if (sensorId.HasValue)
                 query = query.Where(x => x.SensorId == sensorId.Value);
 
-            if (plotId.HasValue)
-                query = query.Where(x => x.PlotId == plotId.Value);
-
             return await query
                 .OrderByDescending(x => x.Time)
                 .Take(limit)
                 .Select(x => new LatestReadingItem(
                     x.Id,
                     x.SensorId,
-                    x.PlotId,
+                    x.Sensor.PlotId,
                     x.Time.Date,
                     x.Temperature,
                     x.Humidity,
@@ -55,7 +52,7 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
                 .Select(x => new ReadingHistoryItem(
                     x.Id,
                     x.SensorId,
-                    x.PlotId,
+                    x.Sensor.PlotId,
                     x.Time.Date,
                     x.Temperature,
                     x.Humidity,

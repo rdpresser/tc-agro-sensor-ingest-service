@@ -23,7 +23,6 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Readings
                                "The reading is persisted to TimescaleDB and an event is published for analytics processing.";
                 s.ExampleRequest = new CreateReadingCommand(
                     SensorId: Guid.NewGuid(),
-                    PlotId: Guid.Parse("a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
                     Timestamp: DateTime.UtcNow,
                     Temperature: 28.5,
                     Humidity: 65.2,
@@ -31,9 +30,8 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Readings
                     Rainfall: 0.0,
                     BatteryLevel: 85.0);
                 s.ResponseExamples[202] = new CreateReadingResponse(
-                    ReadingId: Guid.NewGuid(),
+                    SensorReadingId: Guid.NewGuid(),
                     SensorId: Guid.NewGuid(),
-                    PlotId: Guid.Parse("a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
                     Timestamp: DateTime.UtcNow);
                 s.Responses[202] = "Reading accepted and queued for processing.";
                 s.Responses[400] = "Invalid request data.";

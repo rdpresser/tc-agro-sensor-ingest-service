@@ -1,9 +1,11 @@
+using TC.Agro.SensorIngest.Domain.Snapshots;
+
 namespace TC.Agro.SensorIngest.Domain.Aggregates
 {
     public sealed class SensorReadingAggregate : BaseAggregateRoot
     {
         public Guid SensorId { get; private set; }
-        public Guid PlotId { get; private set; }
+        public SensorSnapshot Sensor { get; private set; } = default!;
         public DateTimeOffset Time { get; private set; }
         public double? Temperature { get; private set; }
         public double? Humidity { get; private set; }
@@ -20,7 +22,6 @@ namespace TC.Agro.SensorIngest.Domain.Aggregates
 
         public static Result<SensorReadingAggregate> Create(
             Guid sensorId,
-            Guid plotId,
             DateTime time,
             double? temperature,
             double? humidity,
@@ -30,19 +31,17 @@ namespace TC.Agro.SensorIngest.Domain.Aggregates
         {
             var errors = new List<ValidationError>();
             errors.AddRange(ValidateSensorId(sensorId));
-            errors.AddRange(ValidatePlotId(plotId));
             errors.AddRange(ValidateTime(time));
             errors.AddRange(ValidateMetrics(temperature, humidity, soilMoisture, rainfall, batteryLevel));
 
             if (errors.Count > 0)
                 return Result.Invalid(errors.ToArray());
 
-            return CreateAggregate(sensorId, plotId, time, temperature, humidity, soilMoisture, rainfall, batteryLevel);
+            return CreateAggregate(sensorId, time, temperature, humidity, soilMoisture, rainfall, batteryLevel);
         }
 
         private static Result<SensorReadingAggregate> CreateAggregate(
             Guid sensorId,
-            Guid plotId,
             DateTime time,
             double? temperature,
             double? humidity,
@@ -54,7 +53,6 @@ namespace TC.Agro.SensorIngest.Domain.Aggregates
             var @event = new SensorReadingCreatedDomainEvent(
                 aggregate.Id,
                 sensorId,
-                plotId,
                 time,
                 temperature,
                 humidity,
@@ -75,7 +73,6 @@ namespace TC.Agro.SensorIngest.Domain.Aggregates
         {
             SetId(@event.AggregateId);
             SensorId = @event.SensorId;
-            PlotId = @event.PlotId;
             Time = @event.Time;
             Temperature = @event.Temperature;
             Humidity = @event.Humidity;
@@ -105,12 +102,6 @@ namespace TC.Agro.SensorIngest.Domain.Aggregates
         {
             if (sensorId == Guid.Empty)
                 yield return new ValidationError($"{nameof(SensorId)}.Required", "SensorId is required.");
-        }
-
-        private static IEnumerable<ValidationError> ValidatePlotId(Guid plotId)
-        {
-            if (plotId == Guid.Empty)
-                yield return new ValidationError($"{nameof(PlotId)}.Required", "PlotId is required.");
         }
 
         private static IEnumerable<ValidationError> ValidateTime(DateTime time)
@@ -152,16 +143,15 @@ namespace TC.Agro.SensorIngest.Domain.Aggregates
         #region Domain Events
 
         public record SensorReadingCreatedDomainEvent(
-            Guid AggregateId,
+            Guid SensorReadingId,
             Guid SensorId,
-            Guid PlotId,
             DateTime Time,
             double? Temperature,
             double? Humidity,
             double? SoilMoisture,
             double? Rainfall,
             double? BatteryLevel,
-            DateTimeOffset OccurredOn) : BaseDomainEvent(AggregateId, OccurredOn);
+            DateTimeOffset OccurredOn) : BaseDomainEvent(SensorReadingId, OccurredOn);
 
         #endregion
     }

@@ -6,7 +6,7 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateBatchReadings
         IReadOnlyList<BatchReadingResult> Results);
 
     public sealed record BatchReadingResult(
-        Guid? ReadingId,
+        Guid? SensorReadingId,
         Guid SensorId,
         bool Success,
         string? ErrorMessage = null);

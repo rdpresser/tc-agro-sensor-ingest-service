@@ -15,24 +15,21 @@ namespace TC.Agro.SensorIngest.Service.Services
 
         public async Task NotifySensorReadingAsync(
             Guid sensorId,
-            Guid plotId,
             double? temperature,
             double? humidity,
             double? soilMoisture,
-            DateTimeOffset timestamp,
-            CancellationToken ct = default)
+            DateTimeOffset timestamp)
         {
             try
             {
                 var dto = new SensorReadingRequest(
                     sensorId,
-                    plotId,
                     temperature,
                     humidity,
                     soilMoisture,
                     timestamp);
 
-                await _hubContext.Clients.Group($"plot:{plotId}").SensorReading(dto).ConfigureAwait(false);
+                await _hubContext.Clients.Group($"sensor:{sensorId}").SensorReading(dto).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -40,41 +37,15 @@ namespace TC.Agro.SensorIngest.Service.Services
             }
         }
 
-        public async Task NotifyNewAlertAsync(
-            Guid id,
-            string severity,
-            string title,
-            string message,
-            Guid plotId,
-            string plotName,
-            Guid sensorId,
-            string status,
-            DateTimeOffset createdAt,
-            CancellationToken ct = default)
-        {
-            try
-            {
-                var dto = new AlertRequest(id, severity, title, message, plotId, plotName, sensorId, status, createdAt);
-
-                await _hubContext.Clients.Group($"plot:{plotId}").NewAlert(dto).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed to broadcast new alert {AlertId}", id);
-            }
-        }
-
         public async Task NotifySensorStatusChangedAsync(
             Guid sensorId,
-            Guid plotId,
-            string status,
-            CancellationToken ct = default)
+            string status)
         {
             try
             {
                 var dto = new SensorStatusChangedRequest(sensorId, status);
 
-                await _hubContext.Clients.Group($"plot:{plotId}").SensorStatusChanged(dto).ConfigureAwait(false);
+                await _hubContext.Clients.Group($"sensor:{sensorId}").SensorStatusChanged(dto).ConfigureAwait(false);
             }
             catch (Exception ex)
             {

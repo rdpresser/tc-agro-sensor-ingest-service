@@ -8,7 +8,6 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateReading
         {
             return SensorReadingAggregate.Create(
                 sensorId: command.SensorId,
-                plotId: command.PlotId,
                 time: command.Timestamp,
                 temperature: command.Temperature,
                 humidity: command.Humidity,
@@ -20,9 +19,8 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateReading
         public static CreateReadingResponse FromAggregate(SensorReadingAggregate aggregate)
         {
             return new CreateReadingResponse(
-                ReadingId: aggregate.Id,
+                SensorReadingId: aggregate.Id,
                 SensorId: aggregate.SensorId,
-                PlotId: aggregate.PlotId,
                 Timestamp: aggregate.Time.Date);
         }
 
@@ -33,7 +31,6 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateReading
                 SensorReadingId: domainEvent.AggregateId,
                 OccurredOn: domainEvent.OccurredOn,
                 SensorId: domainEvent.SensorId,
-                PlotId: domainEvent.PlotId,
                 Time: domainEvent.Time,
                 Temperature: domainEvent.Temperature,
                 Humidity: domainEvent.Humidity,

@@ -12,7 +12,6 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateBatchReadings
 
     public sealed record SensorReadingInput(
         Guid SensorId,
-        Guid PlotId,
         DateTime Timestamp,
         double? Temperature,
         double? Humidity,
