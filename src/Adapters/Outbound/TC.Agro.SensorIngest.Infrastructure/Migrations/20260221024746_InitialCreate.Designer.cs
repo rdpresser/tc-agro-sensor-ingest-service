@@ -12,8 +12,8 @@ using TC.Agro.SensorIngest.Infrastructure;
 namespace TC.Agro.SensorIngest.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260216200340_Initial_Create")]
-    partial class Initial_Create
+    [Migration("20260221024746_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -103,83 +103,6 @@ namespace TC.Agro.SensorIngest.Infrastructure.Migrations
                         .HasDatabaseName("ix_alerts_sensor_created");
 
                     b.ToTable("alerts", "public");
-                });
-
-            modelBuilder.Entity("TC.Agro.SensorIngest.Domain.Aggregates.SensorAggregate", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<double>("Battery")
-                        .HasColumnType("double precision")
-                        .HasColumnName("battery");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamptz")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(true)
-                        .HasColumnName("is_active");
-
-                    b.Property<double?>("LastHumidity")
-                        .HasColumnType("double precision")
-                        .HasColumnName("last_humidity");
-
-                    b.Property<DateTimeOffset?>("LastReadingAt")
-                        .HasColumnType("timestamptz")
-                        .HasColumnName("last_reading_at");
-
-                    b.Property<double?>("LastSoilMoisture")
-                        .HasColumnType("double precision")
-                        .HasColumnName("last_soil_moisture");
-
-                    b.Property<double?>("LastTemperature")
-                        .HasColumnType("double precision")
-                        .HasColumnName("last_temperature");
-
-                    b.Property<Guid>("PlotId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("plot_id");
-
-                    b.Property<string>("PlotName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("plot_name");
-
-                    b.Property<Guid>("SensorId")
-                        .HasMaxLength(100)
-                        .HasColumnType("uuid")
-                        .HasColumnName("sensor_id");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("status");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("timestamptz")
-                        .HasColumnName("updated_at");
-
-                    b.HasKey("Id")
-                        .HasName("pk_sensors");
-
-                    b.HasIndex("PlotId")
-                        .HasDatabaseName("ix_sensors_plot_id");
-
-                    b.HasIndex("SensorId")
-                        .IsUnique()
-                        .HasDatabaseName("ix_sensors_sensor_id");
-
-                    b.ToTable("sensors", "public");
                 });
 
             modelBuilder.Entity("TC.Agro.SensorIngest.Domain.Aggregates.SensorReadingAggregate", b =>
