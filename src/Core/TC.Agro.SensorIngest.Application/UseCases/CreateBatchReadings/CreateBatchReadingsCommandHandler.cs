@@ -45,7 +45,7 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateBatchReadings
                         input.SensorId);
 
                     results.Add(new BatchReadingResult(
-                        ReadingId: null,
+                        SensorReadingId: null,
                         SensorId: input.SensorId,
                         Success: false,
                         ErrorMessage: $"Sensor with ID '{input.SensorId}' is not registered."));

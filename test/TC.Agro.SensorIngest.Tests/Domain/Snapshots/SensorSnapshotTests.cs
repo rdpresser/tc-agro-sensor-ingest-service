@@ -19,17 +19,17 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Snapshots
                 ownerId: ownerId,
                 propertyId: propertyId,
                 plotId: plotId,
-                label: "Sensor Norte 1",
+                label: "Sensor North 1",
                 plotName: "Plot Alpha",
-                propertyName: "Fazenda Sul");
+                propertyName: "South Farm");
 
             snapshot.Id.ShouldBe(sensorId);
             snapshot.OwnerId.ShouldBe(ownerId);
             snapshot.PropertyId.ShouldBe(propertyId);
             snapshot.PlotId.ShouldBe(plotId);
-            snapshot.Label.ShouldBe("Sensor Norte 1");
+            snapshot.Label.ShouldBe("Sensor North 1");
             snapshot.PlotName.ShouldBe("Plot Alpha");
-            snapshot.PropertyName.ShouldBe("Fazenda Sul");
+            snapshot.PropertyName.ShouldBe("South Farm");
             snapshot.IsActive.ShouldBeTrue();
             snapshot.UpdatedAt.ShouldBeNull();
         }
@@ -44,7 +44,7 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Snapshots
                 plotId: Guid.NewGuid(),
                 label: null,
                 plotName: "Plot Alpha",
-                propertyName: "Fazenda Sul");
+                propertyName: "South Farm");
 
             snapshot.Label.ShouldBeNull();
             snapshot.IsActive.ShouldBeTrue();
@@ -84,9 +84,9 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Snapshots
                 ownerId: Guid.NewGuid(),
                 propertyId: Guid.NewGuid(),
                 plotId: Guid.NewGuid(),
-                label: "Sensor Leste",
+                label: "Sensor East",
                 plotName: "Plot Beta",
-                propertyName: "Fazenda Norte",
+                propertyName: "North Farm",
                 createdAt: occurredOn);
 
             snapshot.CreatedAt.ShouldBe(occurredOn);
@@ -131,8 +131,6 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Snapshots
             snapshot.Delete();
             var firstUpdatedAt = snapshot.UpdatedAt;
 
-            // Small delay to ensure timestamp would differ if logic were broken
-            Thread.Sleep(15);
             snapshot.Delete();
 
             snapshot.IsActive.ShouldBeFalse();

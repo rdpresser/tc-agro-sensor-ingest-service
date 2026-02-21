@@ -16,7 +16,6 @@ namespace TC.Agro.SensorIngest.Tests.Application.Validators
                 [
                     new SensorReadingInput(
                         SensorId: Guid.NewGuid(),
-                        PlotId: Guid.NewGuid(),
                         Timestamp: DateTime.UtcNow,
                         Temperature: 25.0,
                         Humidity: null,
@@ -38,7 +37,6 @@ namespace TC.Agro.SensorIngest.Tests.Application.Validators
                 [
                     new SensorReadingInput(
                         SensorId: Guid.NewGuid(),
-                        PlotId: Guid.NewGuid(),
                         Timestamp: DateTime.UtcNow,
                         Temperature: 25.0,
                         Humidity: null,
@@ -47,7 +45,6 @@ namespace TC.Agro.SensorIngest.Tests.Application.Validators
                         BatteryLevel: null),
                     new SensorReadingInput(
                         SensorId: Guid.NewGuid(),
-                        PlotId: Guid.NewGuid(),
                         Timestamp: DateTime.UtcNow,
                         Temperature: null,
                         Humidity: 70.0,
@@ -89,33 +86,6 @@ namespace TC.Agro.SensorIngest.Tests.Application.Validators
                 [
                     new SensorReadingInput(
                         SensorId: Guid.Empty,
-                        PlotId: Guid.NewGuid(),
-                        Timestamp: DateTime.UtcNow,
-                        Temperature: 25.0,
-                        Humidity: null,
-                        SoilMoisture: null,
-                        Rainfall: null,
-                        BatteryLevel: null)
-                ]);
-
-            var result = _validator.Validate(command);
-
-            result.IsValid.ShouldBeFalse();
-        }
-
-        #endregion
-
-        #region Child Validation - PlotId
-
-        [Fact]
-        public void Validate_WithEmptyPlotIdInReading_ShouldFail()
-        {
-            var command = new CreateBatchReadingsCommand(
-                Readings:
-                [
-                    new SensorReadingInput(
-                        SensorId: Guid.NewGuid(),
-                        PlotId: Guid.Empty,
                         Timestamp: DateTime.UtcNow,
                         Temperature: 25.0,
                         Humidity: null,
@@ -141,7 +111,6 @@ namespace TC.Agro.SensorIngest.Tests.Application.Validators
                 [
                     new SensorReadingInput(
                         SensorId: Guid.NewGuid(),
-                        PlotId: Guid.NewGuid(),
                         Timestamp: default,
                         Temperature: 25.0,
                         Humidity: null,
@@ -167,7 +136,6 @@ namespace TC.Agro.SensorIngest.Tests.Application.Validators
                 [
                     new SensorReadingInput(
                         SensorId: Guid.NewGuid(),
-                        PlotId: Guid.NewGuid(),
                         Timestamp: DateTime.UtcNow,
                         Temperature: null,
                         Humidity: null,

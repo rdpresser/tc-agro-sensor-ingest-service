@@ -38,7 +38,7 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateReading
                     "Rejected reading for unknown sensor {SensorId}",
                     aggregate.SensorId);
 
-                return Result.Error($"Sensor with ID '{aggregate.SensorId}' is not registered.");
+                return Result.NotFound($"Sensor with ID '{aggregate.SensorId}' is not registered.");
             }
 
             return Result.Success();

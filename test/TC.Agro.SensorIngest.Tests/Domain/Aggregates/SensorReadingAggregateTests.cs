@@ -10,12 +10,10 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Aggregates
         public void Create_WithValidData_ShouldSucceed()
         {
             var sensorId = Guid.NewGuid();
-            var plotId = Guid.NewGuid();
             var time = DateTime.UtcNow;
 
             var result = SensorReadingAggregate.Create(
                 sensorId: sensorId,
-                plotId: plotId,
                 time: time,
                 temperature: 25.0,
                 humidity: 60.0,
@@ -25,7 +23,6 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Aggregates
 
             result.IsSuccess.ShouldBeTrue();
             result.Value.SensorId.ShouldBe(sensorId);
-            result.Value.PlotId.ShouldBe(plotId);
             result.Value.Temperature.ShouldBe(25.0);
             result.Value.Humidity.ShouldBe(60.0);
             result.Value.SoilMoisture.ShouldBe(40.0);
@@ -40,7 +37,6 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Aggregates
         {
             var result = SensorReadingAggregate.Create(
                 sensorId: Guid.NewGuid(),
-                plotId: Guid.NewGuid(),
                 time: DateTime.UtcNow,
                 temperature: 30.0,
                 humidity: null,
@@ -60,7 +56,6 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Aggregates
         {
             var result = SensorReadingAggregate.Create(
                 sensorId: Guid.NewGuid(),
-                plotId: Guid.NewGuid(),
                 time: DateTime.UtcNow,
                 temperature: null,
                 humidity: 75.0,
@@ -77,7 +72,6 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Aggregates
         {
             var result = SensorReadingAggregate.Create(
                 sensorId: Guid.NewGuid(),
-                plotId: Guid.NewGuid(),
                 time: DateTime.UtcNow,
                 temperature: null,
                 humidity: null,
@@ -94,7 +88,6 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Aggregates
         {
             var result = SensorReadingAggregate.Create(
                 sensorId: Guid.NewGuid(),
-                plotId: Guid.NewGuid(),
                 time: DateTime.UtcNow,
                 temperature: null,
                 humidity: null,
@@ -111,7 +104,6 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Aggregates
         {
             var resultMin = SensorReadingAggregate.Create(
                 sensorId: Guid.NewGuid(),
-                plotId: Guid.NewGuid(),
                 time: DateTime.UtcNow,
                 temperature: -50.0,
                 humidity: null,
@@ -121,7 +113,6 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Aggregates
 
             var resultMax = SensorReadingAggregate.Create(
                 sensorId: Guid.NewGuid(),
-                plotId: Guid.NewGuid(),
                 time: DateTime.UtcNow,
                 temperature: 70.0,
                 humidity: null,
@@ -142,7 +133,6 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Aggregates
         {
             var result = SensorReadingAggregate.Create(
                 sensorId: Guid.Empty,
-                plotId: Guid.NewGuid(),
                 time: DateTime.UtcNow,
                 temperature: 25.0,
                 humidity: null,
@@ -155,28 +145,10 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Aggregates
         }
 
         [Fact]
-        public void Create_WithEmptyPlotId_ShouldFail()
-        {
-            var result = SensorReadingAggregate.Create(
-                sensorId: Guid.NewGuid(),
-                plotId: Guid.Empty,
-                time: DateTime.UtcNow,
-                temperature: 25.0,
-                humidity: null,
-                soilMoisture: null,
-                rainfall: null,
-                batteryLevel: null);
-
-            result.IsSuccess.ShouldBeFalse();
-            result.ValidationErrors.ShouldContain(e => e.Identifier == "PlotId.Required");
-        }
-
-        [Fact]
         public void Create_WithDefaultTime_ShouldFail()
         {
             var result = SensorReadingAggregate.Create(
                 sensorId: Guid.NewGuid(),
-                plotId: Guid.NewGuid(),
                 time: default,
                 temperature: 25.0,
                 humidity: null,
@@ -193,7 +165,6 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Aggregates
         {
             var result = SensorReadingAggregate.Create(
                 sensorId: Guid.NewGuid(),
-                plotId: Guid.NewGuid(),
                 time: DateTime.UtcNow.AddMinutes(10),
                 temperature: 25.0,
                 humidity: null,
@@ -210,7 +181,6 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Aggregates
         {
             var result = SensorReadingAggregate.Create(
                 sensorId: Guid.NewGuid(),
-                plotId: Guid.NewGuid(),
                 time: DateTime.UtcNow,
                 temperature: null,
                 humidity: null,
@@ -229,7 +199,6 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Aggregates
         {
             var result = SensorReadingAggregate.Create(
                 sensorId: Guid.NewGuid(),
-                plotId: Guid.NewGuid(),
                 time: DateTime.UtcNow,
                 temperature: temperature,
                 humidity: null,
@@ -248,7 +217,6 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Aggregates
         {
             var result = SensorReadingAggregate.Create(
                 sensorId: Guid.NewGuid(),
-                plotId: Guid.NewGuid(),
                 time: DateTime.UtcNow,
                 temperature: null,
                 humidity: humidity,
@@ -267,7 +235,6 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Aggregates
         {
             var result = SensorReadingAggregate.Create(
                 sensorId: Guid.NewGuid(),
-                plotId: Guid.NewGuid(),
                 time: DateTime.UtcNow,
                 temperature: null,
                 humidity: null,
@@ -284,7 +251,6 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Aggregates
         {
             var result = SensorReadingAggregate.Create(
                 sensorId: Guid.NewGuid(),
-                plotId: Guid.NewGuid(),
                 time: DateTime.UtcNow,
                 temperature: null,
                 humidity: null,
@@ -303,7 +269,6 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Aggregates
         {
             var result = SensorReadingAggregate.Create(
                 sensorId: Guid.NewGuid(),
-                plotId: Guid.NewGuid(),
                 time: DateTime.UtcNow,
                 temperature: 25.0,
                 humidity: null,
@@ -320,7 +285,6 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Aggregates
         {
             var result = SensorReadingAggregate.Create(
                 sensorId: Guid.Empty,
-                plotId: Guid.Empty,
                 time: default,
                 temperature: null,
                 humidity: null,
@@ -329,7 +293,7 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Aggregates
                 batteryLevel: null);
 
             result.IsSuccess.ShouldBeFalse();
-            result.ValidationErrors.Count.ShouldBeGreaterThanOrEqualTo(4);
+            result.ValidationErrors.Count.ShouldBeGreaterThanOrEqualTo(3);
         }
 
         #endregion
@@ -340,11 +304,9 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Aggregates
         public void Create_ShouldAddSensorReadingCreatedDomainEvent()
         {
             var sensorId = Guid.NewGuid();
-            var plotId = Guid.NewGuid();
 
             var result = SensorReadingAggregate.Create(
                 sensorId: sensorId,
-                plotId: plotId,
                 time: DateTime.UtcNow,
                 temperature: 25.0,
                 humidity: null,
