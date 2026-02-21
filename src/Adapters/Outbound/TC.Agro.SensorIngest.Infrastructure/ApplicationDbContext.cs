@@ -6,7 +6,6 @@ namespace TC.Agro.SensorIngest.Infrastructure
     public sealed class ApplicationDbContext : DbContext, IApplicationDbContext
     {
         public DbSet<SensorReadingAggregate> SensorReadings { get; set; }
-        public DbSet<SensorAggregate> Sensors { get; set; }
         public DbSet<AlertAggregate> Alerts { get; set; }
         public DbSet<OwnerSnapshot> OwnerSnapshots { get; set; }
         public DbSet<SensorSnapshot> SensorSnapshots { get; set; }
@@ -30,7 +29,6 @@ namespace TC.Agro.SensorIngest.Infrastructure
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
 
             // Global query filters for soft delete
-            modelBuilder.Entity<SensorAggregate>().HasQueryFilter(x => x.IsActive);
             modelBuilder.Entity<AlertAggregate>().HasQueryFilter(x => x.IsActive);
         }
 

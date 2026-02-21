@@ -2,16 +2,13 @@ namespace TC.Agro.SensorIngest.Application.UseCases.GetDashboardStats
 {
     internal sealed class GetDashboardStatsQueryHandler : BaseQueryHandler<GetDashboardStatsQuery, GetDashboardStatsResponse>
     {
-        private readonly ISensorReadStore _sensorReadStore;
         private readonly IAlertReadStore _alertReadStore;
         private readonly ILogger<GetDashboardStatsQueryHandler> _logger;
 
         public GetDashboardStatsQueryHandler(
-            ISensorReadStore sensorReadStore,
             IAlertReadStore alertReadStore,
             ILogger<GetDashboardStatsQueryHandler> logger)
         {
-            _sensorReadStore = sensorReadStore ?? throw new ArgumentNullException(nameof(sensorReadStore));
             _alertReadStore = alertReadStore ?? throw new ArgumentNullException(nameof(alertReadStore));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -20,19 +17,17 @@ namespace TC.Agro.SensorIngest.Application.UseCases.GetDashboardStats
             GetDashboardStatsQuery query,
             CancellationToken ct = default)
         {
-            var sensorCount = await _sensorReadStore.CountAsync(ct).ConfigureAwait(false);
             var alertCount = await _alertReadStore.CountPendingAsync(ct).ConfigureAwait(false);
 
             _logger.LogInformation(
-                "Dashboard stats: Sensors={Sensors}, Alerts={Alerts}",
-                sensorCount,
+                "Dashboard stats: Alerts={Alerts}",
                 alertCount);
 
-            // Properties and Plots return 0 until integration with farm-service via HTTP client
+            // Properties, Plots and Sensors return 0 until integration with farm-service via HTTP client
             return Result.Success(new GetDashboardStatsResponse(
                 Properties: 0,
                 Plots: 0,
-                Sensors: sensorCount,
+                Sensors: 0,
                 Alerts: alertCount));
         }
     }
