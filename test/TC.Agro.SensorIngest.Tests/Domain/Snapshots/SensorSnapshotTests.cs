@@ -131,7 +131,8 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Snapshots
             snapshot.Delete();
             var firstUpdatedAt = snapshot.UpdatedAt;
 
-            // Small delay to ensure timestamp would differ
+            // Small delay to ensure timestamp would differ if logic were broken
+            Thread.Sleep(15);
             snapshot.Delete();
 
             snapshot.IsActive.ShouldBeFalse();

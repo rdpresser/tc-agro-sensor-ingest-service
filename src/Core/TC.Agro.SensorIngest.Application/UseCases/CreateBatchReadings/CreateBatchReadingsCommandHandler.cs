@@ -28,10 +28,16 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateBatchReadings
         {
             var results = new List<BatchReadingResult>();
             var successfulAggregates = new List<SensorReadingAggregate>();
+            var sensorExistsCache = new Dictionary<Guid, bool>();
 
             foreach (var input in command.Readings)
             {
-                var sensorExists = await _sensorSnapshotStore.ExistsAsync(input.SensorId, ct).ConfigureAwait(false);
+                if (!sensorExistsCache.TryGetValue(input.SensorId, out var sensorExists))
+                {
+                    sensorExists = await _sensorSnapshotStore.ExistsAsync(input.SensorId, ct).ConfigureAwait(false);
+                    sensorExistsCache[input.SensorId] = sensorExists;
+                }
+
                 if (!sensorExists)
                 {
                     _logger.LogWarning(
