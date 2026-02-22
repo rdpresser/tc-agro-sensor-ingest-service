@@ -133,7 +133,7 @@ namespace TC.Agro.SensorIngest.Application.MessageBrokerHandlers
                 ? DefaultSensorLabel
                 : @event.EventData.Label;
 
-            if (snapshot == null)
+            if (snapshot is null)
             {
                 snapshot = SensorSnapshot.Create(
                     @event.EventData.SensorId,
