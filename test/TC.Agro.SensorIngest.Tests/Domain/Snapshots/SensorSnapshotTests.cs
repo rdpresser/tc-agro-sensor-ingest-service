@@ -115,8 +115,7 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Snapshots
                 label: "Original Sensor",
                 plotName: "Original Plot",
                 propertyName: "Original Property");
-
-            var newSensorId = Guid.NewGuid();
+            
             var newOwnerId = Guid.NewGuid();
             var newPropertyId = Guid.NewGuid();
             var newPlotId = Guid.NewGuid();
@@ -124,7 +123,6 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Snapshots
 
             // Act
             snapshot.Update(
-                id: newSensorId,
                 ownerId: newOwnerId,
                 propertyId: newPropertyId,
                 plotId: newPlotId,
@@ -135,7 +133,6 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Snapshots
                 status: "Active");
 
             // Assert
-            snapshot.Id.ShouldBe(newSensorId);
             snapshot.OwnerId.ShouldBe(newOwnerId);
             snapshot.PropertyId.ShouldBe(newPropertyId);
             snapshot.PlotId.ShouldBe(newPlotId);
@@ -162,7 +159,6 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Snapshots
 
             // Act
             snapshot.Update(
-                id: snapshot.Id,
                 ownerId: snapshot.OwnerId,
                 propertyId: snapshot.PropertyId,
                 plotId: snapshot.PlotId,
@@ -197,7 +193,6 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Snapshots
 
             // Act
             snapshot.Update(
-                id: snapshot.Id,
                 ownerId: snapshot.OwnerId,
                 propertyId: snapshot.PropertyId,
                 plotId: snapshot.PlotId,
@@ -216,7 +211,7 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Snapshots
         {
             // Arrange
             var snapshot = SensorSnapshot.Create(
-                id: Guid.NewGuid(),
+                id: Guid.NewGuid(), 
                 ownerId: Guid.NewGuid(),
                 propertyId: Guid.NewGuid(),
                 plotId: Guid.NewGuid(),
@@ -227,7 +222,6 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Snapshots
 
             // First update
             snapshot.Update(
-                id: snapshot.Id,
                 ownerId: snapshot.OwnerId,
                 propertyId: snapshot.PropertyId,
                 plotId: snapshot.PlotId,
@@ -238,8 +232,7 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Snapshots
                 changedByUserId: snapshot.ChangedByUserId);
 
             // Second update
-            snapshot.Update(
-                id: snapshot.Id,
+            snapshot.Update(                
                 ownerId: snapshot.OwnerId,
                 propertyId: snapshot.PropertyId,
                 plotId: snapshot.PlotId,

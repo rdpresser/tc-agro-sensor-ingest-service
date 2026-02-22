@@ -121,7 +121,6 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
         }
         // Atualização quando vier evento SensorUpdated ou PlotUpdated
         public void Update(
-            Guid id,
             Guid ownerId,
             Guid propertyId,
             Guid plotId,
@@ -131,7 +130,6 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
             string propertyName,
             string status)
         {
-            Id = id;
             OwnerId = ownerId;
             PropertyId = propertyId;
             PlotId = plotId;

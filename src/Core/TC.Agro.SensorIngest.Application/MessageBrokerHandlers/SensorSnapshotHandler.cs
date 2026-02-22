@@ -150,7 +150,6 @@ namespace TC.Agro.SensorIngest.Application.MessageBrokerHandlers
             else
             {
                 snapshot.Update(
-                    @event.EventData.SensorId,
                     @event.EventData.OwnerId,
                     @event.EventData.PropertyId,
                     @event.EventData.PlotId,
