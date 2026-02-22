@@ -28,6 +28,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Core\TC.Agro.SensorIngest.Domain\TC.Agro.SensorIngest.Domain.csproj" />
     <ProjectReference Include="..\..\src\Core\TC.Agro.SensorIngest.Application\TC.Agro.SensorIngest.Application.csproj" />
+    <ProjectReference Include="..\..\src\Adapters\Inbound\TC.Agro.SensorIngest.Service\TC.Agro.SensorIngest.Service.csproj" />
   </ItemGroup>
 
   <ItemGroup>

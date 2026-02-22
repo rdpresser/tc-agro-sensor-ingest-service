@@ -1,6 +1,9 @@
 using JasperFx.Resources;
+using Quartz;
 using TC.Agro.Contracts.Events.SensorIngested;
 using TC.Agro.Messaging.Extensions;
+using TC.Agro.SensorIngest.Application.Abstractions.Ports;
+using TC.Agro.SensorIngest.Service.Providers;
 using TC.Agro.SharedKernel.Infrastructure.Messaging;
 
 namespace TC.Agro.SensorIngest.Service.Extensions
@@ -30,6 +33,18 @@ namespace TC.Agro.SensorIngest.Service.Extensions
             services.AddSignalR();
 
             services.AddScoped<ISensorHubNotifier, Services.SensorHubNotifier>();
+
+            var weatherSection = builder.Configuration.GetSection("WeatherProvider");
+            services.Configure<WeatherProviderOptions>(weatherSection);
+
+            var weatherOptions = weatherSection.Get<WeatherProviderOptions>() ?? new WeatherProviderOptions();
+            services.AddHttpClient<IWeatherDataProvider, OpenMeteoWeatherProvider>(client =>
+            {
+                client.BaseAddress = new Uri(weatherOptions.BaseUrl);
+                client.Timeout = TimeSpan.FromSeconds(10);
+            });
+
+            services.AddQuartzScheduling(builder.Configuration);
 
             return services;
         }
@@ -393,6 +408,39 @@ namespace TC.Agro.SensorIngest.Service.Extensions
             {
                 builder.Services.AddSingleton(new Telemetry.TelemetryExporterInfo { ExporterType = "None" });
             }
+        }
+
+        private static IServiceCollection AddQuartzScheduling(this IServiceCollection services, IConfiguration configuration)
+        {
+            var jobEnabled = configuration.GetValue("SensorReadingsJob:Enabled", false);
+
+            if (!jobEnabled)
+                return services;
+
+            var intervalMinutes = configuration.GetValue("SensorReadingsJob:IntervalMinutes", 2);
+
+            if (intervalMinutes < 1)
+            {
+                throw new InvalidOperationException(
+                    $"SensorReadingsJob:IntervalMinutes must be >= 1, but was {intervalMinutes}.");
+            }
+
+            services.AddQuartz(q =>
+            {
+                var jobKey = new JobKey("SimulatedSensorReadingsJob", "SensorIngest");
+
+                q.AddJob<Jobs.SimulatedSensorReadingsJob>(opts => opts.WithIdentity(jobKey));
+
+                q.AddTrigger(opts => opts
+                    .ForJob(jobKey)
+                    .WithIdentity("SimulatedSensorReadings-Trigger", "SensorIngest")
+                    .WithSimpleSchedule(x => x.WithIntervalInMinutes(intervalMinutes).RepeatForever())
+                    .StartNow());
+            });
+
+            services.AddQuartzHostedService(o => o.WaitForJobsToComplete = true);
+
+            return services;
         }
 
         private static WebApplicationBuilder AddWolverineMessaging(this WebApplicationBuilder builder)

@@ -46,7 +46,12 @@ app.UseCustomMiddlewares();
 // CRITICAL: TelemetryMiddleware MUST come AFTER CorrelationMiddleware to access correlationIdGenerator.CorrelationId
 app.UseMiddleware<TC.Agro.SensorIngest.Service.Middleware.TelemetryMiddleware>();
 
-app.MapHub<SensorHub>("/sensorHub");
+if (app.Environment.IsDevelopment())
+{
+    app.UseStaticFiles();
+}
+
+app.MapHub<SensorHub>("/dashboard/sensorshub");
 
 app.UseAuthentication()
   .UseAuthorization()
