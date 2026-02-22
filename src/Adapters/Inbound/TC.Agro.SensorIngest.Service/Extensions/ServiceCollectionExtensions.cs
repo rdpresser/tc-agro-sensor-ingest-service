@@ -419,6 +419,12 @@ namespace TC.Agro.SensorIngest.Service.Extensions
 
             var intervalMinutes = configuration.GetValue("SensorReadingsJob:IntervalMinutes", 2);
 
+            if (intervalMinutes < 1)
+            {
+                throw new InvalidOperationException(
+                    $"SensorReadingsJob:IntervalMinutes must be >= 1, but was {intervalMinutes}.");
+            }
+
             services.AddQuartz(q =>
             {
                 var jobKey = new JobKey("SimulatedSensorReadingsJob", "SensorIngest");

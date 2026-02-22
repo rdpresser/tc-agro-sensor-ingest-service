@@ -18,8 +18,7 @@ namespace TC.Agro.SensorIngest.Tests.Service.Providers
             _options = Options.Create(new WeatherProviderOptions
             {
                 Latitude = -22.7256,
-                Longitude = -47.6492,
-                FallbackToSimulated = true
+                Longitude = -47.6492
             });
         }
 
