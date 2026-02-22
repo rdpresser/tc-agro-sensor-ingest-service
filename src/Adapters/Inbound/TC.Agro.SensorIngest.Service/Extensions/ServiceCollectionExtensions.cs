@@ -2,6 +2,8 @@ using JasperFx.Resources;
 using Quartz;
 using TC.Agro.Contracts.Events.SensorIngested;
 using TC.Agro.Messaging.Extensions;
+using TC.Agro.SensorIngest.Application.Abstractions.Ports;
+using TC.Agro.SensorIngest.Service.Providers;
 using TC.Agro.SharedKernel.Infrastructure.Messaging;
 
 namespace TC.Agro.SensorIngest.Service.Extensions
@@ -31,6 +33,16 @@ namespace TC.Agro.SensorIngest.Service.Extensions
             services.AddSignalR();
 
             services.AddScoped<ISensorHubNotifier, Services.SensorHubNotifier>();
+
+            var weatherSection = builder.Configuration.GetSection("WeatherProvider");
+            services.Configure<WeatherProviderOptions>(weatherSection);
+
+            var weatherOptions = weatherSection.Get<WeatherProviderOptions>() ?? new WeatherProviderOptions();
+            services.AddHttpClient<IWeatherDataProvider, OpenMeteoWeatherProvider>(client =>
+            {
+                client.BaseAddress = new Uri(weatherOptions.BaseUrl);
+                client.Timeout = TimeSpan.FromSeconds(10);
+            });
 
             services.AddQuartzScheduling();
 

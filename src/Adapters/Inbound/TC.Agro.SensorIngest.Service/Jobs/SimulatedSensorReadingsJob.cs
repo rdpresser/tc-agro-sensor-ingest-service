@@ -33,6 +33,7 @@ namespace TC.Agro.SensorIngest.Service.Jobs
                 var readingRepository = scope.ServiceProvider.GetRequiredService<ISensorReadingRepository>();
                 var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
                 var hubNotifier = scope.ServiceProvider.GetRequiredService<ISensorHubNotifier>();
+                var weatherProvider = scope.ServiceProvider.GetRequiredService<IWeatherDataProvider>();
 
                 var activeSensors = await snapshotStore.GetAllActiveAsync(context.CancellationToken).ConfigureAwait(false);
 
@@ -42,13 +43,26 @@ namespace TC.Agro.SensorIngest.Service.Jobs
                     return;
                 }
 
-                _logger.LogInformation("Generating simulated readings for {Count} active sensor(s)", activeSensors.Count);
+                var weatherData = await weatherProvider.GetCurrentWeatherAsync(context.CancellationToken).ConfigureAwait(false);
+
+                if (weatherData is not null)
+                {
+                    _logger.LogInformation(
+                        "Using real weather data from Open-Meteo: {Temperature}C, {Humidity}%, SoilMoisture={SoilMoisture}%",
+                        weatherData.Temperature, weatherData.Humidity, weatherData.SoilMoisture);
+                }
+                else
+                {
+                    _logger.LogWarning("Weather API unavailable, falling back to simulated data");
+                }
+
+                _logger.LogInformation("Generating readings for {Count} active sensor(s)", activeSensors.Count);
 
                 var faker = new Faker();
                 var now = DateTime.UtcNow;
 
                 var readings = activeSensors
-                    .Select(sensor => GenerateReading(faker, sensor.Id, now))
+                    .Select(sensor => GenerateReading(faker, sensor.Id, now, weatherData))
                     .Where(result => result.IsSuccess)
                     .Select(result => result.Value)
                     .ToList();
@@ -61,7 +75,7 @@ namespace TC.Agro.SensorIngest.Service.Jobs
 
                 await readingRepository.AddRangeAsync(readings, context.CancellationToken).ConfigureAwait(false);
 
-                _logger.LogInformation("Persisted {Count} simulated reading(s). Publishing integration events", readings.Count);
+                _logger.LogInformation("Persisted {Count} reading(s). Publishing integration events", readings.Count);
 
                 foreach (var reading in readings)
                 {
@@ -96,12 +110,32 @@ namespace TC.Agro.SensorIngest.Service.Jobs
                 throw new JobExecutionException(ex, refireImmediately: false);
             }
         }
-        private static Result<SensorReadingAggregate> GenerateReading(Faker faker, Guid sensorId, DateTime now)
+
+        internal static Result<SensorReadingAggregate> GenerateReading(Faker faker, Guid sensorId, DateTime now, WeatherData? weatherData)
         {
-            var temperature = Math.Round(faker.Random.Double(15, 40), 2);
-            var humidity = Math.Round(faker.Random.Double(30, 90), 2);
-            var soilMoisture = Math.Round(faker.Random.Double(10, 80), 2);
-            var rainfall = faker.Random.Bool(0.3f) ? Math.Round(faker.Random.Double(0, 50), 2) : (double?)null;
+            double temperature;
+            double humidity;
+            double soilMoisture;
+            double? rainfall;
+
+            if (weatherData is not null)
+            {
+                var variance = () => 1.0 + faker.Random.Double(-0.02, 0.02);
+                temperature = Math.Round(weatherData.Temperature * variance(), 2);
+                humidity = Math.Clamp(Math.Round(weatherData.Humidity * variance(), 2), 0, 100);
+                soilMoisture = Math.Clamp(Math.Round(weatherData.SoilMoisture * variance(), 2), 0, 100);
+                rainfall = weatherData.Precipitation.HasValue
+                    ? Math.Round(weatherData.Precipitation.Value * variance(), 2)
+                    : null;
+            }
+            else
+            {
+                temperature = Math.Round(faker.Random.Double(15, 40), 2);
+                humidity = Math.Round(faker.Random.Double(30, 90), 2);
+                soilMoisture = Math.Round(faker.Random.Double(10, 80), 2);
+                rainfall = faker.Random.Bool(0.3f) ? Math.Round(faker.Random.Double(0, 50), 2) : null;
+            }
+
             var batteryLevel = Math.Round(faker.Random.Double(50, 100), 2);
 
             return SensorReadingAggregate.Create(sensorId, now, temperature, humidity, soilMoisture, rainfall, batteryLevel);
