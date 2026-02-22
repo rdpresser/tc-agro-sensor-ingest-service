@@ -115,8 +115,8 @@ namespace TC.Agro.SensorIngest.Application.MessageBrokerHandlers
         // -------------------------
         /// <summary>
         /// Handles the SensorOperationalStatusChangedIntegrationEvent by updating
-        /// the Status field in the corresponding SensorSnapshot.
-        /// If the snapshot doesn't exist, logs a warning and creates it defensively.
+        /// all fields in the corresponding SensorSnapshot (OwnerId, PropertyId, PlotId, Label, PlotName, and PropertyName).
+        /// If the snapshot doesn't exist, creates it defensively.
         /// </summary>
         public async Task HandleAsync(
             EventContext<SensorOperationalStatusChangedIntegrationEvent> @event,
@@ -171,7 +171,7 @@ namespace TC.Agro.SensorIngest.Application.MessageBrokerHandlers
         /// <summary>
         /// Handles the SensorDeactivatedIntegrationEvent by performing a soft delete
         /// on the corresponding SensorSnapshot, setting IsActive to false.
-        /// If the snapshot doesn't exist, logs a warning and does nothing.
+        /// If the snapshot doesn't exist, does nothing.
         /// </summary>
         public async Task HandleAsync(
             EventContext<SensorDeactivatedIntegrationEvent> @event,
