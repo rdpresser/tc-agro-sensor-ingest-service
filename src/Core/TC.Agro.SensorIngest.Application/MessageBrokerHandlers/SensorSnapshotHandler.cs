@@ -13,6 +13,7 @@ namespace TC.Agro.SensorIngest.Application.MessageBrokerHandlers
         private readonly ISensorSnapshotStore _store;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<SensorSnapshotHandler> _logger;
+        private const string DefaultSensorLabel = "Unnamed Sensor";
 
         public SensorSnapshotHandler(ISensorSnapshotStore store, IUnitOfWork unitOfWork, ILogger<SensorSnapshotHandler> logger)
         {
@@ -33,7 +34,7 @@ namespace TC.Agro.SensorIngest.Application.MessageBrokerHandlers
             ArgumentNullException.ThrowIfNull(@event);
 
             var label = string.IsNullOrWhiteSpace(@event.EventData.Label)
-                ? "Unnamed Sensor"
+                ? DefaultSensorLabel
                 : @event.EventData.Label;
 
             var snapshot = SensorSnapshot.Create(
@@ -129,7 +130,7 @@ namespace TC.Agro.SensorIngest.Application.MessageBrokerHandlers
                 cancellationToken).ConfigureAwait(false);
 
             var label = string.IsNullOrWhiteSpace(@event.EventData.Label)
-                ? "Unnamed Sensor"
+                ? DefaultSensorLabel
                 : @event.EventData.Label;
 
             if (snapshot == null)
@@ -183,10 +184,8 @@ namespace TC.Agro.SensorIngest.Application.MessageBrokerHandlers
                 @event.EventData.SensorId,
                 cancellationToken).ConfigureAwait(false);
 
-            if (snapshot == null)
-            {
+            if (snapshot is null)
                 return;
-            }
 
             snapshot.Delete();
             await _store.UpdateAsync(snapshot, cancellationToken).ConfigureAwait(false);
