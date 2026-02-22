@@ -105,6 +105,25 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
             IsActive = true;
             UpdatedAt = DateTimeOffset.UtcNow;
         }
+        // Atualização quando vier evento SensorUpdated ou PlotUpdated
+        public void Update(
+            Guid id,
+            Guid ownerId,
+            Guid propertyId,
+            Guid plotId,
+            string sensorName,
+            string plotName,
+            string propertyName)
+        {
+            Id = id;
+            OwnerId = ownerId;
+            PropertyId = propertyId;
+            PlotId = plotId;
+            Label = sensorName;
+            PlotName = plotName;
+            PropertyName = propertyName;
+            UpdatedAt = DateTimeOffset.UtcNow;
+        }
 
         // Soft-delete when sensor is deactivated
         public void Delete()

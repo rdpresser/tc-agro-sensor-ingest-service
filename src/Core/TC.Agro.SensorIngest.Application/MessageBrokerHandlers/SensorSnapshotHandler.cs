@@ -108,5 +108,59 @@ namespace TC.Agro.SensorIngest.Application.MessageBrokerHandlers
 
             await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
+
+        // -------------------------
+        // Sensor Operational Status Changed
+        // -------------------------
+        /// <summary>
+        /// Handles the SensorOperationalStatusChangedIntegrationEvent by updating
+        /// the Status field in the corresponding SensorSnapshot.
+        /// If the snapshot doesn't exist, logs a warning and creates it defensively.
+        /// </summary>
+        public async Task HandleAsync(
+            EventContext<SensorOperationalStatusChangedIntegrationEvent> @event,
+            CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(@event);
+
+            var snapshot = await _store.GetByIdAsync(
+                @event.EventData.SensorId, 
+                cancellationToken).ConfigureAwait(false);
+
+            var label = string.IsNullOrWhiteSpace(@event.EventData.Label)
+                ? "Unnamed Sensor"
+                : @event.EventData.Label;
+
+            if (snapshot == null)
+            {
+                snapshot = SensorSnapshot.Create(
+                    @event.EventData.SensorId,
+                    @event.EventData.OwnerId,
+                    @event.EventData.PropertyId,
+                    @event.EventData.PlotId,
+                    label,
+                    plotName: @event.EventData.PlotName,
+                    propertyName: @event.EventData.PropertyName,
+                    createdAt: @event.EventData.OccurredOn);
+
+                await _store.AddAsync(snapshot, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                snapshot.Update(
+                    @event.EventData.SensorId,
+                    @event.EventData.OwnerId,
+                    @event.EventData.PropertyId,
+                    @event.EventData.PlotId,
+                    label,
+                    plotName: @event.EventData.PlotName,
+                    propertyName: @event.EventData.PropertyName);
+
+                await _store.UpdateAsync(snapshot, cancellationToken).ConfigureAwait(false);
+            }
+
+            await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        }
+
     }
 }
