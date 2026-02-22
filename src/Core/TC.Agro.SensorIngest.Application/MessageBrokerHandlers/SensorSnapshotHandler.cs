@@ -162,5 +162,33 @@ namespace TC.Agro.SensorIngest.Application.MessageBrokerHandlers
             await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
 
+        // -------------------------
+        // Sensor Deactivated
+        // -------------------------
+        /// <summary>
+        /// Handles the SensorDeactivatedIntegrationEvent by performing a soft delete
+        /// on the corresponding SensorSnapshot, setting IsActive to false.
+        /// If the snapshot doesn't exist, logs a warning and does nothing.
+        /// </summary>
+        public async Task HandleAsync(
+            EventContext<SensorDeactivatedIntegrationEvent> @event,
+            CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(@event);
+
+            var snapshot = await _store.GetByIdAsync(
+                @event.EventData.SensorId,
+                cancellationToken).ConfigureAwait(false);
+
+            if (snapshot == null)
+            {
+                return;
+            }
+
+            snapshot.Delete();
+            await _store.UpdateAsync(snapshot, cancellationToken).ConfigureAwait(false);
+            await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        }
+
     }
 }
