@@ -4,7 +4,7 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
 {
     public sealed class SensorSnapshot
     {
-        public Guid Id { get; private set; } // SensorId
+        public Guid Id { get; private set; }
         public Guid OwnerId { get; private set; }
         public OwnerSnapshot Owner { get; private set; } = default!;
         public Guid PropertyId { get; private set; }
@@ -23,7 +23,7 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
 
         public ICollection<SensorReadingAggregate> SensorReadings { get; private set; } = [];
 
-        private SensorSnapshot() { } // EF
+        private SensorSnapshot() { }
 
         private SensorSnapshot(
             Guid id,
@@ -53,7 +53,6 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
             Status = status;
         }
 
-        // Factory used when a SensorRegistered event arrives
         public static SensorSnapshot Create(
             Guid id,
             Guid ownerId,
@@ -82,7 +81,6 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
                 status);
         }
 
-        // Factory when the event already carries createdAt
         public static SensorSnapshot Create(
             Guid id,
             Guid ownerId,
@@ -141,7 +139,6 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
             UpdatedAt = DateTimeOffset.UtcNow;
         }
 
-        // Soft-delete when sensor is deactivated
         public void Delete()
         {
             if (!IsActive)
