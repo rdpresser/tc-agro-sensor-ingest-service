@@ -73,36 +73,49 @@ namespace TC.Agro.SensorIngest.Service.Jobs
                     return;
                 }
 
+                // Persist all readings to DB first (AddRangeAsync calls SaveChangesAsync internally)
                 await readingRepository.AddRangeAsync(readings, context.CancellationToken).ConfigureAwait(false);
 
                 _logger.LogInformation("Persisted {Count} reading(s). Publishing integration events", readings.Count);
 
+                var publishFailures = 0;
                 foreach (var reading in readings)
                 {
-                    var integrationEvent = EventContext<SensorIngestedIntegrationEvent>.CreateBasic<SensorReadingAggregate>(
-                        new SensorIngestedIntegrationEvent(
-                            reading.Id,
+                    try
+                    {
+                        var integrationEvent = EventContext<SensorIngestedIntegrationEvent>.CreateBasic<SensorReadingAggregate>(
+                            new SensorIngestedIntegrationEvent(
+                                reading.Id,
+                                reading.SensorId,
+                                reading.Time,
+                                reading.Temperature,
+                                reading.Humidity,
+                                reading.SoilMoisture,
+                                reading.Rainfall,
+                                reading.BatteryLevel,
+                                DateTimeOffset.UtcNow),
+                            reading.Id);
+
+                        await messageBus.PublishAsync(integrationEvent).ConfigureAwait(false);
+
+                        await hubNotifier.NotifySensorReadingAsync(
                             reading.SensorId,
-                            reading.Time,
                             reading.Temperature,
                             reading.Humidity,
                             reading.SoilMoisture,
-                            reading.Rainfall,
-                            reading.BatteryLevel,
-                            DateTimeOffset.UtcNow),
-                        reading.Id);
-
-                    await messageBus.PublishAsync(integrationEvent).ConfigureAwait(false);
-
-                    await hubNotifier.NotifySensorReadingAsync(
-                        reading.SensorId,
-                        reading.Temperature,
-                        reading.Humidity,
-                        reading.SoilMoisture,
-                        reading.Time).ConfigureAwait(false);
+                            reading.Time).ConfigureAwait(false);
+                    }
+                    catch (Exception ex) when (ex is not OperationCanceledException)
+                    {
+                        publishFailures++;
+                        _logger.LogWarning(ex, "Failed to publish event/notification for reading {ReadingId}", reading.Id);
+                    }
                 }
 
-                _logger.LogInformation("SimulatedSensorReadingsJob completed. Generated {Count} reading(s)", readings.Count);
+                if (publishFailures > 0)
+                    _logger.LogWarning("SimulatedSensorReadingsJob completed with {Failures} publish failure(s) out of {Total}", publishFailures, readings.Count);
+                else
+                    _logger.LogInformation("SimulatedSensorReadingsJob completed. Generated {Count} reading(s)", readings.Count);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {

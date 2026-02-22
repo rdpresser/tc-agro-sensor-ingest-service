@@ -1,18 +1,25 @@
+using ZiggyCreatures.Caching.Fusion;
+
 namespace TC.Agro.SensorIngest.Service.Services
 {
     internal sealed class SensorHubNotifier : ISensorHubNotifier
     {
+        private static readonly TimeSpan PlotIdCacheDuration = TimeSpan.FromMinutes(10);
+
         private readonly IHubContext<SensorHub, ISensorHubClient> _hubContext;
         private readonly ISensorSnapshotStore _snapshotStore;
+        private readonly IFusionCache _cache;
         private readonly ILogger<SensorHubNotifier> _logger;
 
         public SensorHubNotifier(
             IHubContext<SensorHub, ISensorHubClient> hubContext,
             ISensorSnapshotStore snapshotStore,
+            IFusionCache cache,
             ILogger<SensorHubNotifier> logger)
         {
             _hubContext = hubContext ?? throw new ArgumentNullException(nameof(hubContext));
             _snapshotStore = snapshotStore ?? throw new ArgumentNullException(nameof(snapshotStore));
+            _cache = cache ?? throw new ArgumentNullException(nameof(cache));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -25,9 +32,9 @@ namespace TC.Agro.SensorIngest.Service.Services
         {
             try
             {
-                var snapshot = await _snapshotStore.GetByIdAsync(sensorId).ConfigureAwait(false);
+                var plotId = await ResolvePlotIdAsync(sensorId).ConfigureAwait(false);
 
-                if (snapshot is null)
+                if (plotId is null)
                 {
                     _logger.LogWarning("Cannot broadcast reading: SensorSnapshot not found for {SensorId}", sensorId);
                     return;
@@ -40,7 +47,7 @@ namespace TC.Agro.SensorIngest.Service.Services
                     soilMoisture,
                     timestamp);
 
-                await _hubContext.Clients.Group($"plot:{snapshot.PlotId}").SensorReading(dto).ConfigureAwait(false);
+                await _hubContext.Clients.Group($"plot:{plotId}").SensorReading(dto).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -54,9 +61,9 @@ namespace TC.Agro.SensorIngest.Service.Services
         {
             try
             {
-                var snapshot = await _snapshotStore.GetByIdAsync(sensorId).ConfigureAwait(false);
+                var plotId = await ResolvePlotIdAsync(sensorId).ConfigureAwait(false);
 
-                if (snapshot is null)
+                if (plotId is null)
                 {
                     _logger.LogWarning("Cannot broadcast status change: SensorSnapshot not found for {SensorId}", sensorId);
                     return;
@@ -64,12 +71,26 @@ namespace TC.Agro.SensorIngest.Service.Services
 
                 var dto = new SensorStatusChangedRequest(sensorId, status);
 
-                await _hubContext.Clients.Group($"plot:{snapshot.PlotId}").SensorStatusChanged(dto).ConfigureAwait(false);
+                await _hubContext.Clients.Group($"plot:{plotId}").SensorStatusChanged(dto).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Failed to broadcast status change for {SensorId}", sensorId);
             }
+        }
+
+        private async Task<Guid?> ResolvePlotIdAsync(Guid sensorId)
+        {
+            var cacheKey = $"sensor:plotId:{sensorId}";
+
+            return await _cache.GetOrSetAsync<Guid?>(
+                cacheKey,
+                async (_, ct) =>
+                {
+                    var snapshot = await _snapshotStore.GetByIdAsync(sensorId, ct).ConfigureAwait(false);
+                    return snapshot?.PlotId;
+                },
+                new FusionCacheEntryOptions { Duration = PlotIdCacheDuration }).ConfigureAwait(false);
         }
     }
 }

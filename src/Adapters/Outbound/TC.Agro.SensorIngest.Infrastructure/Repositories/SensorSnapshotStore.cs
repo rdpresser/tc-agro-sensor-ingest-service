@@ -87,7 +87,17 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
         {
             return await _dbContext.SensorSnapshots
                 .AsNoTracking()
+                .Where(s => s.IsActive)
                 .ToListAsync(cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
+        public async Task<SensorSnapshot?> GetByIdIncludingInactiveAsync(Guid id, CancellationToken cancellationToken = default)
+        {
+            return await _dbContext.SensorSnapshots
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(o => o.Id == id, cancellationToken)
                 .ConfigureAwait(false);
         }
     }

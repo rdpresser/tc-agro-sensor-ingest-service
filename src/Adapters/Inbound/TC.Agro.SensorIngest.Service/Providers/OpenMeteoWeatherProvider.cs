@@ -38,9 +38,28 @@ namespace TC.Agro.SensorIngest.Service.Providers
                     new FusionCacheEntryOptions { Duration = CacheDuration },
                     ct).ConfigureAwait(false);
             }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogWarning(ex, "Open-Meteo API request failed: {StatusCode}", ex.StatusCode);
+                return null;
+            }
+            catch (JsonException ex)
+            {
+                _logger.LogWarning(ex, "Failed to parse Open-Meteo API response");
+                return null;
+            }
+            catch (TaskCanceledException) when (ct.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (TaskCanceledException ex)
+            {
+                _logger.LogWarning(ex, "Open-Meteo API request timed out");
+                return null;
+            }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Failed to get weather data from cache/API");
+                _logger.LogWarning(ex, "Unexpected error fetching weather data");
                 return null;
             }
         }

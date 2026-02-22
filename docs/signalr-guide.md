@@ -1,22 +1,22 @@
 # SignalR - Sensor Ingest Service
 
-Guia de uso do WebSocket (SignalR) para recebimento de leituras de sensores e mudancas de status em tempo real.
+Usage guide for the WebSocket (SignalR) integration for receiving real-time sensor readings and status changes.
 
-## Visao Geral
+## Overview
 
-O `SensorHub` permite que clientes recebam dados de sensores em tempo real via SignalR. Os dados sao agrupados por **Plot (Talhao)** — ao entrar em um grupo de plot, o cliente recebe todas as leituras dos sensores vinculados aquele talhao.
+The `SensorHub` allows clients to receive sensor data in real time via SignalR. Data is grouped by **Plot** — when joining a plot group, the client receives all readings from sensors linked to that plot.
 
-**Endpoint:** `/sensorHub`
-**Porta:** `5003` (local)
-**Autorizacao:** JWT Bearer — roles `Admin` ou `Producer`
+**Endpoint:** `/dashboard/sensorshub`
+**Port:** `5003` (local)
+**Authorization:** JWT Bearer — roles `Admin` or `Producer`
 
 ---
 
-## Autenticacao
+## Authentication
 
-A conexao requer um token JWT valido. O token e passado via query string automaticamente pelo cliente SignalR.
+The connection requires a valid JWT token. The token is passed via query string automatically by the SignalR client.
 
-### Obtendo o Token
+### Obtaining the Token
 
 ```bash
 curl -s -X POST http://localhost:5001/api/identity/login \
@@ -24,21 +24,21 @@ curl -s -X POST http://localhost:5001/api/identity/login \
   -d '{"email":"admin@tcagro.com","password":"Admin@123"}' | jq -r '.token'
 ```
 
-Usuarios disponíveis (seed):
-| Email | Senha | Role |
+Available users (seed):
+| Email | Password | Role |
 |---|---|---|
 | `admin@tcagro.com` | `Admin@123` | Admin |
 | `producer@tcagro.com` | `Producer@123` | Producer |
 
 ---
 
-## Conexao (JavaScript)
+## Connection (JavaScript)
 
 ```javascript
-const token = "seu-jwt-token-aqui";
+const token = "your-jwt-token-here";
 
 const connection = new signalR.HubConnectionBuilder()
-    .withUrl("/sensorHub", {
+    .withUrl("/dashboard/sensorshub", {
         accessTokenFactory: () => token
     })
     .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
@@ -48,7 +48,7 @@ const connection = new signalR.HubConnectionBuilder()
 await connection.start();
 ```
 
-### CDN do cliente SignalR
+### SignalR Client CDN
 
 ```html
 <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
@@ -62,22 +62,22 @@ npm install @microsoft/signalr
 
 ---
 
-## Metodos do Hub (Client → Server)
+## Hub Methods (Client -> Server)
 
 ### `JoinPlotGroup(plotId: string)`
 
-Entra no grupo de um talhao para receber leituras em tempo real. Ao entrar, o hub envia automaticamente as **ultimas 10 leituras** daquele talhao.
+Joins a plot group to receive real-time readings. Upon joining, the hub automatically sends the **last 10 readings** for that plot.
 
 ```javascript
 await connection.invoke("JoinPlotGroup", "dec770c5-d45d-4192-a2fe-8d0ea5de8484");
 ```
 
-**Parametro:** GUID valido do plot (nao pode ser vazio).
-**Erro:** Lanca `HubException` se o plotId for invalido.
+**Parameter:** Valid plot GUID (cannot be empty).
+**Error:** Throws `HubException` if the plotId is invalid.
 
 ### `LeavePlotGroup(plotId: string)`
 
-Sai do grupo de um talhao, parando de receber leituras.
+Leaves a plot group, stopping real-time readings.
 
 ```javascript
 await connection.invoke("LeavePlotGroup", "dec770c5-d45d-4192-a2fe-8d0ea5de8484");
@@ -85,15 +85,15 @@ await connection.invoke("LeavePlotGroup", "dec770c5-d45d-4192-a2fe-8d0ea5de8484"
 
 ---
 
-## Eventos (Server → Client)
+## Events (Server -> Client)
 
 ### `sensorReading`
 
-Recebido quando uma nova leitura de sensor e gerada (a cada 2 minutos pelo job Quartz, ou via API).
+Received when a new sensor reading is generated (every 2 minutes by the Quartz job, or via API).
 
 ```javascript
 connection.on("sensorReading", (data) => {
-    console.log("Leitura:", data);
+    console.log("Reading:", data);
 });
 ```
 
@@ -109,23 +109,23 @@ connection.on("sensorReading", (data) => {
 }
 ```
 
-| Campo | Tipo | Descricao |
+| Field | Type | Description |
 |---|---|---|
-| `sensorId` | `string (GUID)` | ID do sensor |
-| `temperature` | `number?` | Temperatura em Celsius |
-| `humidity` | `number?` | Umidade relativa (%) |
-| `soilMoisture` | `number?` | Umidade do solo (%) |
-| `timestamp` | `string (ISO 8601)` | Data/hora da leitura |
+| `sensorId` | `string (GUID)` | Sensor ID |
+| `temperature` | `number?` | Temperature in Celsius |
+| `humidity` | `number?` | Relative humidity (%) |
+| `soilMoisture` | `number?` | Soil moisture (%) |
+| `timestamp` | `string (ISO 8601)` | Reading date/time |
 
-> **Importante:** Os nomes dos eventos usam **camelCase** (padrao do SignalR). No C# o metodo e `SensorReading`, mas no JS o listener deve ser `sensorReading`.
+> **Important:** Event names use **camelCase** (SignalR default). In C# the method is `SensorReading`, but in JS the listener must be `sensorReading`.
 
 ### `sensorStatusChanged`
 
-Recebido quando o status operacional de um sensor muda.
+Received when a sensor's operational status changes.
 
 ```javascript
 connection.on("sensorStatusChanged", (data) => {
-    console.log("Status mudou:", data);
+    console.log("Status changed:", data);
 });
 ```
 
@@ -138,24 +138,24 @@ connection.on("sensorStatusChanged", (data) => {
 }
 ```
 
-| Campo | Tipo | Descricao |
+| Field | Type | Description |
 |---|---|---|
-| `sensorId` | `string (GUID)` | ID do sensor |
-| `status` | `string` | Novo status (`Active`, `Inactive`, `Maintenance`, `Faulty`) |
+| `sensorId` | `string (GUID)` | Sensor ID |
+| `status` | `string` | New status (`Active`, `Inactive`, `Maintenance`, `Faulty`) |
 
 ---
 
-## Grupos
+## Groups
 
-Os clientes sao organizados em grupos por talhao com o formato `plot:{plotId}`. Quando uma leitura e gerada para um sensor, o sistema resolve o `PlotId` internamente a partir da tabela `sensor_snapshots` e envia para todos os clientes do grupo correspondente.
+Clients are organized into groups by plot using the format `plot:{plotId}`. When a reading is generated for a sensor, the system internally resolves the `PlotId` from the `sensor_snapshots` table and sends it to all clients in the corresponding group.
 
 ```
-Sensor → SensorSnapshot (PlotId) → Grupo "plot:{plotId}" → Clientes conectados
+Sensor -> SensorSnapshot (PlotId) -> Group "plot:{plotId}" -> Connected clients
 ```
 
 ---
 
-## Exemplo Completo
+## Full Example
 
 ```html
 <!DOCTYPE html>
@@ -168,39 +168,39 @@ Sensor → SensorSnapshot (PlotId) → Grupo "plot:{plotId}" → Clientes conect
     <div id="readings"></div>
 
     <script>
-        const TOKEN = "seu-jwt-token";
+        const TOKEN = "your-jwt-token";
         const PLOT_ID = "dec770c5-d45d-4192-a2fe-8d0ea5de8484";
 
         async function start() {
             const connection = new signalR.HubConnectionBuilder()
-                .withUrl("/sensorHub", {
+                .withUrl("/dashboard/sensorshub", {
                     accessTokenFactory: () => TOKEN
                 })
                 .withAutomaticReconnect()
                 .build();
 
-            // Escuta leituras
+            // Listen for readings
             connection.on("sensorReading", (data) => {
                 const div = document.getElementById("readings");
                 div.innerHTML += `
                     <p>Sensor ${data.sensorId}:
                        Temp=${data.temperature}C
                        Hum=${data.humidity}%
-                       Solo=${data.soilMoisture}%
+                       Soil=${data.soilMoisture}%
                     </p>`;
             });
 
-            // Escuta mudancas de status
+            // Listen for status changes
             connection.on("sensorStatusChanged", (data) => {
                 console.log(`Sensor ${data.sensorId} -> ${data.status}`);
             });
 
-            // Reconexao automatica
+            // Automatic reconnection
             connection.onreconnected(async () => {
                 await connection.invoke("JoinPlotGroup", PLOT_ID);
             });
 
-            // Conecta e entra no grupo
+            // Connect and join group
             await connection.start();
             await connection.invoke("JoinPlotGroup", PLOT_ID);
         }
@@ -213,57 +213,57 @@ Sensor → SensorSnapshot (PlotId) → Grupo "plot:{plotId}" → Clientes conect
 
 ---
 
-## Pagina de Teste
+## Test Page
 
-Uma pagina de teste ja esta disponivel em:
+A test page is available at:
 
 ```
 http://localhost:5003/signalr-test.html
 ```
 
-Funcionalidades:
-- Input para JWT token
-- Conectar/Desconectar do hub
-- Entrar/Sair de grupos por Plot ID
-- Log de todos os eventos recebidos em tempo real
+Features:
+- Input for JWT token
+- Connect/Disconnect from hub
+- Join/Leave groups by Plot ID
+- Log of all received events in real time
 
 ---
 
-## Fluxo de Dados
+## Data Flow
 
 ```
-┌──────────────┐     ┌──────────────────┐     ┌─────────────┐
-│  Quartz Job  │────>│ SensorHubNotifier │────>│  SensorHub  │
-│  (2 min)     │     │                  │     │  (SignalR)  │
-└──────────────┘     └──────────────────┘     └──────┬──────┘
-                              │                       │
-                     Resolve PlotId via          Broadcast to
++--------------+     +------------------+     +-------------+
+|  Quartz Job  |---->| SensorHubNotifier|---->|  SensorHub  |
+|  (2 min)     |     |                  |     |  (SignalR)  |
++--------------+     +------------------+     +------+------+
+                              |                       |
+                     Resolves PlotId via          Broadcasts to
                      SensorSnapshot table        plot:{plotId}
-                                                      │
+                                                      |
                                                       v
-                                              ┌──────────────┐
-                                              │   Clientes   │
-                                              │  conectados  │
-                                              └──────────────┘
+                                              +--------------+
+                                              |   Connected  |
+                                              |   Clients    |
+                                              +--------------+
 ```
 
-1. O **SimulatedSensorReadingsJob** (Quartz) roda a cada 2 minutos
-2. Gera leituras com dados simulados (Bogus) para todos os sensores ativos
-3. Persiste no banco (TimescaleDB)
-4. Publica evento de integracao (RabbitMQ → analytics-worker)
-5. Chama `SensorHubNotifier.NotifySensorReadingAsync(sensorId, ...)`
-6. O notifier busca o `PlotId` na tabela `sensor_snapshots`
-7. Envia para o grupo `plot:{plotId}` via SignalR
+1. **SimulatedSensorReadingsJob** (Quartz) runs every 2 minutes
+2. Generates readings with weather data (Open-Meteo API) for all active sensors
+3. Persists to database (TimescaleDB)
+4. Publishes integration event (RabbitMQ -> analytics-worker)
+5. Calls `SensorHubNotifier.NotifySensorReadingAsync(sensorId, ...)`
+6. The notifier resolves the `PlotId` from `sensor_snapshots` (cached via FusionCache)
+7. Sends to the `plot:{plotId}` group via SignalR
 
 ---
 
 ## Troubleshooting
 
-| Problema | Causa | Solucao |
+| Problem | Cause | Solution |
 |---|---|---|
-| 401 na conexao | Token expirado ou invalido | Gerar novo token via `/api/identity/login` |
-| 403 na conexao | Role incorreta | Usar usuario com role `Admin` ou `Producer` |
-| Conectou mas nao recebe dados | Nao entrou no grupo | Chamar `JoinPlotGroup` com o GUID do plot |
-| Entrou no grupo mas nao recebe | Nenhum sensor ativo no plot | Verificar `sensor_snapshots` no banco |
-| Eventos nao aparecem no JS | Nome do evento em PascalCase | Usar `sensorReading` (camelCase) no listener |
-| Dados antigos nao aparecem | Normal | Ao entrar no grupo, as ultimas 10 leituras sao enviadas automaticamente |
+| 401 on connection | Token expired or invalid | Generate new token via `/api/identity/login` |
+| 403 on connection | Incorrect role | Use a user with `Admin` or `Producer` role |
+| Connected but not receiving data | Not in a group | Call `JoinPlotGroup` with the plot GUID |
+| Joined group but not receiving | No active sensors in plot | Check `sensor_snapshots` in database |
+| Events not showing in JS | Event name in PascalCase | Use `sensorReading` (camelCase) in listener |
+| Old data not appearing | Normal | When joining a group, the last 10 readings are sent automatically |

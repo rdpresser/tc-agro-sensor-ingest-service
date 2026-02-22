@@ -47,7 +47,7 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
             UpdatedAt = updatedAt;
         }
 
-        // Factory usada quando chega evento SensorRegistered
+        // Factory used when a SensorRegistered event arrives
         public static SensorSnapshot Create(
             Guid id,
             Guid ownerId,
@@ -72,7 +72,7 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
                 null);
         }
 
-        // Factory quando evento já traz createdAt
+        // Factory when the event already carries createdAt
         public static SensorSnapshot Create(
             Guid id,
             Guid ownerId,
@@ -96,27 +96,7 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
                 null);
         }
 
-        ////// Atualização quando vier evento SensorUpdated ou PlotUpdated
-        ////public void Update(
-        ////    Guid ownerId,
-        ////    Guid propertyId,
-        ////    Guid plotId,
-        ////    string sensorName,
-        ////    string plotName,
-        ////    string propertyName,
-        ////    bool isActive)
-        ////{
-        ////    OwnerId = ownerId;
-        ////    PropertyId = propertyId;
-        ////    PlotId = plotId;
-        ////    SensorName = sensorName;
-        ////    PlotName = plotName;
-        ////    PropertyName = propertyName;
-        ////    IsActive = isActive;
-        ////    UpdatedAt = DateTimeOffset.UtcNow;
-        ////}
-
-        // Reativação quando status volta para Active
+        // Reactivation when status returns to Active
         public void Reactivate()
         {
             if (IsActive)
@@ -126,7 +106,7 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
             UpdatedAt = DateTimeOffset.UtcNow;
         }
 
-        // Desativação quando sensor for removido
+        // Soft-delete when sensor is deactivated
         public void Delete()
         {
             if (!IsActive)

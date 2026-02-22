@@ -20,7 +20,7 @@ namespace TC.Agro.SensorIngest.Service.Hubs
             await Groups.AddToGroupAsync(Context.ConnectionId, $"plot:{parsedPlotId}");
 
             var recentReadings = await _readingRepository
-                .GetByPlotIdAsync(parsedPlotId, limit: 10)
+                .GetByPlotIdAsync(parsedPlotId, from: null, to: null, limit: 10, cancellationToken: Context.ConnectionAborted)
                 .ConfigureAwait(false);
 
             foreach (var reading in recentReadings)

@@ -59,5 +59,14 @@ namespace TC.Agro.SensorIngest.Application.Abstractions.Ports
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns>A read-only list of active sensor snapshots</returns>
         Task<IReadOnlyList<SensorSnapshot>> GetAllActiveAsync(CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Retrieves a sensor snapshot by its identifier, bypassing the global IsActive query filter.
+        /// Used for reactivation scenarios where the snapshot may be inactive.
+        /// </summary>
+        /// <param name="id">The sensor snapshot identifier</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>The sensor snapshot (active or inactive), or null if not found</returns>
+        Task<SensorSnapshot?> GetByIdIncludingInactiveAsync(Guid id, CancellationToken cancellationToken = default);
     }
 }

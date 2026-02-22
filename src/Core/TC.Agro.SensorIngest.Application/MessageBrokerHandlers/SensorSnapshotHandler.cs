@@ -89,7 +89,7 @@ namespace TC.Agro.SensorIngest.Application.MessageBrokerHandlers
 
             if (string.Equals(newStatus, "Active", StringComparison.OrdinalIgnoreCase))
             {
-                var snapshot = await _store.GetByIdAsync(sensorId, cancellationToken).ConfigureAwait(false);
+                var snapshot = await _store.GetByIdIncludingInactiveAsync(sensorId, cancellationToken).ConfigureAwait(false);
 
                 if (snapshot is null)
                 {

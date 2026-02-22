@@ -166,7 +166,7 @@ namespace TC.Agro.SensorIngest.Tests.Application.Handlers
                 "Sensor", "Plot", "Farm");
             snapshot.Delete();
 
-            A.CallTo(() => _store.GetByIdAsync(sensorId, A<CancellationToken>._))
+            A.CallTo(() => _store.GetByIdIncludingInactiveAsync(sensorId, A<CancellationToken>._))
                 .Returns(snapshot);
 
             var eventData = new SensorOperationalStatusChangedIntegrationEvent(
@@ -203,7 +203,7 @@ namespace TC.Agro.SensorIngest.Tests.Application.Handlers
                 "Sensor", "Plot", "Farm");
             snapshot.Delete();
 
-            A.CallTo(() => _store.GetByIdAsync(sensorId, A<CancellationToken>._))
+            A.CallTo(() => _store.GetByIdIncludingInactiveAsync(sensorId, A<CancellationToken>._))
                 .Returns(snapshot);
 
             var eventData = new SensorOperationalStatusChangedIntegrationEvent(
@@ -229,7 +229,7 @@ namespace TC.Agro.SensorIngest.Tests.Application.Handlers
             var ct = TestContext.Current.CancellationToken;
             var sensorId = Guid.NewGuid();
 
-            A.CallTo(() => _store.GetByIdAsync(sensorId, A<CancellationToken>._))
+            A.CallTo(() => _store.GetByIdIncludingInactiveAsync(sensorId, A<CancellationToken>._))
                 .Returns((SensorSnapshot?)null);
 
             var eventData = new SensorOperationalStatusChangedIntegrationEvent(
@@ -278,7 +278,7 @@ namespace TC.Agro.SensorIngest.Tests.Application.Handlers
             A.CallTo(() => _store.DeleteAsync(sensorId, A<CancellationToken>._))
                 .MustHaveHappenedOnceExactly();
 
-            A.CallTo(() => _store.GetByIdAsync(A<Guid>._, A<CancellationToken>._))
+            A.CallTo(() => _store.GetByIdIncludingInactiveAsync(A<Guid>._, A<CancellationToken>._))
                 .MustNotHaveHappened();
 
             A.CallTo(() => _unitOfWork.SaveChangesAsync(A<CancellationToken>._))

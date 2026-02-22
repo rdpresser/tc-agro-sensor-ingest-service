@@ -44,7 +44,7 @@ namespace TC.Agro.SensorIngest.Service.Extensions
                 client.Timeout = TimeSpan.FromSeconds(10);
             });
 
-            services.AddQuartzScheduling();
+            services.AddQuartzScheduling(builder.Configuration);
 
             return services;
         }
@@ -410,8 +410,15 @@ namespace TC.Agro.SensorIngest.Service.Extensions
             }
         }
 
-        private static IServiceCollection AddQuartzScheduling(this IServiceCollection services)
+        private static IServiceCollection AddQuartzScheduling(this IServiceCollection services, IConfiguration configuration)
         {
+            var jobEnabled = configuration.GetValue("SensorReadingsJob:Enabled", false);
+
+            if (!jobEnabled)
+                return services;
+
+            var intervalMinutes = configuration.GetValue("SensorReadingsJob:IntervalMinutes", 2);
+
             services.AddQuartz(q =>
             {
                 var jobKey = new JobKey("SimulatedSensorReadingsJob", "SensorIngest");
@@ -421,7 +428,7 @@ namespace TC.Agro.SensorIngest.Service.Extensions
                 q.AddTrigger(opts => opts
                     .ForJob(jobKey)
                     .WithIdentity("SimulatedSensorReadings-Trigger", "SensorIngest")
-                    .WithSimpleSchedule(x => x.WithIntervalInMinutes(2).RepeatForever())
+                    .WithSimpleSchedule(x => x.WithIntervalInMinutes(intervalMinutes).RepeatForever())
                     .StartNow());
             });
 
