@@ -124,7 +124,8 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Snapshots
                 plotId: newPlotId,
                 sensorName: "Updated Sensor",
                 plotName: "Updated Plot",
-                propertyName: "Updated Property");
+                propertyName: "Updated Property",
+                status: "Active");
 
             // Assert
             snapshot.Id.ShouldBe(newSensorId);
@@ -159,7 +160,8 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Snapshots
                 plotId: snapshot.PlotId,
                 sensorName: "Updated",
                 plotName: "Updated Plot",
-                propertyName: "Updated Property");
+                propertyName: "Updated Property",
+                status: "Active");
 
             var after = DateTimeOffset.UtcNow;
 
@@ -180,7 +182,8 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Snapshots
                 plotId: Guid.NewGuid(),
                 label: "Original Sensor",
                 plotName: "Plot",
-                propertyName: "Property");
+                propertyName: "Property",
+                status: "Active");
 
             // Act
             snapshot.Update(
@@ -190,7 +193,8 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Snapshots
                 plotId: snapshot.PlotId,
                 sensorName: null!,
                 plotName: "Plot",
-                propertyName: "Property");
+                propertyName: "Property",
+                status: "Active");
 
             // Assert
             snapshot.Label.ShouldBeNull();
@@ -217,7 +221,8 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Snapshots
                 plotId: snapshot.PlotId,
                 sensorName: "First Update",
                 plotName: "First Plot",
-                propertyName: "First Property");
+                propertyName: "First Property",
+                status: "Active");
 
             // Second update
             snapshot.Update(
@@ -227,7 +232,8 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Snapshots
                 plotId: snapshot.PlotId,
                 sensorName: "Second Update",
                 plotName: "Second Plot",
-                propertyName: "Second Property");
+                propertyName: "Second Property",
+                status: "Inactive");
 
             // Assert
             snapshot.UpdatedAt.ShouldNotBeNull();

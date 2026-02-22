@@ -13,6 +13,7 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
         public string? Label { get; private set; } = default!;
         public string PlotName { get; private set; } = default!;
         public string PropertyName { get; private set; } = default!;
+        public string? Status { get; private set; }
 
         public bool IsActive { get; private set; }
 
@@ -33,7 +34,8 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
             string propertyName,
             bool isActive,
             DateTimeOffset createdAt,
-            DateTimeOffset? updatedAt)
+            DateTimeOffset? updatedAt,
+            string? status = null)
         {
             Id = id;
             OwnerId = ownerId;
@@ -45,6 +47,7 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
             IsActive = isActive;
             CreatedAt = createdAt;
             UpdatedAt = updatedAt;
+            Status = status;
         }
 
         // Factory used when a SensorRegistered event arrives
@@ -55,7 +58,8 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
             Guid plotId,
             string? label,
             string plotName,
-            string propertyName)
+            string propertyName,
+            string? status = null)
         {
             var now = DateTimeOffset.UtcNow;
 
@@ -69,7 +73,8 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
                 propertyName,
                 true,
                 now,
-                null);
+                null,
+                status);
         }
 
         // Factory when the event already carries createdAt
@@ -81,7 +86,8 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
             string? label,
             string plotName,
             string propertyName,
-            DateTimeOffset createdAt)
+            DateTimeOffset createdAt,
+            string? status = null)
         {
             return new SensorSnapshot(
                 id,
@@ -93,7 +99,8 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
                 propertyName,
                 true,
                 createdAt,
-                null);
+                null,
+                status);
         }
 
         // Reactivation when status returns to Active
@@ -113,12 +120,14 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
             Guid plotId,
             string sensorName,
             string plotName,
-            string propertyName)
+            string propertyName,
+            string status)
         {
             Id = id;
             OwnerId = ownerId;
             PropertyId = propertyId;
             PlotId = plotId;
+            Status = status;
             Label = sensorName;
             PlotName = plotName;
             PropertyName = propertyName;

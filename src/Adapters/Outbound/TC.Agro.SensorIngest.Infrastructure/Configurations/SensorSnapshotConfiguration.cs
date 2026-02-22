@@ -33,6 +33,10 @@ namespace TC.Agro.SensorIngest.Infrastructure.Configurations
                 .IsRequired()
                 .HasMaxLength(200);
 
+            builder.Property(s => s.Status)
+                .HasMaxLength(20)
+                .HasColumnType("character varying(20)");
+
             // Soft delete / active flag
             builder.Property(s => s.IsActive)
                 .IsRequired()

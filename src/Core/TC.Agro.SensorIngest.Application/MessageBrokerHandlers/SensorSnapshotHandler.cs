@@ -154,7 +154,8 @@ namespace TC.Agro.SensorIngest.Application.MessageBrokerHandlers
                     @event.EventData.PlotId,
                     label,
                     plotName: @event.EventData.PlotName,
-                    propertyName: @event.EventData.PropertyName);
+                    propertyName: @event.EventData.PropertyName,
+                    status: @event.EventData.Status);
 
                 await _store.UpdateAsync(snapshot, cancellationToken).ConfigureAwait(false);
             }
