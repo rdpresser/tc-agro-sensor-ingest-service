@@ -96,6 +96,148 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Snapshots
 
         #endregion
 
+        #region Update
+
+        [Fact]
+        public void Update_WithValidData_ShouldUpdateAllFields()
+        {
+            // Arrange
+            var snapshot = SensorSnapshot.Create(
+                id: Guid.NewGuid(),
+                ownerId: Guid.NewGuid(),
+                propertyId: Guid.NewGuid(),
+                plotId: Guid.NewGuid(),
+                label: "Original Sensor",
+                plotName: "Original Plot",
+                propertyName: "Original Property");
+
+            var newSensorId = Guid.NewGuid();
+            var newOwnerId = Guid.NewGuid();
+            var newPropertyId = Guid.NewGuid();
+            var newPlotId = Guid.NewGuid();
+
+            // Act
+            snapshot.Update(
+                id: newSensorId,
+                ownerId: newOwnerId,
+                propertyId: newPropertyId,
+                plotId: newPlotId,
+                sensorName: "Updated Sensor",
+                plotName: "Updated Plot",
+                propertyName: "Updated Property");
+
+            // Assert
+            snapshot.Id.ShouldBe(newSensorId);
+            snapshot.OwnerId.ShouldBe(newOwnerId);
+            snapshot.PropertyId.ShouldBe(newPropertyId);
+            snapshot.PlotId.ShouldBe(newPlotId);
+            snapshot.Label.ShouldBe("Updated Sensor");
+            snapshot.PlotName.ShouldBe("Updated Plot");
+            snapshot.PropertyName.ShouldBe("Updated Property");
+        }
+
+        [Fact]
+        public void Update_ShouldSetUpdatedAtToUtcNow()
+        {
+            // Arrange
+            var snapshot = SensorSnapshot.Create(
+                id: Guid.NewGuid(),
+                ownerId: Guid.NewGuid(),
+                propertyId: Guid.NewGuid(),
+                plotId: Guid.NewGuid(),
+                label: "Test",
+                plotName: "Plot",
+                propertyName: "Property");
+
+            var before = DateTimeOffset.UtcNow;
+
+            // Act
+            snapshot.Update(
+                id: snapshot.Id,
+                ownerId: snapshot.OwnerId,
+                propertyId: snapshot.PropertyId,
+                plotId: snapshot.PlotId,
+                sensorName: "Updated",
+                plotName: "Updated Plot",
+                propertyName: "Updated Property");
+
+            var after = DateTimeOffset.UtcNow;
+
+            // Assert
+            snapshot.UpdatedAt.ShouldNotBeNull();
+            snapshot.UpdatedAt!.Value.ShouldBeGreaterThanOrEqualTo(before);
+            snapshot.UpdatedAt!.Value.ShouldBeLessThanOrEqualTo(after);
+        }
+
+        [Fact]
+        public void Update_WithNullLabel_ShouldSetLabelToNull()
+        {
+            // Arrange
+            var snapshot = SensorSnapshot.Create(
+                id: Guid.NewGuid(),
+                ownerId: Guid.NewGuid(),
+                propertyId: Guid.NewGuid(),
+                plotId: Guid.NewGuid(),
+                label: "Original Sensor",
+                plotName: "Plot",
+                propertyName: "Property");
+
+            // Act
+            snapshot.Update(
+                id: snapshot.Id,
+                ownerId: snapshot.OwnerId,
+                propertyId: snapshot.PropertyId,
+                plotId: snapshot.PlotId,
+                sensorName: null!,
+                plotName: "Plot",
+                propertyName: "Property");
+
+            // Assert
+            snapshot.Label.ShouldBeNull();
+        }
+
+        [Fact]
+        public void Update_CalledMultipleTimes_ShouldKeepMostRecentValues()
+        {
+            // Arrange
+            var snapshot = SensorSnapshot.Create(
+                id: Guid.NewGuid(),
+                ownerId: Guid.NewGuid(),
+                propertyId: Guid.NewGuid(),
+                plotId: Guid.NewGuid(),
+                label: "Test",
+                plotName: "Plot",
+                propertyName: "Property");
+
+            // First update
+            snapshot.Update(
+                id: snapshot.Id,
+                ownerId: snapshot.OwnerId,
+                propertyId: snapshot.PropertyId,
+                plotId: snapshot.PlotId,
+                sensorName: "First Update",
+                plotName: "First Plot",
+                propertyName: "First Property");
+
+            // Second update
+            snapshot.Update(
+                id: snapshot.Id,
+                ownerId: snapshot.OwnerId,
+                propertyId: snapshot.PropertyId,
+                plotId: snapshot.PlotId,
+                sensorName: "Second Update",
+                plotName: "Second Plot",
+                propertyName: "Second Property");
+
+            // Assert
+            snapshot.UpdatedAt.ShouldNotBeNull();
+            snapshot.Label.ShouldBe("Second Update");
+            snapshot.PlotName.ShouldBe("Second Plot");
+            snapshot.PropertyName.ShouldBe("Second Property");
+        }
+
+        #endregion
+
         #region Delete
 
         [Fact]
