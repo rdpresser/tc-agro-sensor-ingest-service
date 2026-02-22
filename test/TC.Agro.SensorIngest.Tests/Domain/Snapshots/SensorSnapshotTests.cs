@@ -19,6 +19,7 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Snapshots
                 ownerId: ownerId,
                 propertyId: propertyId,
                 plotId: plotId,
+                changedByUserId: ownerId,
                 label: "Sensor North 1",
                 plotName: "Plot Alpha",
                 propertyName: "South Farm");
@@ -42,6 +43,7 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Snapshots
                 ownerId: Guid.NewGuid(),
                 propertyId: Guid.NewGuid(),
                 plotId: Guid.NewGuid(),
+                changedByUserId: Guid.NewGuid(),
                 label: null,
                 plotName: "Plot Alpha",
                 propertyName: "South Farm");
@@ -60,6 +62,7 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Snapshots
                 ownerId: Guid.NewGuid(),
                 propertyId: Guid.NewGuid(),
                 plotId: Guid.NewGuid(),
+                changedByUserId: Guid.NewGuid(),
                 label: "Test",
                 plotName: "Plot",
                 propertyName: "Property");
@@ -84,6 +87,7 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Snapshots
                 ownerId: Guid.NewGuid(),
                 propertyId: Guid.NewGuid(),
                 plotId: Guid.NewGuid(),
+                changedByUserId: Guid.NewGuid(),
                 label: "Sensor East",
                 plotName: "Plot Beta",
                 propertyName: "North Farm",
@@ -107,6 +111,7 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Snapshots
                 ownerId: Guid.NewGuid(),
                 propertyId: Guid.NewGuid(),
                 plotId: Guid.NewGuid(),
+                changedByUserId: Guid.NewGuid(),
                 label: "Original Sensor",
                 plotName: "Original Plot",
                 propertyName: "Original Property");
@@ -115,6 +120,7 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Snapshots
             var newOwnerId = Guid.NewGuid();
             var newPropertyId = Guid.NewGuid();
             var newPlotId = Guid.NewGuid();
+            var newChangedByUserId = Guid.NewGuid();
 
             // Act
             snapshot.Update(
@@ -122,6 +128,7 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Snapshots
                 ownerId: newOwnerId,
                 propertyId: newPropertyId,
                 plotId: newPlotId,
+                changedByUserId: newChangedByUserId,
                 sensorName: "Updated Sensor",
                 plotName: "Updated Plot",
                 propertyName: "Updated Property",
@@ -146,6 +153,7 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Snapshots
                 ownerId: Guid.NewGuid(),
                 propertyId: Guid.NewGuid(),
                 plotId: Guid.NewGuid(),
+                changedByUserId: Guid.NewGuid(),
                 label: "Test",
                 plotName: "Plot",
                 propertyName: "Property");
@@ -158,6 +166,7 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Snapshots
                 ownerId: snapshot.OwnerId,
                 propertyId: snapshot.PropertyId,
                 plotId: snapshot.PlotId,
+                changedByUserId: snapshot.ChangedByUserId,
                 sensorName: "Updated",
                 plotName: "Updated Plot",
                 propertyName: "Updated Property",
@@ -180,6 +189,7 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Snapshots
                 ownerId: Guid.NewGuid(),
                 propertyId: Guid.NewGuid(),
                 plotId: Guid.NewGuid(),
+                changedByUserId: Guid.NewGuid(),
                 label: "Original Sensor",
                 plotName: "Plot",
                 propertyName: "Property",
@@ -191,6 +201,7 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Snapshots
                 ownerId: snapshot.OwnerId,
                 propertyId: snapshot.PropertyId,
                 plotId: snapshot.PlotId,
+                changedByUserId: snapshot.ChangedByUserId,
                 sensorName: null!,
                 plotName: "Plot",
                 propertyName: "Property",
@@ -211,7 +222,8 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Snapshots
                 plotId: Guid.NewGuid(),
                 label: "Test",
                 plotName: "Plot",
-                propertyName: "Property");
+                propertyName: "Property",
+                changedByUserId: Guid.NewGuid());
 
             // First update
             snapshot.Update(
@@ -222,7 +234,8 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Snapshots
                 sensorName: "First Update",
                 plotName: "First Plot",
                 propertyName: "First Property",
-                status: "Active");
+                status: "Active",
+                changedByUserId: snapshot.ChangedByUserId);
 
             // Second update
             snapshot.Update(
@@ -233,7 +246,8 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Snapshots
                 sensorName: "Second Update",
                 plotName: "Second Plot",
                 propertyName: "Second Property",
-                status: "Inactive");
+                status: "Inactive",
+                changedByUserId: snapshot.ChangedByUserId);
 
             // Assert
             snapshot.UpdatedAt.ShouldNotBeNull();
@@ -256,7 +270,8 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Snapshots
                 plotId: Guid.NewGuid(),
                 label: "Test",
                 plotName: "Plot",
-                propertyName: "Property");
+                propertyName: "Property",
+                changedByUserId: Guid.NewGuid());
 
             snapshot.Delete();
 
@@ -274,7 +289,8 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Snapshots
                 plotId: Guid.NewGuid(),
                 label: "Test",
                 plotName: "Plot",
-                propertyName: "Property");
+                propertyName: "Property",
+                changedByUserId: Guid.NewGuid());
 
             snapshot.Delete();
             var firstUpdatedAt = snapshot.UpdatedAt;

@@ -12,7 +12,7 @@ using TC.Agro.SensorIngest.Infrastructure;
 namespace TC.Agro.SensorIngest.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260221204642_InitialCreate")]
+    [Migration("20260222164435_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -137,6 +137,10 @@ namespace TC.Agro.SensorIngest.Infrastructure.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
                         .HasColumnName("id");
+
+                    b.Property<Guid>("ChangedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("changed_by_user_id");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamptz")
