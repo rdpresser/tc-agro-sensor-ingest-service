@@ -26,12 +26,6 @@ namespace TC.Agro.SensorIngest.Infrastructure
             modelBuilder.Ignore<BaseDomainEvent>();
 
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
-
-            // OwnerSnapshot: Only soft delete (no owner filter needed)
-            modelBuilder.Entity<OwnerSnapshot>().HasQueryFilter(o => o.IsActive);
-
-            // SensorSnapshot: Only soft delete (no owner filter needed)
-            modelBuilder.Entity<SensorSnapshot>().HasQueryFilter(s => s.IsActive);
         }
 
         /// <inheritdoc />
