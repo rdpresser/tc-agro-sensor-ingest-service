@@ -64,6 +64,11 @@
     <PackageVersion Include="WolverineFx.Postgresql" Version="5.15.0" />
     <PackageVersion Include="WolverineFx.RabbitMQ" Version="5.15.0" />
     <PackageVersion Include="WolverineFx.EntityFrameworkCore" Version="5.15.0" />
+    <!-- ========================= -->
+    <!-- Scheduling -->
+    <!-- ========================= -->
+    <PackageVersion Include="Quartz" Version="3.14.0" />
+    <PackageVersion Include="Quartz.Extensions.Hosting" Version="3.14.0" />
     <PackageVersion Include="JasperFx.RuntimeCompiler" Version="4.3.2" />
     <PackageVersion Include="Microsoft.CodeAnalysis" Version="5.0.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Common" Version="5.0.0" />

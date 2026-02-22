@@ -116,6 +116,16 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
         ////    UpdatedAt = DateTimeOffset.UtcNow;
         ////}
 
+        // Reativação quando status volta para Active
+        public void Reactivate()
+        {
+            if (IsActive)
+                return;
+
+            IsActive = true;
+            UpdatedAt = DateTimeOffset.UtcNow;
+        }
+
         // Desativação quando sensor for removido
         public void Delete()
         {

@@ -49,6 +49,10 @@
 
     <!-- Wolverine - MessageBroker / Outbox -->
     <PackageReference Include="WolverineFx.Postgresql" />
+
+    <!-- Scheduling -->
+    <PackageReference Include="Quartz" />
+    <PackageReference Include="Quartz.Extensions.Hosting" />
   </ItemGroup>
 
   <ItemGroup>

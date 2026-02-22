@@ -1,4 +1,5 @@
 using JasperFx.Resources;
+using Quartz;
 using TC.Agro.Contracts.Events.SensorIngested;
 using TC.Agro.Messaging.Extensions;
 using TC.Agro.SharedKernel.Infrastructure.Messaging;
@@ -30,6 +31,8 @@ namespace TC.Agro.SensorIngest.Service.Extensions
             services.AddSignalR();
 
             services.AddScoped<ISensorHubNotifier, Services.SensorHubNotifier>();
+
+            services.AddQuartzScheduling();
 
             return services;
         }
@@ -393,6 +396,26 @@ namespace TC.Agro.SensorIngest.Service.Extensions
             {
                 builder.Services.AddSingleton(new Telemetry.TelemetryExporterInfo { ExporterType = "None" });
             }
+        }
+
+        private static IServiceCollection AddQuartzScheduling(this IServiceCollection services)
+        {
+            services.AddQuartz(q =>
+            {
+                var jobKey = new JobKey("SimulatedSensorReadingsJob", "SensorIngest");
+
+                q.AddJob<Jobs.SimulatedSensorReadingsJob>(opts => opts.WithIdentity(jobKey));
+
+                q.AddTrigger(opts => opts
+                    .ForJob(jobKey)
+                    .WithIdentity("SimulatedSensorReadings-Trigger", "SensorIngest")
+                    .WithSimpleSchedule(x => x.WithIntervalInMinutes(2).RepeatForever())
+                    .StartNow());
+            });
+
+            services.AddQuartzHostedService(o => o.WaitForJobsToComplete = true);
+
+            return services;
         }
 
         private static WebApplicationBuilder AddWolverineMessaging(this WebApplicationBuilder builder)

@@ -21,6 +21,13 @@ namespace TC.Agro.SensorIngest.Application.Abstractions.Ports
         Task DeleteAsync(Guid id, CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Updates an existing sensor snapshot in the store.
+        /// </summary>
+        /// <param name="snapshot">The sensor snapshot to update</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        Task UpdateAsync(SensorSnapshot snapshot, CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Retrieves a sensor snapshot by its identifier.
         /// </summary>
         /// <param name="id">The sensor snapshot identifier</param>
@@ -45,5 +52,12 @@ namespace TC.Agro.SensorIngest.Application.Abstractions.Ports
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns>Dictionary mapping sensor ID to its snapshot (only active sensors)</returns>
         Task<IReadOnlyDictionary<Guid, SensorSnapshot>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Retrieves all active sensor snapshots.
+        /// </summary>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>A read-only list of active sensor snapshots</returns>
+        Task<IReadOnlyList<SensorSnapshot>> GetAllActiveAsync(CancellationToken cancellationToken = default);
     }
 }

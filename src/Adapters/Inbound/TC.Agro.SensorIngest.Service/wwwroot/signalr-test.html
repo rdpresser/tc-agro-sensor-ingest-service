@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SensorHub - SignalR Test</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: system-ui, -apple-system, sans-serif; background: #f5f5f5; color: #333; padding: 20px; }
+        h1 { margin-bottom: 20px; font-size: 1.5rem; }
+        .card { background: #fff; border-radius: 8px; padding: 16px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .card h2 { font-size: 1rem; margin-bottom: 12px; color: #555; }
+        label { display: block; font-size: 0.85rem; margin-bottom: 4px; color: #666; }
+        input[type="text"] { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.9rem; margin-bottom: 8px; }
+        button { padding: 8px 16px; border: none; border-radius: 4px; font-size: 0.85rem; cursor: pointer; margin-right: 8px; margin-bottom: 8px; }
+        .btn-primary { background: #2563eb; color: #fff; }
+        .btn-primary:hover { background: #1d4ed8; }
+        .btn-danger { background: #dc2626; color: #fff; }
+        .btn-danger:hover { background: #b91c1c; }
+        .btn-secondary { background: #6b7280; color: #fff; }
+        .btn-secondary:hover { background: #4b5563; }
+        .btn-success { background: #16a34a; color: #fff; }
+        .btn-success:hover { background: #15803d; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .status { padding: 6px 12px; border-radius: 4px; font-size: 0.85rem; display: inline-block; margin-bottom: 8px; }
+        .status-disconnected { background: #fee2e2; color: #991b1b; }
+        .status-connected { background: #dcfce7; color: #166534; }
+        .status-connecting { background: #fef9c3; color: #854d0e; }
+        #log { max-height: 400px; overflow-y: auto; font-family: monospace; font-size: 0.8rem; background: #1e1e1e; color: #d4d4d4; padding: 12px; border-radius: 4px; }
+        .log-entry { padding: 2px 0; border-bottom: 1px solid #333; }
+        .log-entry.event { color: #4ec9b0; }
+        .log-entry.error { color: #f44747; }
+        .log-entry.info { color: #569cd6; }
+        .log-time { color: #808080; margin-right: 8px; }
+        .row { display: flex; gap: 8px; align-items: end; }
+        .row > * { flex: 1; }
+    </style>
+</head>
+<body>
+    <h1>SensorHub - SignalR Test</h1>
+
+    <div class="card">
+        <h2>Connection</h2>
+        <label for="token">JWT Token</label>
+        <input type="text" id="token" placeholder="Paste your JWT token here...">
+        <label for="hubUrl">Hub URL</label>
+        <input type="text" id="hubUrl" value="/sensorHub">
+        <div>
+            <button id="btnConnect" class="btn-primary" onclick="connect()">Connect</button>
+            <button id="btnDisconnect" class="btn-danger" onclick="disconnect()" disabled>Disconnect</button>
+            <span id="status" class="status status-disconnected">Disconnected</span>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Groups</h2>
+        <div class="row">
+            <div>
+                <label for="plotId">Plot ID</label>
+                <input type="text" id="plotId" placeholder="GUID...">
+            </div>
+        </div>
+        <button id="btnJoinPlot" class="btn-success" onclick="joinPlotGroup()" disabled>Join Plot Group</button>
+        <button id="btnLeavePlot" class="btn-secondary" onclick="leavePlotGroup()" disabled>Leave Plot Group</button>
+    </div>
+
+    <div class="card">
+        <h2>Events Log</h2>
+        <button class="btn-secondary" onclick="clearLog()">Clear</button>
+        <div id="log" style="margin-top: 8px;"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
+    <script>
+        let connection = null;
+
+        function setStatus(text, className) {
+            const el = document.getElementById('status');
+            el.textContent = text;
+            el.className = 'status ' + className;
+        }
+
+        function setButtonStates(connected) {
+            document.getElementById('btnConnect').disabled = connected;
+            document.getElementById('btnDisconnect').disabled = !connected;
+            document.getElementById('btnJoinPlot').disabled = !connected;
+            document.getElementById('btnLeavePlot').disabled = !connected;
+        }
+
+        function log(message, type) {
+            const el = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry ' + (type || '');
+            const time = new Date().toLocaleTimeString('en-US', { hour12: false, fractionalSecondDigits: 3 });
+            entry.innerHTML = '<span class="log-time">' + time + '</span>' + escapeHtml(message);
+            el.appendChild(entry);
+            el.scrollTop = el.scrollHeight;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+
+        async function connect() {
+            const token = document.getElementById('token').value.trim();
+            const hubUrl = document.getElementById('hubUrl').value.trim();
+
+            if (!token) {
+                log('JWT token is required', 'error');
+                return;
+            }
+
+            setStatus('Connecting...', 'status-connecting');
+            log('Connecting to ' + hubUrl + '...', 'info');
+
+            try {
+                connection = new signalR.HubConnectionBuilder()
+                    .withUrl(hubUrl, {
+                        accessTokenFactory: () => token
+                    })
+                    .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
+                    .configureLogging(signalR.LogLevel.Information)
+                    .build();
+
+                connection.on('sensorReading', (data) => {
+                    log('SensorReading: ' + JSON.stringify(data, null, 0), 'event');
+                });
+
+                connection.on('sensorStatusChanged', (data) => {
+                    log('SensorStatusChanged: ' + JSON.stringify(data, null, 0), 'event');
+                });
+
+                connection.onclose((error) => {
+                    setStatus('Disconnected', 'status-disconnected');
+                    setButtonStates(false);
+                    log('Connection closed' + (error ? ': ' + error : ''), error ? 'error' : 'info');
+                });
+
+                connection.onreconnecting((error) => {
+                    setStatus('Reconnecting...', 'status-connecting');
+                    log('Reconnecting...' + (error ? ' Error: ' + error : ''), 'info');
+                });
+
+                connection.onreconnected((connectionId) => {
+                    setStatus('Connected', 'status-connected');
+                    log('Reconnected. ConnectionId: ' + connectionId, 'info');
+                });
+
+                await connection.start();
+
+                setStatus('Connected', 'status-connected');
+                setButtonStates(true);
+                log('Connected. ConnectionId: ' + connection.connectionId, 'info');
+            } catch (err) {
+                setStatus('Disconnected', 'status-disconnected');
+                setButtonStates(false);
+                log('Connection failed: ' + err.toString(), 'error');
+                connection = null;
+            }
+        }
+
+        async function disconnect() {
+            if (!connection) return;
+            try {
+                await connection.stop();
+                log('Disconnected by user', 'info');
+            } catch (err) {
+                log('Disconnect error: ' + err.toString(), 'error');
+            }
+            connection = null;
+            setStatus('Disconnected', 'status-disconnected');
+            setButtonStates(false);
+        }
+
+        async function joinPlotGroup() {
+            const plotId = document.getElementById('plotId').value.trim();
+            if (!plotId || !connection) return;
+            try {
+                await connection.invoke('JoinPlotGroup', plotId);
+                log('Joined plot group: ' + plotId, 'info');
+            } catch (err) {
+                log('JoinPlotGroup error: ' + err.toString(), 'error');
+            }
+        }
+
+        async function leavePlotGroup() {
+            const plotId = document.getElementById('plotId').value.trim();
+            if (!plotId || !connection) return;
+            try {
+                await connection.invoke('LeavePlotGroup', plotId);
+                log('Left plot group: ' + plotId, 'info');
+            } catch (err) {
+                log('LeavePlotGroup error: ' + err.toString(), 'error');
+            }
+        }
+    </script>
+</body>
+</html>

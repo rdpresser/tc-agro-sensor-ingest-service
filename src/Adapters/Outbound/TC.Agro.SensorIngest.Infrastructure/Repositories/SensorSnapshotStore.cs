@@ -81,5 +81,14 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
                 .ToDictionaryAsync(s => s.Id, cancellationToken)
                 .ConfigureAwait(false);
         }
+
+        /// <inheritdoc />
+        public async Task<IReadOnlyList<SensorSnapshot>> GetAllActiveAsync(CancellationToken cancellationToken = default)
+        {
+            return await _dbContext.SensorSnapshots
+                .AsNoTracking()
+                .ToListAsync(cancellationToken)
+                .ConfigureAwait(false);
+        }
     }
 }
