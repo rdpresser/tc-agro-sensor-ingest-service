@@ -15,7 +15,45 @@ namespace TC.Agro.SensorIngest.Application.MessageBrokerHandlers
         private readonly ILogger<SensorSnapshotHandler> _logger;
         private const string DefaultSensorLabel = "Unnamed Sensor";
 
-        public SensorSnapshotHandler(ISensorSnapshotStore store, IUnitOfWork unitOfWork, ILogger<SensorSnapshotHandler> logger)
+        private static string NormalizeLabel(string? label) =>
+            string.IsNullOrWhiteSpace(label) ? DefaultSensorLabel : label;
+
+        private static SensorSnapshot CreateSnapshot(SensorRegisteredIntegrationEvent data, string label) =>
+            SensorSnapshot.Create(
+                data.SensorId,
+                data.OwnerId,
+                data.PropertyId,
+                data.PlotId,
+                data.OwnerId,
+                label,
+                plotName: data.PlotName,
+                propertyName: data.PropertyName,
+                createdAt: data.OccurredOn);
+
+        private static SensorSnapshot CreateSnapshot(SensorOperationalStatusChangedIntegrationEvent data, string label) =>
+            SensorSnapshot.Create(
+                data.SensorId,
+                data.OwnerId,
+                data.PropertyId,
+                data.PlotId,
+                data.OwnerId,
+                label,
+                plotName: data.PlotName,
+                propertyName: data.PropertyName,
+                createdAt: data.OccurredOn);
+
+        private static void UpdateSnapshot(SensorSnapshot snapshot, SensorOperationalStatusChangedIntegrationEvent data, string label) =>
+            snapshot.Update(
+                data.OwnerId,
+                data.PropertyId,
+                data.PlotId,
+                data.OwnerId,
+                label,
+                plotName: data.PlotName,
+                propertyName: data.PropertyName,
+                status: data.Status);
+
+        public SensorSnapshotHandler(ISensorSnapshotStore store, IUnitOfWork unitOfWork)
         {
             _store = store ?? throw new ArgumentNullException(nameof(store));
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
@@ -33,20 +71,9 @@ namespace TC.Agro.SensorIngest.Application.MessageBrokerHandlers
         {
             ArgumentNullException.ThrowIfNull(@event);
 
-            var label = string.IsNullOrWhiteSpace(@event.EventData.Label)
-                ? DefaultSensorLabel
-                : @event.EventData.Label;
-
-            var snapshot = SensorSnapshot.Create(
-                @event.EventData.SensorId,
-                @event.EventData.OwnerId,
-                @event.EventData.PropertyId,
-                @event.EventData.PlotId,
-                @event.EventData.OwnerId,
-                label,
-                plotName: @event.EventData.PlotName,
-                propertyName: @event.EventData.PropertyName,
-                createdAt: @event.EventData.OccurredOn);
+            var data = @event.EventData;
+            var label = NormalizeLabel(data.Label);
+            var snapshot = CreateSnapshot(data, label);
 
             await _store.AddAsync(snapshot, cancellationToken).ConfigureAwait(false);
             await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
@@ -124,41 +151,23 @@ namespace TC.Agro.SensorIngest.Application.MessageBrokerHandlers
             CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(@event);
-
+            
+            var data = @event.EventData;
             var snapshot = await _store.GetByIdAsync(
-                @event.EventData.SensorId, 
+                data.SensorId,
                 cancellationToken).ConfigureAwait(false);
 
-            var label = string.IsNullOrWhiteSpace(@event.EventData.Label)
-                ? DefaultSensorLabel
-                : @event.EventData.Label;
+            var label = NormalizeLabel(data.Label);
 
             if (snapshot is null)
             {
-                snapshot = SensorSnapshot.Create(
-                    @event.EventData.SensorId,
-                    @event.EventData.OwnerId,
-                    @event.EventData.PropertyId,
-                    @event.EventData.PlotId,
-                    @event.EventData.OwnerId,
-                    label,
-                    plotName: @event.EventData.PlotName,
-                    propertyName: @event.EventData.PropertyName,
-                    createdAt: @event.EventData.OccurredOn);
+                snapshot = CreateSnapshot(data, label);
 
                 await _store.AddAsync(snapshot, cancellationToken).ConfigureAwait(false);
             }
             else
             {
-                snapshot.Update(
-                    @event.EventData.OwnerId,
-                    @event.EventData.PropertyId,
-                    @event.EventData.PlotId,
-                    @event.EventData.OwnerId,
-                    label,
-                    plotName: @event.EventData.PlotName,
-                    propertyName: @event.EventData.PropertyName,
-                    status: @event.EventData.Status);
+                UpdateSnapshot(snapshot, data, label);
 
                 await _store.UpdateAsync(snapshot, cancellationToken).ConfigureAwait(false);
             }
