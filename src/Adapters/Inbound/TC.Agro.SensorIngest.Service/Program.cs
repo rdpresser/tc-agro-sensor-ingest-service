@@ -46,7 +46,7 @@ app.UseCustomMiddlewares();
 // CRITICAL: TelemetryMiddleware MUST come AFTER CorrelationMiddleware to access correlationIdGenerator.CorrelationId
 app.UseMiddleware<TC.Agro.SensorIngest.Service.Middleware.TelemetryMiddleware>();
 
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
 {
     app.UseStaticFiles();
 }
