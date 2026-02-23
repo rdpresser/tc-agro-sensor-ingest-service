@@ -154,6 +154,27 @@ namespace TC.Agro.SensorIngest.Service.Extensions
                 };
 
                 opt.MapInboundClaims = false; // Keep original claim types
+
+                // CRITICAL: SignalR sends JWT token via query string, not Authorization header
+                // This covers all SignalR endpoints: /negotiate, /ws (WebSocket), /sse (Server-Sent Events)
+                opt.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        var accessToken = context.Request.Query["access_token"];
+                        var path = context.HttpContext.Request.Path;
+
+                        // If the request is for our SignalR hub (includes /negotiate, /ws, etc), use query token
+                        if (!string.IsNullOrEmpty(accessToken) &&
+                            (path.StartsWithSegments("/dashboard/sensorshub") ||
+                             path.Value?.Contains("/sensorshub") == true))
+                        {
+                            context.Token = accessToken;
+                        }
+
+                        return Task.CompletedTask;
+                    }
+                };
             });
 
             services.AddAuthorization()

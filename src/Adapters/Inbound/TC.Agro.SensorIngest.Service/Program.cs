@@ -51,10 +51,13 @@ if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
     app.UseStaticFiles();
 }
 
+// CRITICAL: Authentication/Authorization MUST come BEFORE MapHub
+app.UseAuthentication()
+  .UseAuthorization();
+
+// SignalR Hub (requires authenticated users)
 app.MapHub<SensorHub>("/dashboard/sensorshub");
 
-app.UseAuthentication()
-  .UseAuthorization()
-  .UseCustomFastEndpoints(app.Configuration);
+app.UseCustomFastEndpoints(app.Configuration);
 
 await app.RunAsync();
