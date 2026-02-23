@@ -78,8 +78,14 @@ namespace TC.Agro.SensorIngest.Tests.Service.Jobs
         {
             var sensorId = Guid.NewGuid();
             var snapshot = SensorSnapshot.Create(
-                sensorId, Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(),
-                "Sensor", "Plot", "Farm");
+                id: sensorId,
+                ownerId: Guid.NewGuid(),
+                propertyId: Guid.NewGuid(),
+                plotId: Guid.NewGuid(),
+                label: "Sensor",
+                plotName: "Plot",
+                propertyName: "Farm",
+                changedByUserId: Guid.NewGuid());
 
             A.CallTo(() => _snapshotStore.GetAllActiveAsync(A<CancellationToken>._))
                 .Returns(new List<SensorSnapshot> { snapshot });
@@ -97,8 +103,14 @@ namespace TC.Agro.SensorIngest.Tests.Service.Jobs
         {
             var sensorId = Guid.NewGuid();
             var snapshot = SensorSnapshot.Create(
-                sensorId, Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(),
-                "Sensor", "Plot", "Farm");
+                id: sensorId,
+                ownerId: Guid.NewGuid(),
+                propertyId: Guid.NewGuid(),
+                plotId: Guid.NewGuid(),
+                label: "Sensor",
+                plotName: "Plot",
+                propertyName: "Farm",
+                changedByUserId: Guid.NewGuid());
 
             A.CallTo(() => _snapshotStore.GetAllActiveAsync(A<CancellationToken>._))
                 .Returns(new List<SensorSnapshot> { snapshot });
@@ -115,8 +127,14 @@ namespace TC.Agro.SensorIngest.Tests.Service.Jobs
         {
             var sensorId = Guid.NewGuid();
             var snapshot = SensorSnapshot.Create(
-                sensorId, Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(),
-                "Sensor", "Plot", "Farm");
+                id: sensorId,
+                ownerId: Guid.NewGuid(),
+                propertyId: Guid.NewGuid(),
+                plotId: Guid.NewGuid(),
+                label: "Sensor",
+                plotName: "Plot",
+                propertyName: "Farm",
+                changedByUserId: Guid.NewGuid());
 
             A.CallTo(() => _snapshotStore.GetAllActiveAsync(A<CancellationToken>._))
                 .Returns(new List<SensorSnapshot> { snapshot });
@@ -134,14 +152,32 @@ namespace TC.Agro.SensorIngest.Tests.Service.Jobs
         public async Task Execute_WithMultipleSensors_ShouldGenerateReadingForEach()
         {
             var sensor1 = SensorSnapshot.Create(
-                Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(),
-                "Sensor 1", "Plot", "Farm");
+                id: Guid.NewGuid(),
+                ownerId: Guid.NewGuid(),
+                propertyId: Guid.NewGuid(),
+                plotId: Guid.NewGuid(),
+                label: "Sensor 1",
+                plotName: "Plot",
+                propertyName: "Farm",
+                changedByUserId: Guid.NewGuid());
             var sensor2 = SensorSnapshot.Create(
-                Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(),
-                "Sensor 2", "Plot", "Farm");
+                id: Guid.NewGuid(),
+                ownerId: Guid.NewGuid(),
+                propertyId: Guid.NewGuid(),
+                plotId: Guid.NewGuid(),
+                label: "Sensor 2",
+                plotName: "Plot",
+                propertyName: "Farm",
+                changedByUserId: Guid.NewGuid());
             var sensor3 = SensorSnapshot.Create(
-                Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(),
-                "Sensor 3", "Plot", "Farm");
+                id: Guid.NewGuid(),
+                ownerId: Guid.NewGuid(),
+                propertyId: Guid.NewGuid(),
+                plotId: Guid.NewGuid(),
+                label: "Sensor 3",
+                plotName: "Plot",
+                propertyName: "Farm",
+                changedByUserId: Guid.NewGuid());
 
             A.CallTo(() => _snapshotStore.GetAllActiveAsync(A<CancellationToken>._))
                 .Returns(new List<SensorSnapshot> { sensor1, sensor2, sensor3 });
@@ -167,8 +203,14 @@ namespace TC.Agro.SensorIngest.Tests.Service.Jobs
         {
             var sensorId = Guid.NewGuid();
             var snapshot = SensorSnapshot.Create(
-                sensorId, Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(),
-                "Sensor", "Plot", "Farm");
+                id: sensorId,
+                ownerId: Guid.NewGuid(),
+                propertyId: Guid.NewGuid(),
+                plotId: Guid.NewGuid(),
+                label: "Sensor",
+                plotName: "Plot",
+                propertyName: "Farm",
+                changedByUserId: Guid.NewGuid());
 
             var weatherData = new WeatherData(25.0, 60.0, 30.0, 2.5);
 
@@ -194,8 +236,14 @@ namespace TC.Agro.SensorIngest.Tests.Service.Jobs
         {
             var sensorId = Guid.NewGuid();
             var snapshot = SensorSnapshot.Create(
-                sensorId, Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(),
-                "Sensor", "Plot", "Farm");
+                id: sensorId,
+                ownerId: Guid.NewGuid(),
+                propertyId: Guid.NewGuid(),
+                plotId: Guid.NewGuid(),
+                label: "Sensor",
+                plotName: "Plot",
+                propertyName: "Farm",
+                changedByUserId: Guid.NewGuid());
 
             A.CallTo(() => _snapshotStore.GetAllActiveAsync(A<CancellationToken>._))
                 .Returns(new List<SensorSnapshot> { snapshot });

@@ -154,37 +154,119 @@ namespace TC.Agro.SensorIngest.Tests.Application.Handlers
 
         #endregion
 
-        #region SensorOperationalStatusChanged - Active
+        #region SensorOperationalStatusChanged
+
+        private static SensorOperationalStatusChangedIntegrationEvent CreateStatusChangedEvent(
+            Guid sensorId,
+            string status,
+            string? label = "Sensor",
+            string plotName = "Plot",
+            string propertyName = "Farm")
+        {
+            var type = typeof(SensorOperationalStatusChangedIntegrationEvent);
+            var ctors = type.GetConstructors();
+            var ctor = ctors[0];
+            for (var i = 1; i < ctors.Length; i++)
+            {
+                if (ctors[i].GetParameters().Length > ctor.GetParameters().Length)
+                    ctor = ctors[i];
+            }
+
+            var parameters = ctor.GetParameters();
+            var args = new object?[parameters.Length];
+
+            foreach (var parameter in parameters)
+            {
+                var name = parameter.Name?.ToLowerInvariant();
+
+                switch (name)
+                {
+                    case "sensorid":
+                        args[parameter.Position] = sensorId;
+                        break;
+                    case "ownerid":
+                    case "changedbyuserid":
+                        args[parameter.Position] = Guid.NewGuid();
+                        break;
+                    case "propertyid":
+                    case "plotid":
+                        args[parameter.Position] = Guid.NewGuid();
+                        break;
+                    case "label":
+                        args[parameter.Position] = label;
+                        break;
+                    case "plotname":
+                        args[parameter.Position] = plotName;
+                        break;
+                    case "propertyname":
+                        args[parameter.Position] = propertyName;
+                        break;
+                    case "status":
+                        args[parameter.Position] = status;
+                        break;
+                    case "occurredon":
+                        args[parameter.Position] = DateTimeOffset.UtcNow;
+                        break;
+                    default:
+                        if (parameter.ParameterType == typeof(Guid))
+                        {
+                            args[parameter.Position] = Guid.NewGuid();
+                        }
+                        else if (parameter.ParameterType == typeof(DateTimeOffset))
+                        {
+                            args[parameter.Position] = DateTimeOffset.UtcNow;
+                        }
+                        else
+                        {
+                            args[parameter.Position] = parameter.HasDefaultValue
+                                ? parameter.DefaultValue
+                                : null;
+                        }
+                        break;
+                }
+            }
+
+            return (SensorOperationalStatusChangedIntegrationEvent)ctor.Invoke(args);
+        }
 
         [Fact]
-        public async Task HandleStatusChanged_ToActive_WithExistingSnapshot_ShouldReactivateAndUpdate()
+        public async Task HandleStatusChanged_WithExistingSnapshot_ShouldUpdateSnapshotAndSave()
         {
             var ct = TestContext.Current.CancellationToken;
             var sensorId = Guid.NewGuid();
             var snapshot = SensorSnapshot.Create(
-                sensorId, Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(),
-                "Sensor", "Plot", "Farm");
-            snapshot.Delete();
+                id: sensorId,
+                ownerId: Guid.NewGuid(),
+                propertyId: Guid.NewGuid(),
+                plotId: Guid.NewGuid(),
+                label: "Old Sensor",
+                plotName: "Old Plot",
+                propertyName: "Old Farm",
+                changedByUserId: Guid.NewGuid(),
+                status: "Offline");
 
-            A.CallTo(() => _store.GetByIdIncludingInactiveAsync(sensorId, A<CancellationToken>._))
+            A.CallTo(() => _store.GetByIdAsync(sensorId, A<CancellationToken>._))
                 .Returns(snapshot);
 
-            var eventData = new SensorOperationalStatusChangedIntegrationEvent(
-                SensorId: sensorId,
-                PlotId: Guid.NewGuid(),
-                PropertyId: Guid.NewGuid(),
-                PreviousStatus: "Maintenance",
-                NewStatus: "Active",
-                ChangedByUserId: Guid.NewGuid(),
-                Reason: "Repair completed",
-                OccurredOn: DateTimeOffset.UtcNow);
+            var eventData = CreateStatusChangedEvent(
+                sensorId,
+                status: "Online",
+                label: "New Sensor",
+                plotName: "New Plot",
+                propertyName: "New Farm");
 
             await _handler.HandleAsync(CreateEvent(eventData), ct);
 
-            snapshot.IsActive.ShouldBeTrue();
+            snapshot.Status.ShouldBe("Online");
+            snapshot.Label.ShouldBe("New Sensor");
+            snapshot.PlotName.ShouldBe("New Plot");
+            snapshot.PropertyName.ShouldBe("New Farm");
 
             A.CallTo(() => _store.UpdateAsync(snapshot, A<CancellationToken>._))
                 .MustHaveHappenedOnceExactly();
+
+            A.CallTo(() => _store.AddAsync(A<SensorSnapshot>._, A<CancellationToken>._))
+                .MustNotHaveHappened();
 
             A.CallTo(() => _store.DeleteAsync(A<Guid>._, A<CancellationToken>._))
                 .MustNotHaveHappened();
@@ -194,95 +276,109 @@ namespace TC.Agro.SensorIngest.Tests.Application.Handlers
         }
 
         [Fact]
-        public async Task HandleStatusChanged_ToActive_CaseInsensitive_ShouldReactivate()
+        public async Task HandleStatusChanged_WithBlankLabel_ShouldUseDefaultLabel()
         {
             var ct = TestContext.Current.CancellationToken;
             var sensorId = Guid.NewGuid();
             var snapshot = SensorSnapshot.Create(
-                sensorId, Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(),
-                "Sensor", "Plot", "Farm");
-            snapshot.Delete();
+                id: sensorId,
+                ownerId: Guid.NewGuid(),
+                propertyId: Guid.NewGuid(),
+                plotId: Guid.NewGuid(),
+                label: "Old Sensor",
+                plotName: "Plot",
+                propertyName: "Farm",
+                changedByUserId: Guid.NewGuid(),
+                status: "Offline");
 
-            A.CallTo(() => _store.GetByIdIncludingInactiveAsync(sensorId, A<CancellationToken>._))
+            A.CallTo(() => _store.GetByIdAsync(sensorId, A<CancellationToken>._))
                 .Returns(snapshot);
 
-            var eventData = new SensorOperationalStatusChangedIntegrationEvent(
-                SensorId: sensorId,
-                PlotId: Guid.NewGuid(),
-                PropertyId: Guid.NewGuid(),
-                PreviousStatus: "Inactive",
-                NewStatus: "ACTIVE",
-                ChangedByUserId: Guid.NewGuid(),
-                Reason: null,
-                OccurredOn: DateTimeOffset.UtcNow);
+            var eventData = CreateStatusChangedEvent(
+                sensorId,
+                status: "Online",
+                label: "   ",
+                plotName: "Plot",
+                propertyName: "Farm");
 
             await _handler.HandleAsync(CreateEvent(eventData), ct);
 
-            snapshot.IsActive.ShouldBeTrue();
+            snapshot.Label.ShouldBe("Unnamed Sensor");
+
             A.CallTo(() => _store.UpdateAsync(snapshot, A<CancellationToken>._))
                 .MustHaveHappenedOnceExactly();
         }
 
         [Fact]
-        public async Task HandleStatusChanged_ToActive_SnapshotNotFound_ShouldNotThrowAndNotUpdate()
+        public async Task HandleStatusChanged_WhenSnapshotNotFound_ShouldCreateSnapshotAndSave()
         {
             var ct = TestContext.Current.CancellationToken;
             var sensorId = Guid.NewGuid();
 
-            A.CallTo(() => _store.GetByIdIncludingInactiveAsync(sensorId, A<CancellationToken>._))
+            A.CallTo(() => _store.GetByIdAsync(sensorId, A<CancellationToken>._))
                 .Returns((SensorSnapshot?)null);
 
-            var eventData = new SensorOperationalStatusChangedIntegrationEvent(
-                SensorId: sensorId,
-                PlotId: Guid.NewGuid(),
-                PropertyId: Guid.NewGuid(),
-                PreviousStatus: "Inactive",
-                NewStatus: "Active",
-                ChangedByUserId: Guid.NewGuid(),
-                Reason: null,
-                OccurredOn: DateTimeOffset.UtcNow);
+            var eventData = CreateStatusChangedEvent(
+                sensorId,
+                status: "Online",
+                label: "Sensor A",
+                plotName: "Plot A",
+                propertyName: "Farm A");
 
             await _handler.HandleAsync(CreateEvent(eventData), ct);
+
+            A.CallTo(() => _store.AddAsync(
+                A<SensorSnapshot>.That.Matches(s =>
+                    s.Id == sensorId &&
+                    s.Label == "Sensor A" &&
+                    s.PlotName == "Plot A" &&
+                    s.PropertyName == "Farm A"),
+                A<CancellationToken>._))
+                .MustHaveHappenedOnceExactly();
 
             A.CallTo(() => _store.UpdateAsync(A<SensorSnapshot>._, A<CancellationToken>._))
                 .MustNotHaveHappened();
 
             A.CallTo(() => _store.DeleteAsync(A<Guid>._, A<CancellationToken>._))
                 .MustNotHaveHappened();
+
+            A.CallTo(() => _unitOfWork.SaveChangesAsync(A<CancellationToken>._))
+                .MustHaveHappenedOnceExactly();
         }
 
-        #endregion
-
-        #region SensorOperationalStatusChanged - Inactive/Maintenance/Faulty
-
         [Theory]
-        [InlineData("Inactive")]
-        [InlineData("Maintenance")]
-        [InlineData("Faulty")]
-        public async Task HandleStatusChanged_ToNonActiveStatus_ShouldCallDelete(string newStatus)
+        [InlineData("Online")]
+        [InlineData("Warning")]
+        [InlineData("Offline")]
+        public async Task HandleStatusChanged_ToAnyStatus_ShouldNotDeleteSnapshot(string status)
         {
             var ct = TestContext.Current.CancellationToken;
             var sensorId = Guid.NewGuid();
-            var eventData = new SensorOperationalStatusChangedIntegrationEvent(
-                SensorId: sensorId,
-                PlotId: Guid.NewGuid(),
-                PropertyId: Guid.NewGuid(),
-                PreviousStatus: "Active",
-                NewStatus: newStatus,
-                ChangedByUserId: Guid.NewGuid(),
-                Reason: "Status change",
-                OccurredOn: DateTimeOffset.UtcNow);
+            var snapshot = SensorSnapshot.Create(
+                id: sensorId,
+                ownerId: Guid.NewGuid(),
+                propertyId: Guid.NewGuid(),
+                plotId: Guid.NewGuid(),
+                label: "Sensor",
+                plotName: "Plot",
+                propertyName: "Farm",
+                changedByUserId: Guid.NewGuid(),
+                status: "Online");
+
+            A.CallTo(() => _store.GetByIdAsync(sensorId, A<CancellationToken>._))
+                .Returns(snapshot);
+
+            var eventData = CreateStatusChangedEvent(
+                sensorId,
+                status: status,
+                label: "Sensor",
+                plotName: "Plot",
+                propertyName: "Farm");
 
             await _handler.HandleAsync(CreateEvent(eventData), ct);
 
             A.CallTo(() => _store.DeleteAsync(sensorId, A<CancellationToken>._))
-                .MustHaveHappenedOnceExactly();
-
-            A.CallTo(() => _store.GetByIdIncludingInactiveAsync(A<Guid>._, A<CancellationToken>._))
                 .MustNotHaveHappened();
-
-            A.CallTo(() => _unitOfWork.SaveChangesAsync(A<CancellationToken>._))
-                .MustHaveHappenedOnceExactly();
         }
 
         [Fact]

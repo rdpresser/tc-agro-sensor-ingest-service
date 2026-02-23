@@ -12,8 +12,8 @@ namespace TC.Agro.SensorIngest.Application.MessageBrokerHandlers
     {
         private readonly ISensorSnapshotStore _store;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly ILogger<SensorSnapshotHandler> _logger;
         private const string DefaultSensorLabel = "Unnamed Sensor";
+        private readonly ILogger<SensorSnapshotHandler> _logger;
 
         private static string NormalizeLabel(string? label) =>
             string.IsNullOrWhiteSpace(label) ? DefaultSensorLabel : label;
@@ -53,7 +53,7 @@ namespace TC.Agro.SensorIngest.Application.MessageBrokerHandlers
                 propertyName: data.PropertyName,
                 status: data.Status);
 
-        public SensorSnapshotHandler(ISensorSnapshotStore store, IUnitOfWork unitOfWork)
+        public SensorSnapshotHandler(ISensorSnapshotStore store, IUnitOfWork unitOfWork, ILogger<SensorSnapshotHandler> logger)
         {
             _store = store ?? throw new ArgumentNullException(nameof(store));
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
@@ -76,65 +76,6 @@ namespace TC.Agro.SensorIngest.Application.MessageBrokerHandlers
             var snapshot = CreateSnapshot(data, label);
 
             await _store.AddAsync(snapshot, cancellationToken).ConfigureAwait(false);
-            await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-        }
-
-        // -------------------------
-        // Sensor Deactivated
-        // -------------------------
-        /// <summary>
-        /// Handles the SensorDeactivatedIntegrationEvent by marking the SensorSnapshot as inactive (soft-delete).
-        /// </summary>
-        public async Task HandleAsync(EventContext<SensorDeactivatedIntegrationEvent> @event, CancellationToken cancellationToken = default)
-        {
-            ArgumentNullException.ThrowIfNull(@event);
-
-            var sensorId = @event.EventData.SensorId;
-
-            _logger.LogInformation("Handling SensorDeactivatedIntegrationEvent for SensorId {SensorId}. Reason: {Reason}",
-                sensorId, @event.EventData.Reason);
-
-            await _store.DeleteAsync(sensorId, cancellationToken).ConfigureAwait(false);
-            await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-        }
-
-        // -------------------------
-        // Sensor Operational Status Changed
-        // -------------------------
-        /// <summary>
-        /// Handles the SensorOperationalStatusChangedIntegrationEvent by activating or deactivating
-        /// the SensorSnapshot based on the new operational status.
-        /// </summary>
-        public async Task HandleAsync(EventContext<SensorOperationalStatusChangedIntegrationEvent> @event, CancellationToken cancellationToken = default)
-        {
-            ArgumentNullException.ThrowIfNull(@event);
-
-            var sensorId = @event.EventData.SensorId;
-            var newStatus = @event.EventData.NewStatus;
-
-            _logger.LogInformation(
-                "Handling SensorOperationalStatusChangedIntegrationEvent for SensorId {SensorId}. Status: {PreviousStatus} -> {NewStatus}",
-                sensorId, @event.EventData.PreviousStatus, newStatus);
-
-            if (string.Equals(newStatus, "Active", StringComparison.OrdinalIgnoreCase))
-            {
-                var snapshot = await _store.GetByIdIncludingInactiveAsync(sensorId, cancellationToken).ConfigureAwait(false);
-
-                if (snapshot is null)
-                {
-                    _logger.LogWarning("SensorSnapshot not found for SensorId {SensorId}. Cannot reactivate.", sensorId);
-                    return;
-                }
-
-                snapshot.Reactivate();
-                await _store.UpdateAsync(snapshot, cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                // Inactive, Maintenance, Faulty → deactivate
-                await _store.DeleteAsync(sensorId, cancellationToken).ConfigureAwait(false);
-            }
-
             await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
 
@@ -179,27 +120,20 @@ namespace TC.Agro.SensorIngest.Application.MessageBrokerHandlers
         // Sensor Deactivated
         // -------------------------
         /// <summary>
-        /// Handles the SensorDeactivatedIntegrationEvent by performing a soft delete
-        /// on the corresponding SensorSnapshot, setting IsActive to false.
-        /// If the snapshot doesn't exist, does nothing.
+        /// Handles the SensorDeactivatedIntegrationEvent by marking the SensorSnapshot as inactive (soft-delete).
         /// </summary>
-        public async Task HandleAsync(
-            EventContext<SensorDeactivatedIntegrationEvent> @event,
-            CancellationToken cancellationToken = default)
+        public async Task HandleAsync(EventContext<SensorDeactivatedIntegrationEvent> @event, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(@event);
 
-            var snapshot = await _store.GetByIdAsync(
-                @event.EventData.SensorId,
-                cancellationToken).ConfigureAwait(false);
+            var sensorId = @event.EventData.SensorId;
 
-            if (snapshot is null)
-                return;
+            _logger.LogInformation("Handling SensorDeactivatedIntegrationEvent for SensorId {SensorId}. Reason: {Reason}",
+                sensorId, @event.EventData.Reason);
 
-            snapshot.Delete();
-            await _store.UpdateAsync(snapshot, cancellationToken).ConfigureAwait(false);
+            await _store.DeleteAsync(sensorId, cancellationToken).ConfigureAwait(false);
             await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
-
+        
     }
 }
