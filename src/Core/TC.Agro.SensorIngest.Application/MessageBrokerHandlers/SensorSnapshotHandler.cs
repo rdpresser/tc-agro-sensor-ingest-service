@@ -12,7 +12,46 @@ namespace TC.Agro.SensorIngest.Application.MessageBrokerHandlers
     {
         private readonly ISensorSnapshotStore _store;
         private readonly IUnitOfWork _unitOfWork;
+        private const string DefaultSensorLabel = "Unnamed Sensor";
         private readonly ILogger<SensorSnapshotHandler> _logger;
+
+        private static string NormalizeLabel(string? label) =>
+            string.IsNullOrWhiteSpace(label) ? DefaultSensorLabel : label;
+
+        private static SensorSnapshot CreateSnapshot(SensorRegisteredIntegrationEvent data, string label) =>
+            SensorSnapshot.Create(
+                data.SensorId,
+                data.OwnerId,
+                data.PropertyId,
+                data.PlotId,
+                data.OwnerId,
+                label,
+                plotName: data.PlotName,
+                propertyName: data.PropertyName,
+                createdAt: data.OccurredOn);
+
+        private static SensorSnapshot CreateSnapshot(SensorOperationalStatusChangedIntegrationEvent data, string label) =>
+            SensorSnapshot.Create(
+                data.SensorId,
+                data.OwnerId,
+                data.PropertyId,
+                data.PlotId,
+                data.OwnerId,
+                label,
+                plotName: data.PlotName,
+                propertyName: data.PropertyName,
+                createdAt: data.OccurredOn);
+
+        private static void UpdateSnapshot(SensorSnapshot snapshot, SensorOperationalStatusChangedIntegrationEvent data, string label) =>
+            snapshot.Update(
+                data.OwnerId,
+                data.PropertyId,
+                data.PlotId,
+                data.OwnerId,
+                label,
+                plotName: data.PlotName,
+                propertyName: data.PropertyName,
+                status: data.Status);
 
         public SensorSnapshotHandler(ISensorSnapshotStore store, IUnitOfWork unitOfWork, ILogger<SensorSnapshotHandler> logger)
         {
@@ -32,21 +71,48 @@ namespace TC.Agro.SensorIngest.Application.MessageBrokerHandlers
         {
             ArgumentNullException.ThrowIfNull(@event);
 
-            var label = string.IsNullOrWhiteSpace(@event.EventData.Label)
-                ? "Unnamed Sensor"
-                : @event.EventData.Label;
-
-            var snapshot = SensorSnapshot.Create(
-                @event.EventData.SensorId,
-                @event.EventData.OwnerId,
-                @event.EventData.PropertyId,
-                @event.EventData.PlotId,
-                label,
-                plotName: @event.EventData.PlotName,
-                propertyName: @event.EventData.PropertyName,
-                createdAt: @event.EventData.OccurredOn);
+            var data = @event.EventData;
+            var label = NormalizeLabel(data.Label);
+            var snapshot = CreateSnapshot(data, label);
 
             await _store.AddAsync(snapshot, cancellationToken).ConfigureAwait(false);
+            await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        // -------------------------
+        // Sensor Operational Status Changed
+        // -------------------------
+        /// <summary>
+        /// Handles the SensorOperationalStatusChangedIntegrationEvent by updating
+        /// all fields in the corresponding SensorSnapshot (OwnerId, PropertyId, PlotId, Label, PlotName, and PropertyName).
+        /// If the snapshot doesn't exist, creates it defensively.
+        /// </summary>
+        public async Task HandleAsync(
+            EventContext<SensorOperationalStatusChangedIntegrationEvent> @event,
+            CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(@event);
+            
+            var data = @event.EventData;
+            var snapshot = await _store.GetByIdAsync(
+                data.SensorId,
+                cancellationToken).ConfigureAwait(false);
+
+            var label = NormalizeLabel(data.Label);
+
+            if (snapshot is null)
+            {
+                snapshot = CreateSnapshot(data, label);
+
+                await _store.AddAsync(snapshot, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                UpdateSnapshot(snapshot, data, label);
+
+                await _store.UpdateAsync(snapshot, cancellationToken).ConfigureAwait(false);
+            }
+
             await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
 
@@ -68,45 +134,6 @@ namespace TC.Agro.SensorIngest.Application.MessageBrokerHandlers
             await _store.DeleteAsync(sensorId, cancellationToken).ConfigureAwait(false);
             await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
-
-        // -------------------------
-        // Sensor Operational Status Changed
-        // -------------------------
-        /// <summary>
-        /// Handles the SensorOperationalStatusChangedIntegrationEvent by activating or deactivating
-        /// the SensorSnapshot based on the new operational status.
-        /// </summary>
-        public async Task HandleAsync(EventContext<SensorOperationalStatusChangedIntegrationEvent> @event, CancellationToken cancellationToken = default)
-        {
-            ArgumentNullException.ThrowIfNull(@event);
-
-            var sensorId = @event.EventData.SensorId;
-            var newStatus = @event.EventData.NewStatus;
-
-            _logger.LogInformation(
-                "Handling SensorOperationalStatusChangedIntegrationEvent for SensorId {SensorId}. Status: {PreviousStatus} -> {NewStatus}",
-                sensorId, @event.EventData.PreviousStatus, newStatus);
-
-            if (string.Equals(newStatus, "Active", StringComparison.OrdinalIgnoreCase))
-            {
-                var snapshot = await _store.GetByIdIncludingInactiveAsync(sensorId, cancellationToken).ConfigureAwait(false);
-
-                if (snapshot is null)
-                {
-                    _logger.LogWarning("SensorSnapshot not found for SensorId {SensorId}. Cannot reactivate.", sensorId);
-                    return;
-                }
-
-                snapshot.Reactivate();
-                await _store.UpdateAsync(snapshot, cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                // Inactive, Maintenance, Faulty → deactivate
-                await _store.DeleteAsync(sensorId, cancellationToken).ConfigureAwait(false);
-            }
-
-            await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-        }
+        
     }
 }

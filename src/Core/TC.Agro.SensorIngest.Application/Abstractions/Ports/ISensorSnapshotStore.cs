@@ -14,18 +14,18 @@ namespace TC.Agro.SensorIngest.Application.Abstractions.Ports
         Task AddAsync(SensorSnapshot snapshot, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Deletes a sensor snapshot from the store by marking it as inactive.
-        /// </summary>
-        /// <param name="id">The sensor snapshot identifier</param>
-        /// <param name="cancellationToken">Cancellation token</param>
-        Task DeleteAsync(Guid id, CancellationToken cancellationToken = default);
-
-        /// <summary>
         /// Updates an existing sensor snapshot in the store.
         /// </summary>
         /// <param name="snapshot">The sensor snapshot to update</param>
         /// <param name="cancellationToken">Cancellation token</param>
         Task UpdateAsync(SensorSnapshot snapshot, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Deletes a sensor snapshot from the store by marking it as inactive.
+        /// </summary>
+        /// <param name="id">The sensor snapshot identifier</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        Task DeleteAsync(Guid id, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Retrieves a sensor snapshot by its identifier.

@@ -40,9 +40,11 @@ namespace TC.Agro.SensorIngest.Infrastructure.Migrations
                     owner_id = table.Column<Guid>(type: "uuid", nullable: false),
                     property_id = table.Column<Guid>(type: "uuid", nullable: false),
                     plot_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    changed_by_user_id = table.Column<Guid>(type: "uuid", nullable: false),
                     label = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
                     plot_name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     property_name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
                     is_active = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
                     created_at = table.Column<DateTimeOffset>(type: "timestamptz", nullable: false),
                     updated_at = table.Column<DateTimeOffset>(type: "timestamptz", nullable: true)
