@@ -12,8 +12,7 @@ namespace TC.Agro.SensorIngest.Tests.Domain.Snapshots
                 plotId: Guid.NewGuid(),
                 label: "Test Sensor",
                 plotName: "Plot Alpha",
-                propertyName: "Farm South",
-                changedByUserId: Guid.NewGuid());
+                propertyName: "Farm South");
 
         private static SensorSnapshot CreateInactiveSnapshot()
         {
