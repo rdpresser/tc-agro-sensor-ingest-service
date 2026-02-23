@@ -27,7 +27,8 @@ namespace TC.Agro.SensorIngest.Application.MessageBrokerHandlers
                 label,
                 plotName: data.PlotName,
                 propertyName: data.PropertyName,
-                createdAt: data.OccurredOn);
+                createdAt: data.OccurredOn,
+                status: data.Status);
 
         private static SensorSnapshot CreateSnapshot(SensorOperationalStatusChangedIntegrationEvent data, string label) =>
             SensorSnapshot.Create(
@@ -38,7 +39,8 @@ namespace TC.Agro.SensorIngest.Application.MessageBrokerHandlers
                 label,
                 plotName: data.PlotName,
                 propertyName: data.PropertyName,
-                createdAt: data.OccurredOn);
+                createdAt: data.OccurredOn,
+                status: data.Status);
 
         private static void UpdateSnapshot(SensorSnapshot snapshot, SensorOperationalStatusChangedIntegrationEvent data, string label) =>
             snapshot.Update(
