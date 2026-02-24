@@ -2,10 +2,8 @@ using Ardalis.Result;
 using Bogus;
 using Quartz;
 using TC.Agro.Contracts.Events.SensorIngested;
-using TC.Agro.SensorIngest.Application.Abstractions.Ports;
 using TC.Agro.SensorIngest.Domain.Aggregates;
 using TC.Agro.SharedKernel.Infrastructure.Messaging;
-using Wolverine;
 
 namespace TC.Agro.SensorIngest.Service.Jobs
 {
