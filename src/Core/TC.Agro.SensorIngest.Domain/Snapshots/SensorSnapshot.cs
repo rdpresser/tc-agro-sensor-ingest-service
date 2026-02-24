@@ -9,7 +9,6 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
         public OwnerSnapshot Owner { get; private set; } = default!;
         public Guid PropertyId { get; private set; }
         public Guid PlotId { get; private set; }
-        public Guid ChangedByUserId { get; private set; }
 
         public string? Label { get; private set; } = default!;
         public string PlotName { get; private set; } = default!;
@@ -30,7 +29,6 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
             Guid ownerId,
             Guid propertyId,
             Guid plotId,
-            Guid changedByUserId,
             string? label,
             string plotName,
             string propertyName,
@@ -43,7 +41,6 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
             OwnerId = ownerId;
             PropertyId = propertyId;
             PlotId = plotId;
-            ChangedByUserId = changedByUserId;
             Label = label;
             PlotName = plotName;
             PropertyName = propertyName;
@@ -61,7 +58,6 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
             string? label,
             string plotName,
             string propertyName,
-            Guid changedByUserId,
             string? status = null)
         {
             var now = DateTimeOffset.UtcNow;
@@ -71,7 +67,6 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
                 ownerId,
                 propertyId,
                 plotId,
-                changedByUserId,
                 label,
                 plotName,
                 propertyName,
@@ -86,7 +81,6 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
             Guid ownerId,
             Guid propertyId,
             Guid plotId,
-            Guid changedByUserId,
             string? label,
             string plotName,
             string propertyName,
@@ -98,7 +92,6 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
                 ownerId,
                 propertyId,
                 plotId,
-                changedByUserId,
                 label,
                 plotName,
                 propertyName,
@@ -122,7 +115,6 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
             Guid ownerId,
             Guid propertyId,
             Guid plotId,
-            Guid changedByUserId,
             string sensorName,
             string plotName,
             string propertyName,
@@ -131,7 +123,6 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
             OwnerId = ownerId;
             PropertyId = propertyId;
             PlotId = plotId;
-            ChangedByUserId = changedByUserId;
             Status = status;
             Label = sensorName;
             PlotName = plotName;

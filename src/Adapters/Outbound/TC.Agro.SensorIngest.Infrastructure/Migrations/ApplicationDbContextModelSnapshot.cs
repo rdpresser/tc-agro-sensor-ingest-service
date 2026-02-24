@@ -89,7 +89,6 @@ namespace TC.Agro.SensorIngest.Infrastructure.Migrations
             modelBuilder.Entity("TC.Agro.SensorIngest.Domain.Snapshots.OwnerSnapshot", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -134,10 +133,6 @@ namespace TC.Agro.SensorIngest.Infrastructure.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
                         .HasColumnName("id");
-
-                    b.Property<Guid>("ChangedByUserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("changed_by_user_id");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamptz")

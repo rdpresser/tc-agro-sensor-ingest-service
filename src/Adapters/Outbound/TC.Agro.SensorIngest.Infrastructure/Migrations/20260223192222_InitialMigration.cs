@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace TC.Agro.SensorIngest.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -40,7 +40,6 @@ namespace TC.Agro.SensorIngest.Infrastructure.Migrations
                     owner_id = table.Column<Guid>(type: "uuid", nullable: false),
                     property_id = table.Column<Guid>(type: "uuid", nullable: false),
                     plot_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    changed_by_user_id = table.Column<Guid>(type: "uuid", nullable: false),
                     label = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
                     plot_name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     property_name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),

@@ -242,7 +242,6 @@ namespace TC.Agro.SensorIngest.Tests.Application.Handlers
                 label: "Old Sensor",
                 plotName: "Old Plot",
                 propertyName: "Old Farm",
-                changedByUserId: Guid.NewGuid(),
                 status: "Offline");
 
             A.CallTo(() => _store.GetByIdAsync(sensorId, A<CancellationToken>._))
@@ -288,7 +287,6 @@ namespace TC.Agro.SensorIngest.Tests.Application.Handlers
                 label: "Old Sensor",
                 plotName: "Plot",
                 propertyName: "Farm",
-                changedByUserId: Guid.NewGuid(),
                 status: "Offline");
 
             A.CallTo(() => _store.GetByIdAsync(sensorId, A<CancellationToken>._))
@@ -362,7 +360,6 @@ namespace TC.Agro.SensorIngest.Tests.Application.Handlers
                 label: "Sensor",
                 plotName: "Plot",
                 propertyName: "Farm",
-                changedByUserId: Guid.NewGuid(),
                 status: "Online");
 
             A.CallTo(() => _store.GetByIdAsync(sensorId, A<CancellationToken>._))
