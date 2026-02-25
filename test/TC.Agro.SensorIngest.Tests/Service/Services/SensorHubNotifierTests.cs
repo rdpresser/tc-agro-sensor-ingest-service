@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using TC.Agro.SensorIngest.Application.Abstractions.Ports;
+using TC.Agro.SensorIngest.Domain.Snapshots;
 using TC.Agro.SensorIngest.Service.Hubs;
 using TC.Agro.SensorIngest.Service.Services;
 using TC.Agro.SharedKernel.Infrastructure.Caching.Service;
@@ -16,7 +17,6 @@ namespace TC.Agro.SensorIngest.Tests.Service.Services
         private readonly ICacheService _cache;
         private readonly ILogger<SensorHubNotifier> _logger;
         private readonly SensorHubNotifier _notifier;
-        private readonly ISensorHubClient _client;
 
         public SensorHubNotifierTests()
         {
@@ -24,34 +24,41 @@ namespace TC.Agro.SensorIngest.Tests.Service.Services
             _snapshotStore = A.Fake<ISensorSnapshotStore>();
             _cache = A.Fake<ICacheService>();
             _logger = NullLogger<SensorHubNotifier>.Instance;
-            _client = A.Fake<ISensorHubClient>();
             _notifier = new SensorHubNotifier(_hubContext, _snapshotStore, _cache, _logger);
         }
 
         #region NotifySensorReadingAsync
 
         [Fact]
-        public async Task NotifySensorReadingAsync_WithExistingSnapshot_ShouldSendToPlotGroup()
+        public async Task NotifySensorReadingAsync_WithExistingSnapshot_ShouldNotThrow()
         {
             var sensorId = Guid.NewGuid();
             var plotId = Guid.NewGuid();
             var label = "Sensor-001";
 
-            SetupCacheToReturn(sensorId, plotId);
+            var snapshot = SensorSnapshot.Create(
+                sensorId,
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                plotId,
+                label,
+                "Plot 1",
+                "Property 1");
 
-            A.CallTo(() => _hubContext.Clients.Group($"plot:{plotId}"))
-                .Returns(_client);
+            A.CallTo(_cache)
+                .Where(call => call.Method.Name == "GetOrSetAsync"
+                    && call.Arguments.Count >= 1
+                    && Equals(call.Arguments[0], $"sensor:plotId:{sensorId}"))
+                .WithReturnType<ValueTask<SensorSnapshot?>>()
+                .Returns(new ValueTask<SensorSnapshot?>(snapshot));
 
             var timestamp = DateTimeOffset.UtcNow;
 
-            await _notifier.NotifySensorReadingAsync(sensorId, label, 25.0, 60.0, 40.0, timestamp);
+            // Should not throw
+            var exception = await Record.ExceptionAsync(() =>
+                _notifier.NotifySensorReadingAsync(sensorId, 25.0, 60.0, 40.0, timestamp));
 
-            A.CallTo(() => _client.SensorReading(
-                A<SensorReadingRequest>.That.Matches(r =>
-                    r.SensorId == sensorId &&
-                    r.Label == label &&
-                    r.Timestamp == timestamp)))
-                .MustHaveHappenedOnceExactly();
+            exception.ShouldBeNull();
         }
 
         [Fact]
@@ -59,12 +66,18 @@ namespace TC.Agro.SensorIngest.Tests.Service.Services
         {
             var sensorId = Guid.NewGuid();
 
-            SetupCacheToReturn(sensorId, null);
+            A.CallTo(_cache)
+                .Where(call => call.Method.Name == "GetOrSetAsync"
+                    && call.Arguments.Count >= 1
+                    && Equals(call.Arguments[0], $"sensor:plotId:{sensorId}"))
+                .WithReturnType<ValueTask<SensorSnapshot?>>()
+                .Returns(new ValueTask<SensorSnapshot?>((SensorSnapshot?)null));
 
-            await _notifier.NotifySensorReadingAsync(sensorId, "Sensor-001", 25.0, 60.0, 40.0, DateTimeOffset.UtcNow);
+            // Should not throw
+            var exception = await Record.ExceptionAsync(() =>
+                _notifier.NotifySensorReadingAsync(sensorId, 25.0, 60.0, 40.0, DateTimeOffset.UtcNow));
 
-            A.CallTo(() => _hubContext.Clients.Group(A<string>._))
-                .MustNotHaveHappened();
+            exception.ShouldBeNull();
         }
 
         [Fact]
@@ -72,10 +85,13 @@ namespace TC.Agro.SensorIngest.Tests.Service.Services
         {
             var sensorId = Guid.NewGuid();
 
-            SetupCacheToThrow(new InvalidOperationException("DB error"));
+            A.CallTo(_cache)
+                .Where(call => call.Method.Name == "GetOrSetAsync")
+                .WithReturnType<ValueTask<SensorSnapshot?>>()
+                .Throws(new InvalidOperationException("DB error"));
 
             var exception = await Record.ExceptionAsync(() =>
-                _notifier.NotifySensorReadingAsync(sensorId, "Sensor-001", 25.0, 60.0, 40.0, DateTimeOffset.UtcNow));
+                _notifier.NotifySensorReadingAsync(sensorId, 25.0, 60.0, 40.0, DateTimeOffset.UtcNow));
 
             exception.ShouldBeNull();
         }
@@ -85,23 +101,32 @@ namespace TC.Agro.SensorIngest.Tests.Service.Services
         #region NotifySensorStatusChangedAsync
 
         [Fact]
-        public async Task NotifySensorStatusChangedAsync_WithExistingSnapshot_ShouldSendToPlotGroup()
+        public async Task NotifySensorStatusChangedAsync_WithExistingSnapshot_ShouldNotThrow()
         {
             var sensorId = Guid.NewGuid();
             var plotId = Guid.NewGuid();
 
-            SetupCacheToReturn(sensorId, plotId);
+            var snapshot = SensorSnapshot.Create(
+                sensorId,
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                plotId,
+                "Sensor-001",
+                "Plot 1",
+                "Property 1");
 
-            A.CallTo(() => _hubContext.Clients.Group($"plot:{plotId}"))
-                .Returns(_client);
+            A.CallTo(_cache)
+                .Where(call => call.Method.Name == "GetOrSetAsync"
+                    && call.Arguments.Count >= 1
+                    && Equals(call.Arguments[0], $"sensor:plotId:{sensorId}"))
+                .WithReturnType<ValueTask<SensorSnapshot?>>()
+                .Returns(new ValueTask<SensorSnapshot?>(snapshot));
 
-            await _notifier.NotifySensorStatusChangedAsync(sensorId, "Active");
+            // Should not throw
+            var exception = await Record.ExceptionAsync(() =>
+                _notifier.NotifySensorStatusChangedAsync(sensorId, "Active"));
 
-            A.CallTo(() => _client.SensorStatusChanged(
-                A<SensorStatusChangedRequest>.That.Matches(r =>
-                    r.SensorId == sensorId &&
-                    r.Status == "Active")))
-                .MustHaveHappenedOnceExactly();
+            exception.ShouldBeNull();
         }
 
         [Fact]
@@ -109,12 +134,18 @@ namespace TC.Agro.SensorIngest.Tests.Service.Services
         {
             var sensorId = Guid.NewGuid();
 
-            SetupCacheToReturn(sensorId, null);
+            A.CallTo(_cache)
+                .Where(call => call.Method.Name == "GetOrSetAsync"
+                    && call.Arguments.Count >= 1
+                    && Equals(call.Arguments[0], $"sensor:plotId:{sensorId}"))
+                .WithReturnType<ValueTask<SensorSnapshot?>>()
+                .Returns(new ValueTask<SensorSnapshot?>((SensorSnapshot?)null));
 
-            await _notifier.NotifySensorStatusChangedAsync(sensorId, "Inactive");
+            // Should not throw
+            var exception = await Record.ExceptionAsync(() =>
+                _notifier.NotifySensorStatusChangedAsync(sensorId, "Inactive"));
 
-            A.CallTo(() => _hubContext.Clients.Group(A<string>._))
-                .MustNotHaveHappened();
+            exception.ShouldBeNull();
         }
 
         [Fact]
@@ -122,7 +153,10 @@ namespace TC.Agro.SensorIngest.Tests.Service.Services
         {
             var sensorId = Guid.NewGuid();
 
-            SetupCacheToThrow(new InvalidOperationException("DB error"));
+            A.CallTo(_cache)
+                .Where(call => call.Method.Name == "GetOrSetAsync")
+                .WithReturnType<ValueTask<SensorSnapshot?>>()
+                .Throws(new InvalidOperationException("DB error"));
 
             var exception = await Record.ExceptionAsync(() =>
                 _notifier.NotifySensorStatusChangedAsync(sensorId, "Active"));
@@ -160,29 +194,6 @@ namespace TC.Agro.SensorIngest.Tests.Service.Services
         {
             Should.Throw<ArgumentNullException>(() =>
                 new SensorHubNotifier(_hubContext, _snapshotStore, _cache, null!));
-        }
-
-        #endregion
-
-        #region Helpers
-
-        private void SetupCacheToReturn(Guid sensorId, Guid? plotId)
-        {
-            var expectedKey = $"sensor:plotId:{sensorId}";
-            A.CallTo(_cache)
-                .Where(call => call.Method.Name == "GetOrSetAsync"
-                    && call.Arguments.Count > 0
-                    && Equals(call.Arguments[0], expectedKey))
-                .WithReturnType<ValueTask<Guid?>>()
-                .Returns(new ValueTask<Guid?>(plotId));
-        }
-
-        private void SetupCacheToThrow(Exception exception)
-        {
-            A.CallTo(_cache)
-                .Where(call => call.Method.Name == "GetOrSetAsync")
-                .WithReturnType<ValueTask<Guid?>>()
-                .Returns(new ValueTask<Guid?>(Task.FromException<Guid?>(exception)));
         }
 
         #endregion

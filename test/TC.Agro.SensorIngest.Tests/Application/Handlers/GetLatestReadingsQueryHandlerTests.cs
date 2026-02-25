@@ -48,7 +48,11 @@ namespace TC.Agro.SensorIngest.Tests.Application.Handlers
                 new(Guid.NewGuid(), sensorId, Guid.NewGuid(), DateTime.UtcNow, 25.0, 60.0, 40.0, 0.0, 85.0)
             };
 
-            A.CallTo(() => _readStore.GetLatestReadingsAsync(sensorId, null, 10, A<CancellationToken>._))
+            A.CallTo(() => _readStore.GetLatestReadingsAsync(
+                sensorId: sensorId,
+                plotId: null,
+                limit: 10,
+                cancellationToken: A<CancellationToken>._))
                 .Returns(expectedReadings);
 
             var query = new GetLatestReadingsQuery { SensorId = sensorId, Limit = 10 };
@@ -65,8 +69,11 @@ namespace TC.Agro.SensorIngest.Tests.Application.Handlers
             var ct = TestContext.Current.CancellationToken;
 
             A.CallTo(() => _readStore.GetLatestReadingsAsync(
-                A<Guid?>._, A<Guid?>._, A<int>._, A<CancellationToken>._))
-                .Returns(Enumerable.Empty<LatestReadingItem>());
+                sensorId: A<Guid?>._, 
+                plotId: A<Guid?>._, 
+                limit: A<int>._, 
+                cancellationToken: A<CancellationToken>._))
+                .Returns(new List<LatestReadingItem>());
 
             var query = new GetLatestReadingsQuery { Limit = 10 };
 
@@ -82,8 +89,11 @@ namespace TC.Agro.SensorIngest.Tests.Application.Handlers
             var ct = TestContext.Current.CancellationToken;
 
             A.CallTo(() => _readStore.GetLatestReadingsAsync(
-                A<Guid?>._, A<Guid?>._, A<int>._, A<CancellationToken>._))
-                .Returns((IEnumerable<LatestReadingItem>)null!);
+                sensorId: A<Guid?>._, 
+                plotId: A<Guid?>._, 
+                limit: A<int>._, 
+                cancellationToken: A<CancellationToken>._))
+                .Returns((IReadOnlyList<LatestReadingItem>)null!);
 
             var query = new GetLatestReadingsQuery { Limit = 10 };
 
@@ -103,15 +113,21 @@ namespace TC.Agro.SensorIngest.Tests.Application.Handlers
             var ct = TestContext.Current.CancellationToken;
 
             A.CallTo(() => _readStore.GetLatestReadingsAsync(
-                A<Guid?>._, A<Guid?>._, A<int>._, A<CancellationToken>._))
-                .Returns(Enumerable.Empty<LatestReadingItem>());
+                sensorId: A<Guid?>._, 
+                plotId: A<Guid?>._, 
+                limit: A<int>._, 
+                cancellationToken: A<CancellationToken>._))
+                .Returns(new List<LatestReadingItem>());
 
             var query = new GetLatestReadingsQuery { Limit = 5000 };
 
             await _handler.ExecuteAsync(query, ct);
 
             A.CallTo(() => _readStore.GetLatestReadingsAsync(
-                null, null, AppConstants.MaxReadLimit, A<CancellationToken>._))
+                sensorId: null, 
+                plotId: null, 
+                limit: AppConstants.MaxReadLimit, 
+                cancellationToken: A<CancellationToken>._))
                 .MustHaveHappenedOnceExactly();
         }
 
@@ -121,15 +137,21 @@ namespace TC.Agro.SensorIngest.Tests.Application.Handlers
             var ct = TestContext.Current.CancellationToken;
 
             A.CallTo(() => _readStore.GetLatestReadingsAsync(
-                A<Guid?>._, A<Guid?>._, A<int>._, A<CancellationToken>._))
-                .Returns(Enumerable.Empty<LatestReadingItem>());
+                sensorId: A<Guid?>._, 
+                plotId: A<Guid?>._, 
+                limit: A<int>._, 
+                cancellationToken: A<CancellationToken>._))
+                .Returns(new List<LatestReadingItem>());
 
             var query = new GetLatestReadingsQuery { Limit = 50 };
 
             await _handler.ExecuteAsync(query, ct);
 
             A.CallTo(() => _readStore.GetLatestReadingsAsync(
-                null, null, 50, A<CancellationToken>._))
+                sensorId: null, 
+                plotId: null, 
+                limit: 50, 
+                cancellationToken: A<CancellationToken>._))
                 .MustHaveHappenedOnceExactly();
         }
 
@@ -144,15 +166,21 @@ namespace TC.Agro.SensorIngest.Tests.Application.Handlers
             var sensorId = Guid.NewGuid();
 
             A.CallTo(() => _readStore.GetLatestReadingsAsync(
-                A<Guid?>._, A<Guid?>._, A<int>._, A<CancellationToken>._))
-                .Returns(Enumerable.Empty<LatestReadingItem>());
+                sensorId: A<Guid?>._, 
+                plotId: A<Guid?>._, 
+                limit: A<int>._, 
+                cancellationToken: A<CancellationToken>._))
+                .Returns(new List<LatestReadingItem>());
 
             var query = new GetLatestReadingsQuery { SensorId = sensorId, Limit = 10 };
 
             await _handler.ExecuteAsync(query, ct);
 
             A.CallTo(() => _readStore.GetLatestReadingsAsync(
-                sensorId, null, 10, A<CancellationToken>._))
+                sensorId: sensorId, 
+                plotId: null, 
+                limit: 10, 
+                cancellationToken: A<CancellationToken>._))
                 .MustHaveHappenedOnceExactly();
         }
 
@@ -163,15 +191,21 @@ namespace TC.Agro.SensorIngest.Tests.Application.Handlers
             var plotId = Guid.NewGuid();
 
             A.CallTo(() => _readStore.GetLatestReadingsAsync(
-                A<Guid?>._, A<Guid?>._, A<int>._, A<CancellationToken>._))
-                .Returns(Enumerable.Empty<LatestReadingItem>());
+                sensorId: A<Guid?>._, 
+                plotId: A<Guid?>._, 
+                limit: A<int>._, 
+                cancellationToken: A<CancellationToken>._))
+                .Returns(new List<LatestReadingItem>());
 
             var query = new GetLatestReadingsQuery { PlotId = plotId, Limit = 10 };
 
             await _handler.ExecuteAsync(query, ct);
 
             A.CallTo(() => _readStore.GetLatestReadingsAsync(
-                null, plotId, 10, A<CancellationToken>._))
+                sensorId: null, 
+                plotId: plotId, 
+                limit: 10, 
+                cancellationToken: A<CancellationToken>._))
                 .MustHaveHappenedOnceExactly();
         }
 

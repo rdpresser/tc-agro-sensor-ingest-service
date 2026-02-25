@@ -31,7 +31,7 @@ namespace TC.Agro.SensorIngest.Application.UseCases.GetLatestReadings
                 query.SensorId,
                 query.PlotId);
 
-            return Result.Success(new GetLatestReadingsResponse(readings?.ToList() ?? []));
+            return Result.Success(new GetLatestReadingsResponse(readings ?? []));
         }
     }
 }

@@ -33,7 +33,7 @@ namespace TC.Agro.SensorIngest.Application.UseCases.GetReadingsHistory
                 query.SensorId,
                 days);
 
-            return Result.Success(new GetReadingsHistoryResponse(readings?.ToList() ?? []));
+            return Result.Success(new GetReadingsHistoryResponse(readings ?? []));
         }
     }
 }

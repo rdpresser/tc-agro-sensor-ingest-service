@@ -12,7 +12,7 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         }
 
-        public async Task<IEnumerable<LatestReadingItem>> GetLatestReadingsAsync(
+        public async Task<IReadOnlyList<LatestReadingItem>> GetLatestReadingsAsync(
             Guid? sensorId = null,
             Guid? plotId = null,
             int limit = 10,
@@ -40,7 +40,7 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
                 .ConfigureAwait(false);
         }
 
-        public async Task<IEnumerable<ReadingHistoryItem>> GetHistoryAsync(
+        public async Task<IReadOnlyList<ReadingHistoryItem>> GetHistoryAsync(
             Guid sensorId,
             DateTime from,
             DateTime to,
@@ -63,7 +63,7 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
                 .ConfigureAwait(false);
         }
 
-        public async Task<IEnumerable<HourlyAggregateItem>> GetHourlyAggregatesAsync(
+        public async Task<IReadOnlyList<HourlyAggregateItem>> GetHourlyAggregatesAsync(
             string sensorId,
             int days = 7,
             CancellationToken cancellationToken = default)

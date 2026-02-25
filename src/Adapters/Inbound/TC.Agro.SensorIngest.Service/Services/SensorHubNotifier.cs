@@ -1,10 +1,11 @@
+using TC.Agro.SensorIngest.Domain.Snapshots;
 using TC.Agro.SharedKernel.Infrastructure.Caching.Service;
 
 namespace TC.Agro.SensorIngest.Service.Services
 {
     internal sealed class SensorHubNotifier : ISensorHubNotifier
     {
-        private static readonly TimeSpan PlotIdCacheDuration = TimeSpan.FromMinutes(10);
+        private static readonly TimeSpan _plotIdCacheDuration = TimeSpan.FromMinutes(10);
 
         private readonly IHubContext<SensorHub, ISensorHubClient> _hubContext;
         private readonly ISensorSnapshotStore _snapshotStore;
@@ -25,7 +26,6 @@ namespace TC.Agro.SensorIngest.Service.Services
 
         public async Task NotifySensorReadingAsync(
             Guid sensorId,
-            string? label,
             double? temperature,
             double? humidity,
             double? soilMoisture,
@@ -33,23 +33,33 @@ namespace TC.Agro.SensorIngest.Service.Services
         {
             try
             {
-                var plotId = await ResolvePlotIdAsync(sensorId).ConfigureAwait(false);
-
-                if (plotId is null)
+                var sensor = await ResolvePlotAsync(sensorId).ConfigureAwait(false);
+                if (sensor is null)
                 {
                     _logger.LogWarning("Cannot broadcast reading: SensorSnapshot not found for {SensorId}", sensorId);
                     return;
                 }
 
-                var dto = new SensorReadingRequest(
+                var notification = new SensorReadingRequest(
                     sensorId,
-                    label,
+                    sensor.PlotId,
+                    sensor.Label,
+                    sensor.PlotName,
+                    sensor.PropertyName,
                     temperature,
                     humidity,
                     soilMoisture,
                     timestamp);
 
-                await _hubContext.Clients.Group($"plot:{plotId}").SensorReading(dto).ConfigureAwait(false);
+                await _hubContext.Clients.Group($"plot:{sensor.PlotId}").SensorReading(notification).ConfigureAwait(false);
+
+                _logger.LogInformation(
+                    "Sensor reading broadcast to plot {PlotId} (SensorId: {SensorId}, Temp: {Temperature}, Humidity: {Humidity}, SoilMoisture: {SoilMoisture})",
+                    sensor.PlotId,
+                    sensorId,
+                    temperature,
+                    humidity,
+                    soilMoisture);
             }
             catch (Exception ex)
             {
@@ -63,17 +73,16 @@ namespace TC.Agro.SensorIngest.Service.Services
         {
             try
             {
-                var plotId = await ResolvePlotIdAsync(sensorId).ConfigureAwait(false);
-
-                if (plotId is null)
+                var sensor = await ResolvePlotAsync(sensorId).ConfigureAwait(false);
+                if (sensor is null)
                 {
                     _logger.LogWarning("Cannot broadcast status change: SensorSnapshot not found for {SensorId}", sensorId);
                     return;
                 }
 
-                var dto = new SensorStatusChangedRequest(sensorId, status);
+                var notification = new SensorStatusChangedRequest(sensorId, status);
 
-                await _hubContext.Clients.Group($"plot:{plotId}").SensorStatusChanged(dto).ConfigureAwait(false);
+                await _hubContext.Clients.Group($"plot:{sensor.PlotId}").SensorStatusChanged(notification).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -81,18 +90,18 @@ namespace TC.Agro.SensorIngest.Service.Services
             }
         }
 
-        private async Task<Guid?> ResolvePlotIdAsync(Guid sensorId)
+        private async Task<SensorSnapshot?> ResolvePlotAsync(Guid sensorId)
         {
-            var cacheKey = $"sensor:plotId:{sensorId}";
+            string cacheKey = $"sensor:plotId:{sensorId}";
 
-            return await _cacheService.GetOrSetAsync<Guid?>(
+            return await _cacheService.GetOrSetAsync(
                 cacheKey,
                 async ct =>
                 {
                     var snapshot = await _snapshotStore.GetByIdAsync(sensorId, ct).ConfigureAwait(false);
-                    return snapshot?.PlotId;
+                    return snapshot;
                 },
-                PlotIdCacheDuration).ConfigureAwait(false);
+                _plotIdCacheDuration).ConfigureAwait(false);
         }
     }
 }

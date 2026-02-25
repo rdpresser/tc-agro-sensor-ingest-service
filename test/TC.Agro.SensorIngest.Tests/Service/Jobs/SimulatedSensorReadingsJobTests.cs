@@ -144,7 +144,7 @@ namespace TC.Agro.SensorIngest.Tests.Service.Jobs
 
             A.CallTo(() => _hubNotifier.NotifySensorReadingAsync(
                 sensorId,
-                A<string?>._, A<double?>._, A<double?>._, A<double?>._,
+                A<double?>._, A<double?>._, A<double?>._,
                 A<DateTimeOffset>._))
                 .MustHaveHappenedOnceExactly();
         }
@@ -192,7 +192,7 @@ namespace TC.Agro.SensorIngest.Tests.Service.Jobs
                 .MustHaveHappened(3, Times.Exactly);
 
             A.CallTo(() => _hubNotifier.NotifySensorReadingAsync(
-                A<Guid>._, A<string?>._, A<double?>._, A<double?>._, A<double?>._, A<DateTimeOffset>._))
+                A<Guid>._, A<double?>._, A<double?>._, A<double?>._, A<DateTimeOffset>._))
                 .MustHaveHappened(3, Times.Exactly);
         }
 

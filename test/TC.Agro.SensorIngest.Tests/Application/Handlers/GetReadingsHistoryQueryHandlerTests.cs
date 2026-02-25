@@ -44,7 +44,7 @@ namespace TC.Agro.SensorIngest.Tests.Application.Handlers
 
             A.CallTo(() => _readStore.GetHistoryAsync(
                 A<Guid>._, A<DateTime>._, A<DateTime>._, A<CancellationToken>._))
-                .Returns(Enumerable.Empty<ReadingHistoryItem>());
+                .Returns(new List<ReadingHistoryItem>());
 
             var query = new GetReadingsHistoryQuery { SensorId = sensorId, Days = 0 };
 
@@ -67,7 +67,7 @@ namespace TC.Agro.SensorIngest.Tests.Application.Handlers
 
             A.CallTo(() => _readStore.GetHistoryAsync(
                 A<Guid>._, A<DateTime>._, A<DateTime>._, A<CancellationToken>._))
-                .Returns(Enumerable.Empty<ReadingHistoryItem>());
+                .Returns(new List<ReadingHistoryItem>());
 
             var query = new GetReadingsHistoryQuery { SensorId = sensorId, Days = 100 };
 
@@ -89,7 +89,7 @@ namespace TC.Agro.SensorIngest.Tests.Application.Handlers
 
             A.CallTo(() => _readStore.GetHistoryAsync(
                 A<Guid>._, A<DateTime>._, A<DateTime>._, A<CancellationToken>._))
-                .Returns(Enumerable.Empty<ReadingHistoryItem>());
+                .Returns(new List<ReadingHistoryItem>());
 
             var query = new GetReadingsHistoryQuery { SensorId = sensorId, Days = 7 };
 
@@ -113,7 +113,7 @@ namespace TC.Agro.SensorIngest.Tests.Application.Handlers
 
             A.CallTo(() => _readStore.GetHistoryAsync(
                 A<Guid>._, A<DateTime>._, A<DateTime>._, A<CancellationToken>._))
-                .Returns(Enumerable.Empty<ReadingHistoryItem>());
+                .Returns(new List<ReadingHistoryItem>());
 
             var query = new GetReadingsHistoryQuery { SensorId = sensorId, Days = days };
 
@@ -161,7 +161,7 @@ namespace TC.Agro.SensorIngest.Tests.Application.Handlers
 
             A.CallTo(() => _readStore.GetHistoryAsync(
                 A<Guid>._, A<DateTime>._, A<DateTime>._, A<CancellationToken>._))
-                .Returns(Enumerable.Empty<ReadingHistoryItem>());
+                .Returns(new List<ReadingHistoryItem>());
 
             var query = new GetReadingsHistoryQuery { SensorId = Guid.NewGuid(), Days = 7 };
 
@@ -178,7 +178,7 @@ namespace TC.Agro.SensorIngest.Tests.Application.Handlers
 
             A.CallTo(() => _readStore.GetHistoryAsync(
                 A<Guid>._, A<DateTime>._, A<DateTime>._, A<CancellationToken>._))
-                .Returns((IEnumerable<ReadingHistoryItem>)null!);
+                .Returns((IReadOnlyList<ReadingHistoryItem>)null!);
 
             var query = new GetReadingsHistoryQuery { SensorId = Guid.NewGuid(), Days = 7 };
 

@@ -46,11 +46,6 @@ namespace TC.Agro.SensorIngest.Tests.Service.Hubs
             var now = DateTime.UtcNow;
             var label = "Sensor-001";
 
-            var readings = new List<SensorReadingAggregate>
-            {
-                SensorReadingAggregate.Create(sensorId, now, 25.0, 60.0, 40.0, null, 85.0).Value
-            };
-
             var snapshot = SensorSnapshot.Create(
                 sensorId,
                 ownerId,
@@ -60,12 +55,18 @@ namespace TC.Agro.SensorIngest.Tests.Service.Hubs
                 "Plot 1",
                 "Property 1");
 
-            A.CallTo(() => _readingRepository.GetByPlotIdAsync(
-                plotId, null, null, 10, A<CancellationToken>._))
-                .Returns(readings);
+            var readings = new List<SensorReadingAggregate>
+            {
+                SensorReadingAggregate.Create(sensorId, now, 25.0, 60.0, 40.0, null, 85.0).Value
+            };
 
-            A.CallTo(() => _snapshotStore.GetByIdAsync(sensorId, A<CancellationToken>._))
+            A.CallTo(() => _snapshotStore.GetByPlotIdAsync(
+                plotId, A<CancellationToken>._))
                 .Returns(snapshot);
+
+            A.CallTo(() => _readingRepository.GetByPlotIdAsync(
+                plotId, null, null, 20, A<CancellationToken>._))
+                .Returns(readings);
 
             await _hub.JoinPlotGroup(plotId.ToString());
 
@@ -76,7 +77,7 @@ namespace TC.Agro.SensorIngest.Tests.Service.Hubs
             A.CallTo(() => _callerClient.SensorReading(
                 A<SensorReadingRequest>.That.Matches(r =>
                     r.SensorId == sensorId &&
-                    r.Label == label)))
+                    r.SensorLabel == label)))
                 .MustHaveHappenedOnceExactly();
         }
 
@@ -84,9 +85,24 @@ namespace TC.Agro.SensorIngest.Tests.Service.Hubs
         public async Task JoinPlotGroup_WithNoRecentReadings_ShouldAddToGroupOnly()
         {
             var plotId = Guid.NewGuid();
+            var ownerId = Guid.NewGuid();
+            var propertyId = Guid.NewGuid();
+
+            var snapshot = SensorSnapshot.Create(
+                Guid.NewGuid(),
+                ownerId,
+                propertyId,
+                plotId,
+                "Sensor-001",
+                "Plot 1",
+                "Property 1");
+
+            A.CallTo(() => _snapshotStore.GetByPlotIdAsync(
+                plotId, A<CancellationToken>._))
+                .Returns(snapshot);
 
             A.CallTo(() => _readingRepository.GetByPlotIdAsync(
-                plotId, null, null, 10, A<CancellationToken>._))
+                plotId, null, null, 20, A<CancellationToken>._))
                 .Returns(Enumerable.Empty<SensorReadingAggregate>());
 
             await _hub.JoinPlotGroup(plotId.ToString());

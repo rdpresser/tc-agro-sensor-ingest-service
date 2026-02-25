@@ -21,27 +21,24 @@ namespace TC.Agro.SensorIngest.Service.Hubs
 
             await Groups.AddToGroupAsync(Context.ConnectionId, $"plot:{parsedPlotId}");
 
+            var sensor = await _snapshotStore.GetByPlotIdAsync(parsedPlotId, Context.ConnectionAborted);
+            if (sensor is null)
+            {
+                return;
+            }
+
             var recentReadings = await _readingRepository
-                .GetByPlotIdAsync(parsedPlotId, from: null, to: null, limit: 10, cancellationToken: Context.ConnectionAborted)
-                .ConfigureAwait(false);
-
-            var sensorIds = recentReadings
-                .Select(reading => reading.SensorId)
-                .Distinct()
-                .ToList();
-
-            var sensorsById = await _snapshotStore
-                .GetByIdsAsync(sensorIds, Context.ConnectionAborted)
+                .GetByPlotIdAsync(parsedPlotId, from: null, to: null, limit: 20, cancellationToken: Context.ConnectionAborted)
                 .ConfigureAwait(false);
 
             foreach (var reading in recentReadings)
             {
-                sensorsById.TryGetValue(reading.SensorId, out var sensor);
-                var label = sensor?.Label;
-
                 await Clients.Caller.SensorReading(new SensorReadingRequest(
                     reading.SensorId,
-                    label,
+                    sensor.PlotId,
+                    sensor.Label,
+                    sensor.PlotName,
+                    sensor.PropertyName,
                     reading.Temperature,
                     reading.Humidity,
                     reading.SoilMoisture,

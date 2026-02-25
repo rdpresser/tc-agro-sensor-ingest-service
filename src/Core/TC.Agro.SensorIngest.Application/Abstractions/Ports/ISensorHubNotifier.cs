@@ -4,7 +4,6 @@ namespace TC.Agro.SensorIngest.Application.Abstractions.Ports
     {
         Task NotifySensorReadingAsync(
             Guid sensorId,
-            string? label,
             double? temperature,
             double? humidity,
             double? soilMoisture,

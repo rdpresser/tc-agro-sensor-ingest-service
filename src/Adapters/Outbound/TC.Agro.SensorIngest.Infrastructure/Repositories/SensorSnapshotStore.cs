@@ -1,5 +1,3 @@
-using TC.Agro.SensorIngest.Domain.Snapshots;
-
 namespace TC.Agro.SensorIngest.Infrastructure.Repositories
 {
     internal class SensorSnapshotStore : ISensorSnapshotStore
@@ -53,6 +51,23 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
         {
             return await _dbContext.SensorSnapshots
                 .FirstOrDefaultAsync(o => o.Id == id, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        public async Task<IReadOnlyList<SensorSnapshot>> GetListByPlotIdAsync(Guid plotId, CancellationToken cancellationToken = default)
+        {
+            return await _dbContext.SensorSnapshots
+                .AsNoTracking()
+                .Where(s => s.PlotId == plotId && s.IsActive)
+                .ToListAsync(cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        public async Task<SensorSnapshot?> GetByPlotIdAsync(Guid plotId, CancellationToken cancellationToken = default)
+        {
+            return await _dbContext.SensorSnapshots
+                .AsNoTracking()
+                .FirstOrDefaultAsync(s => s.PlotId == plotId && s.IsActive, cancellationToken)
                 .ConfigureAwait(false);
         }
 

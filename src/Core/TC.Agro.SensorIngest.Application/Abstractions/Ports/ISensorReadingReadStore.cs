@@ -2,19 +2,19 @@ namespace TC.Agro.SensorIngest.Application.Abstractions.Ports
 {
     public interface ISensorReadingReadStore
     {
-        Task<IEnumerable<LatestReadingItem>> GetLatestReadingsAsync(
+        Task<IReadOnlyList<LatestReadingItem>> GetLatestReadingsAsync(
             Guid? sensorId = null,
             Guid? plotId = null,
             int limit = 10,
             CancellationToken cancellationToken = default);
 
-        Task<IEnumerable<ReadingHistoryItem>> GetHistoryAsync(
+        Task<IReadOnlyList<ReadingHistoryItem>> GetHistoryAsync(
             Guid sensorId,
             DateTime from,
             DateTime to,
             CancellationToken cancellationToken = default);
 
-        Task<IEnumerable<HourlyAggregateItem>> GetHourlyAggregatesAsync(
+        Task<IReadOnlyList<HourlyAggregateItem>> GetHourlyAggregatesAsync(
             string sensorId,
             int days = 7,
             CancellationToken cancellationToken = default);
