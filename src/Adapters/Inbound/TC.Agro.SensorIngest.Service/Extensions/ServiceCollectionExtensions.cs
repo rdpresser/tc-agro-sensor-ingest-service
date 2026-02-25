@@ -467,7 +467,7 @@ namespace TC.Agro.SensorIngest.Service.Extensions
             builder.Host.UseWolverine(opts =>
             {
                 opts.UseSystemTextJsonForSerialization();
-                opts.ServiceName = "tc-agro-sensor-ingest-service";
+                opts.ServiceName = TelemetryConstants.ServiceName;
                 opts.ApplicationAssembly = typeof(Program).Assembly;
 
                 // Include Application assembly for handlers
