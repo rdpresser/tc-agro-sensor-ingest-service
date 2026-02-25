@@ -12,25 +12,37 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         }
 
-        public async Task<IReadOnlyList<LatestReadingItem>> GetLatestReadingsAsync(
-            Guid? sensorId = null,
-            Guid? plotId = null,
-            int limit = 10,
+        public async Task<(IReadOnlyList<GetLatestReadingsResponse> Readings, int TotalCount)> GetLatestReadingsAsync(
+            GetLatestReadingsQuery query,
             CancellationToken cancellationToken = default)
         {
-            var query = _dbContext.SensorReadings.AsQueryable();
+            var readingsQuery = _dbContext.SensorReadings.AsQueryable();
 
-            if (sensorId.HasValue)
-                query = query.Where(x => x.SensorId == sensorId.Value);
+            if (query.SensorId.HasValue)
+            {
+                readingsQuery = readingsQuery.Where(x => x.SensorId == query.SensorId.Value);
+            }
 
-            return await query
+            if (query.PlotId.HasValue)
+            {
+                readingsQuery = readingsQuery.Where(x => x.Sensor.PlotId == query.PlotId.Value);
+            }
+
+            var totalCount = await readingsQuery.CountAsync(cancellationToken).ConfigureAwait(false);
+
+            var pageNumber = query.PageNumber < 1 ? 1 : query.PageNumber;
+            var pageSize = query.PageSize < 1 ? 10 : query.PageSize;
+            var skip = (pageNumber - 1) * pageSize;
+
+            var readings = await readingsQuery
                 .OrderByDescending(x => x.Time)
-                .Take(limit)
-                .Select(x => new LatestReadingItem(
+                .Skip(skip)
+                .Take(pageSize)
+                .Select(x => new GetLatestReadingsResponse(
                     x.Id,
                     x.SensorId,
                     x.Sensor.PlotId,
-                    x.Time.Date,
+                    x.Time,
                     x.Temperature,
                     x.Humidity,
                     x.SoilMoisture,
@@ -38,22 +50,35 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
                     x.BatteryLevel))
                 .ToListAsync(cancellationToken)
                 .ConfigureAwait(false);
+
+            return (readings, totalCount);
         }
 
-        public async Task<IReadOnlyList<ReadingHistoryItem>> GetHistoryAsync(
-            Guid sensorId,
-            DateTime from,
-            DateTime to,
+        public async Task<(IReadOnlyList<GetReadingsHistoryResponse> Readings, int TotalCount)> GetHistoryAsync(
+            GetReadingsHistoryQuery query,
             CancellationToken cancellationToken = default)
         {
-            return await _dbContext.SensorReadings
-                .Where(x => x.SensorId == sensorId && x.Time >= from && x.Time <= to)
+            var to = DateTimeOffset.UtcNow;
+            var from = to.AddDays(-Math.Clamp(query.Days, 1, 30));
+
+            var historyQuery = _dbContext.SensorReadings
+                .Where(x => x.SensorId == query.SensorId && x.Time >= from && x.Time <= to);
+
+            var totalCount = await historyQuery.CountAsync(cancellationToken).ConfigureAwait(false);
+
+            var pageNumber = query.PageNumber < 1 ? 1 : query.PageNumber;
+            var pageSize = query.PageSize < 1 ? 10 : query.PageSize;
+            var skip = (pageNumber - 1) * pageSize;
+
+            var readings = await historyQuery
                 .OrderByDescending(x => x.Time)
-                .Select(x => new ReadingHistoryItem(
+                .Skip(skip)
+                .Take(pageSize)
+                .Select(x => new GetReadingsHistoryResponse(
                     x.Id,
                     x.SensorId,
                     x.Sensor.PlotId,
-                    x.Time.Date,
+                    x.Time,
                     x.Temperature,
                     x.Humidity,
                     x.SoilMoisture,
@@ -61,6 +86,8 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
                     x.BatteryLevel))
                 .ToListAsync(cancellationToken)
                 .ConfigureAwait(false);
+
+            return (readings, totalCount);
         }
 
         public async Task<IReadOnlyList<HourlyAggregateItem>> GetHourlyAggregatesAsync(

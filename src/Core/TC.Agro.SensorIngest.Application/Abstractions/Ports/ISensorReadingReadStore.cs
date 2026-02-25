@@ -1,17 +1,15 @@
+using TC.Agro.SharedKernel.Infrastructure.Pagination;
+
 namespace TC.Agro.SensorIngest.Application.Abstractions.Ports
 {
     public interface ISensorReadingReadStore
     {
-        Task<IReadOnlyList<LatestReadingItem>> GetLatestReadingsAsync(
-            Guid? sensorId = null,
-            Guid? plotId = null,
-            int limit = 10,
+        Task<(IReadOnlyList<GetLatestReadingsResponse> Readings, int TotalCount)> GetLatestReadingsAsync(
+            GetLatestReadingsQuery query,
             CancellationToken cancellationToken = default);
 
-        Task<IReadOnlyList<ReadingHistoryItem>> GetHistoryAsync(
-            Guid sensorId,
-            DateTime from,
-            DateTime to,
+        Task<(IReadOnlyList<GetReadingsHistoryResponse> Readings, int TotalCount)> GetHistoryAsync(
+            GetReadingsHistoryQuery query,
             CancellationToken cancellationToken = default);
 
         Task<IReadOnlyList<HourlyAggregateItem>> GetHourlyAggregatesAsync(

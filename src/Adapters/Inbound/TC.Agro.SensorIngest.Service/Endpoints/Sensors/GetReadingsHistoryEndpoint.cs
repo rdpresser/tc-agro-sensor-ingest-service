@@ -1,6 +1,8 @@
+using TC.Agro.SharedKernel.Infrastructure.Pagination;
+
 namespace TC.Agro.SensorIngest.Service.Endpoints.Sensors
 {
-    public sealed class GetReadingsHistoryEndpoint : BaseApiEndpoint<GetReadingsHistoryQuery, GetReadingsHistoryResponse>
+    public sealed class GetReadingsHistoryEndpoint : BaseApiEndpoint<GetReadingsHistoryQuery, PaginatedResponse<GetReadingsHistoryResponse>>
     {
         public override void Configure()
         {
@@ -10,13 +12,13 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Sensors
             RequestBinder(new RequestBinder<GetReadingsHistoryQuery>(BindingSource.QueryParams));
             RequestBinder(new RequestBinder<GetReadingsHistoryQuery>(BindingSource.RouteValues));
 
-            PreProcessor<QueryCachingPreProcessorBehavior<GetReadingsHistoryQuery, GetReadingsHistoryResponse>>();
-            PostProcessor<QueryCachingPostProcessorBehavior<GetReadingsHistoryQuery, GetReadingsHistoryResponse>>();
+            PreProcessor<QueryCachingPreProcessorBehavior<GetReadingsHistoryQuery, PaginatedResponse<GetReadingsHistoryResponse>>>();
+            PostProcessor<QueryCachingPostProcessorBehavior<GetReadingsHistoryQuery, PaginatedResponse<GetReadingsHistoryResponse>>>();
 
             Roles(AppRoles.Admin, AppRoles.Producer);
 
             Description(
-                x => x.Produces<GetReadingsHistoryResponse>(200)
+                x => x.Produces<PaginatedResponse<GetReadingsHistoryResponse>>(200)
                       .ProducesProblemDetails()
                       .Produces(401));
 

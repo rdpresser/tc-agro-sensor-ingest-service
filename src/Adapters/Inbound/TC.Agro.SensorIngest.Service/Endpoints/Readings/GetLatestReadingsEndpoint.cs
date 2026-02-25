@@ -1,18 +1,20 @@
+using TC.Agro.SharedKernel.Infrastructure.Pagination;
+
 namespace TC.Agro.SensorIngest.Service.Endpoints.Readings
 {
-    public sealed class GetLatestReadingsEndpoint : BaseApiEndpoint<GetLatestReadingsQuery, GetLatestReadingsResponse>
+    public sealed class GetLatestReadingsEndpoint : BaseApiEndpoint<GetLatestReadingsQuery, PaginatedResponse<GetLatestReadingsResponse>>
     {
         public override void Configure()
         {
             Get("readings/latest");
             RequestBinder(new RequestBinder<GetLatestReadingsQuery>(BindingSource.QueryParams));
-            PreProcessor<QueryCachingPreProcessorBehavior<GetLatestReadingsQuery, GetLatestReadingsResponse>>();
-            PostProcessor<QueryCachingPostProcessorBehavior<GetLatestReadingsQuery, GetLatestReadingsResponse>>();
+            PreProcessor<QueryCachingPreProcessorBehavior<GetLatestReadingsQuery, PaginatedResponse<GetLatestReadingsResponse>>>();
+            PostProcessor<QueryCachingPostProcessorBehavior<GetLatestReadingsQuery, PaginatedResponse<GetLatestReadingsResponse>>>();
 
             Roles(AppRoles.Admin, AppRoles.Producer);
 
             Description(
-                x => x.Produces<GetLatestReadingsResponse>(200)
+                x => x.Produces<PaginatedResponse<GetLatestReadingsResponse>>(200)
                       .ProducesProblemDetails()
                       .Produces(401));
 

@@ -1,6 +1,8 @@
+using TC.Agro.SharedKernel.Infrastructure.Pagination;
+
 namespace TC.Agro.SensorIngest.Application.UseCases.GetLatestReadings
 {
-    internal sealed class GetLatestReadingsQueryHandler : BaseQueryHandler<GetLatestReadingsQuery, GetLatestReadingsResponse>
+    internal sealed class GetLatestReadingsQueryHandler : BaseQueryHandler<GetLatestReadingsQuery, PaginatedResponse<GetLatestReadingsResponse>>
     {
         private readonly ISensorReadingReadStore _readStore;
         private readonly ILogger<GetLatestReadingsQueryHandler> _logger;
@@ -13,25 +15,41 @@ namespace TC.Agro.SensorIngest.Application.UseCases.GetLatestReadings
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public override async Task<Result<GetLatestReadingsResponse>> ExecuteAsync(
+        public override async Task<Result<PaginatedResponse<GetLatestReadingsResponse>>> ExecuteAsync(
             GetLatestReadingsQuery query,
             CancellationToken ct = default)
         {
-            var limit = Math.Min(query.Limit, AppConstants.MaxReadLimit);
+            var maxPageSize = AppConstants.MaxReadLimit;
+            var requestedPageSize = query.PageSize;
+            var normalizedPageSize = Math.Clamp(requestedPageSize, 1, maxPageSize);
+            var normalizedPageNumber = query.PageNumber < 1 ? 1 : query.PageNumber;
 
-            var readings = await _readStore.GetLatestReadingsAsync(
-                sensorId: query.SensorId,
-                plotId: query.PlotId,
-                limit: limit,
-                cancellationToken: ct).ConfigureAwait(false);
+            var normalizedQuery = query with
+            {
+                PageNumber = normalizedPageNumber,
+                PageSize = normalizedPageSize
+            };
+
+            var (readings, totalCount) = await _readStore.GetLatestReadingsAsync(
+                normalizedQuery,
+                ct).ConfigureAwait(false);
 
             _logger.LogInformation(
-                "Retrieved {Count} latest readings for SensorId={SensorId}, PlotId={PlotId}",
-                readings?.Count() ?? 0,
-                query.SensorId,
-                query.PlotId);
+                "Retrieved {Count} latest readings (Total={TotalCount}) for SensorId={SensorId}, PlotId={PlotId}, Page={PageNumber}, PageSize={PageSize}",
+                readings?.Count ?? 0,
+                totalCount,
+                normalizedQuery.SensorId,
+                normalizedQuery.PlotId,
+                normalizedQuery.PageNumber,
+                normalizedQuery.PageSize);
 
-            return Result.Success(new GetLatestReadingsResponse(readings ?? []));
+            var response = new PaginatedResponse<GetLatestReadingsResponse>(
+                data: readings is null ? [] : [.. readings],
+                totalCount: totalCount,
+                pageNumber: normalizedQuery.PageNumber,
+                pageSize: normalizedQuery.PageSize);
+
+            return Result.Success(response);
         }
     }
 }

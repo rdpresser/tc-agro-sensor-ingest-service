@@ -43,24 +43,22 @@ namespace TC.Agro.SensorIngest.Tests.Application.Handlers
             var ct = TestContext.Current.CancellationToken;
             var sensorId = Guid.NewGuid();
 
-            var expectedReadings = new List<LatestReadingItem>
+            var expectedReadings = new List<GetLatestReadingsResponse>
             {
-                new(Guid.NewGuid(), sensorId, Guid.NewGuid(), DateTime.UtcNow, 25.0, 60.0, 40.0, 0.0, 85.0)
+                new(Guid.NewGuid(), sensorId, Guid.NewGuid(), DateTimeOffset.UtcNow, 25.0, 60.0, 40.0, 0.0, 85.0)
             };
 
             A.CallTo(() => _readStore.GetLatestReadingsAsync(
-                sensorId: sensorId,
-                plotId: null,
-                limit: 10,
-                cancellationToken: A<CancellationToken>._))
-                .Returns(expectedReadings);
+                A<GetLatestReadingsQuery>.That.Matches(q => q.SensorId == sensorId && q.PageNumber == 1 && q.PageSize == 10),
+                A<CancellationToken>._))
+                .Returns((expectedReadings, expectedReadings.Count));
 
-            var query = new GetLatestReadingsQuery { SensorId = sensorId, Limit = 10 };
+            var query = new GetLatestReadingsQuery { SensorId = sensorId, PageSize = 10 };
 
             var result = await _handler.ExecuteAsync(query, ct);
 
             result.IsSuccess.ShouldBeTrue();
-            result.Value.Readings.Count.ShouldBe(1);
+            result.Value.Data.Count.ShouldBe(1);
         }
 
         [Fact]
@@ -69,18 +67,16 @@ namespace TC.Agro.SensorIngest.Tests.Application.Handlers
             var ct = TestContext.Current.CancellationToken;
 
             A.CallTo(() => _readStore.GetLatestReadingsAsync(
-                sensorId: A<Guid?>._, 
-                plotId: A<Guid?>._, 
-                limit: A<int>._, 
-                cancellationToken: A<CancellationToken>._))
-                .Returns(new List<LatestReadingItem>());
+                A<GetLatestReadingsQuery>._,
+                A<CancellationToken>._))
+                .Returns((new List<GetLatestReadingsResponse>(), 0));
 
-            var query = new GetLatestReadingsQuery { Limit = 10 };
+            var query = new GetLatestReadingsQuery { PageSize = 10 };
 
             var result = await _handler.ExecuteAsync(query, ct);
 
             result.IsSuccess.ShouldBeTrue();
-            result.Value.Readings.ShouldBeEmpty();
+            result.Value.Data.ShouldBeEmpty();
         }
 
         [Fact]
@@ -89,69 +85,67 @@ namespace TC.Agro.SensorIngest.Tests.Application.Handlers
             var ct = TestContext.Current.CancellationToken;
 
             A.CallTo(() => _readStore.GetLatestReadingsAsync(
-                sensorId: A<Guid?>._, 
-                plotId: A<Guid?>._, 
-                limit: A<int>._, 
-                cancellationToken: A<CancellationToken>._))
-                .Returns((IReadOnlyList<LatestReadingItem>)null!);
+                A<GetLatestReadingsQuery>._,
+                A<CancellationToken>._))
+                .Returns(((IReadOnlyList<GetLatestReadingsResponse>)null!, 0));
 
-            var query = new GetLatestReadingsQuery { Limit = 10 };
+            var query = new GetLatestReadingsQuery { PageSize = 10 };
 
             var result = await _handler.ExecuteAsync(query, ct);
 
             result.IsSuccess.ShouldBeTrue();
-            result.Value.Readings.ShouldBeEmpty();
+            result.Value.Data.ShouldBeEmpty();
         }
 
         #endregion
 
-        #region Limit Capping
+        #region PageSize Capping
 
         [Fact]
-        public async Task ExecuteAsync_WithLimitAboveMax_ShouldCapAtMaxReadLimit()
+        public async Task ExecuteAsync_WithPageSizeAboveMax_ShouldCapAtMaxReadLimit()
         {
             var ct = TestContext.Current.CancellationToken;
 
             A.CallTo(() => _readStore.GetLatestReadingsAsync(
-                sensorId: A<Guid?>._, 
-                plotId: A<Guid?>._, 
-                limit: A<int>._, 
-                cancellationToken: A<CancellationToken>._))
-                .Returns(new List<LatestReadingItem>());
+                A<GetLatestReadingsQuery>._,
+                A<CancellationToken>._))
+                .Returns((new List<GetLatestReadingsResponse>(), 0));
 
-            var query = new GetLatestReadingsQuery { Limit = 5000 };
+            var query = new GetLatestReadingsQuery { PageSize = 5000 };
 
             await _handler.ExecuteAsync(query, ct);
 
             A.CallTo(() => _readStore.GetLatestReadingsAsync(
-                sensorId: null, 
-                plotId: null, 
-                limit: AppConstants.MaxReadLimit, 
-                cancellationToken: A<CancellationToken>._))
+                A<GetLatestReadingsQuery>.That.Matches(q =>
+                    q.SensorId == null &&
+                    q.PlotId == null &&
+                    q.PageNumber == 1 &&
+                    q.PageSize == AppConstants.MaxReadLimit),
+                A<CancellationToken>._))
                 .MustHaveHappenedOnceExactly();
         }
 
         [Fact]
-        public async Task ExecuteAsync_WithLimitBelowMax_ShouldUseProvidedLimit()
+        public async Task ExecuteAsync_WithPageSizeBelowMax_ShouldUseProvidedPageSize()
         {
             var ct = TestContext.Current.CancellationToken;
 
             A.CallTo(() => _readStore.GetLatestReadingsAsync(
-                sensorId: A<Guid?>._, 
-                plotId: A<Guid?>._, 
-                limit: A<int>._, 
-                cancellationToken: A<CancellationToken>._))
-                .Returns(new List<LatestReadingItem>());
+                A<GetLatestReadingsQuery>._,
+                A<CancellationToken>._))
+                .Returns((new List<GetLatestReadingsResponse>(), 0));
 
-            var query = new GetLatestReadingsQuery { Limit = 50 };
+            var query = new GetLatestReadingsQuery { PageSize = 50 };
 
             await _handler.ExecuteAsync(query, ct);
 
             A.CallTo(() => _readStore.GetLatestReadingsAsync(
-                sensorId: null, 
-                plotId: null, 
-                limit: 50, 
-                cancellationToken: A<CancellationToken>._))
+                A<GetLatestReadingsQuery>.That.Matches(q =>
+                    q.SensorId == null &&
+                    q.PlotId == null &&
+                    q.PageNumber == 1 &&
+                    q.PageSize == 50),
+                A<CancellationToken>._))
                 .MustHaveHappenedOnceExactly();
         }
 
@@ -166,21 +160,20 @@ namespace TC.Agro.SensorIngest.Tests.Application.Handlers
             var sensorId = Guid.NewGuid();
 
             A.CallTo(() => _readStore.GetLatestReadingsAsync(
-                sensorId: A<Guid?>._, 
-                plotId: A<Guid?>._, 
-                limit: A<int>._, 
-                cancellationToken: A<CancellationToken>._))
-                .Returns(new List<LatestReadingItem>());
+                A<GetLatestReadingsQuery>._,
+                A<CancellationToken>._))
+                .Returns((new List<GetLatestReadingsResponse>(), 0));
 
-            var query = new GetLatestReadingsQuery { SensorId = sensorId, Limit = 10 };
+            var query = new GetLatestReadingsQuery { SensorId = sensorId, PageSize = 10 };
 
             await _handler.ExecuteAsync(query, ct);
 
             A.CallTo(() => _readStore.GetLatestReadingsAsync(
-                sensorId: sensorId, 
-                plotId: null, 
-                limit: 10, 
-                cancellationToken: A<CancellationToken>._))
+                A<GetLatestReadingsQuery>.That.Matches(q =>
+                    q.SensorId == sensorId &&
+                    q.PlotId == null &&
+                    q.PageSize == 10),
+                A<CancellationToken>._))
                 .MustHaveHappenedOnceExactly();
         }
 
@@ -191,21 +184,20 @@ namespace TC.Agro.SensorIngest.Tests.Application.Handlers
             var plotId = Guid.NewGuid();
 
             A.CallTo(() => _readStore.GetLatestReadingsAsync(
-                sensorId: A<Guid?>._, 
-                plotId: A<Guid?>._, 
-                limit: A<int>._, 
-                cancellationToken: A<CancellationToken>._))
-                .Returns(new List<LatestReadingItem>());
+                A<GetLatestReadingsQuery>._,
+                A<CancellationToken>._))
+                .Returns((new List<GetLatestReadingsResponse>(), 0));
 
-            var query = new GetLatestReadingsQuery { PlotId = plotId, Limit = 10 };
+            var query = new GetLatestReadingsQuery { PlotId = plotId, PageSize = 10 };
 
             await _handler.ExecuteAsync(query, ct);
 
             A.CallTo(() => _readStore.GetLatestReadingsAsync(
-                sensorId: null, 
-                plotId: plotId, 
-                limit: 10, 
-                cancellationToken: A<CancellationToken>._))
+                A<GetLatestReadingsQuery>.That.Matches(q =>
+                    q.SensorId == null &&
+                    q.PlotId == plotId &&
+                    q.PageSize == 10),
+                A<CancellationToken>._))
                 .MustHaveHappenedOnceExactly();
         }
 
