@@ -1,4 +1,4 @@
-using ZiggyCreatures.Caching.Fusion;
+using TC.Agro.SharedKernel.Infrastructure.Caching.Service;
 
 namespace TC.Agro.SensorIngest.Service.Services
 {
@@ -8,23 +8,24 @@ namespace TC.Agro.SensorIngest.Service.Services
 
         private readonly IHubContext<SensorHub, ISensorHubClient> _hubContext;
         private readonly ISensorSnapshotStore _snapshotStore;
-        private readonly IFusionCache _cache;
+        private readonly ICacheService _cacheService;
         private readonly ILogger<SensorHubNotifier> _logger;
 
         public SensorHubNotifier(
             IHubContext<SensorHub, ISensorHubClient> hubContext,
             ISensorSnapshotStore snapshotStore,
-            IFusionCache cache,
+            ICacheService cacheService,
             ILogger<SensorHubNotifier> logger)
         {
             _hubContext = hubContext ?? throw new ArgumentNullException(nameof(hubContext));
             _snapshotStore = snapshotStore ?? throw new ArgumentNullException(nameof(snapshotStore));
-            _cache = cache ?? throw new ArgumentNullException(nameof(cache));
+            _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task NotifySensorReadingAsync(
             Guid sensorId,
+            string? label,
             double? temperature,
             double? humidity,
             double? soilMoisture,
@@ -42,6 +43,7 @@ namespace TC.Agro.SensorIngest.Service.Services
 
                 var dto = new SensorReadingRequest(
                     sensorId,
+                    label,
                     temperature,
                     humidity,
                     soilMoisture,
@@ -83,14 +85,14 @@ namespace TC.Agro.SensorIngest.Service.Services
         {
             var cacheKey = $"sensor:plotId:{sensorId}";
 
-            return await _cache.GetOrSetAsync<Guid?>(
+            return await _cacheService.GetOrSetAsync<Guid?>(
                 cacheKey,
-                async (_, ct) =>
+                async ct =>
                 {
                     var snapshot = await _snapshotStore.GetByIdAsync(sensorId, ct).ConfigureAwait(false);
                     return snapshot?.PlotId;
                 },
-                new FusionCacheEntryOptions { Duration = PlotIdCacheDuration }).ConfigureAwait(false);
+                PlotIdCacheDuration).ConfigureAwait(false);
         }
     }
 }

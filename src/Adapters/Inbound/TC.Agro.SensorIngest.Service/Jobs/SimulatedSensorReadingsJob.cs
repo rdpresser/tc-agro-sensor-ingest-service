@@ -90,6 +90,9 @@ namespace TC.Agro.SensorIngest.Service.Jobs
                 {
                     try
                     {
+                        var sensor = activeSensors.FirstOrDefault(s => s.Id == reading.SensorId);
+                        var label = sensor?.Label;
+
                         var integrationEvent = EventContext<SensorIngestedIntegrationEvent>.CreateBasic<SensorReadingAggregate>(
                             new SensorIngestedIntegrationEvent(
                                 reading.Id,
@@ -107,6 +110,7 @@ namespace TC.Agro.SensorIngest.Service.Jobs
 
                         await hubNotifier.NotifySensorReadingAsync(
                             reading.SensorId,
+                            label,
                             reading.Temperature,
                             reading.Humidity,
                             reading.SoilMoisture,

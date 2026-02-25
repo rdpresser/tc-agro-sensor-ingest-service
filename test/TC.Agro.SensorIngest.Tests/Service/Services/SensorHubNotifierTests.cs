@@ -3,10 +3,9 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using TC.Agro.SensorIngest.Application.Abstractions.Ports;
-using TC.Agro.SensorIngest.Domain.Snapshots;
 using TC.Agro.SensorIngest.Service.Hubs;
 using TC.Agro.SensorIngest.Service.Services;
-using ZiggyCreatures.Caching.Fusion;
+using TC.Agro.SharedKernel.Infrastructure.Caching.Service;
 
 namespace TC.Agro.SensorIngest.Tests.Service.Services
 {
@@ -14,7 +13,7 @@ namespace TC.Agro.SensorIngest.Tests.Service.Services
     {
         private readonly IHubContext<SensorHub, ISensorHubClient> _hubContext;
         private readonly ISensorSnapshotStore _snapshotStore;
-        private readonly IFusionCache _cache;
+        private readonly ICacheService _cache;
         private readonly ILogger<SensorHubNotifier> _logger;
         private readonly SensorHubNotifier _notifier;
         private readonly ISensorHubClient _client;
@@ -23,7 +22,7 @@ namespace TC.Agro.SensorIngest.Tests.Service.Services
         {
             _hubContext = A.Fake<IHubContext<SensorHub, ISensorHubClient>>();
             _snapshotStore = A.Fake<ISensorSnapshotStore>();
-            _cache = A.Fake<IFusionCache>();
+            _cache = A.Fake<ICacheService>();
             _logger = NullLogger<SensorHubNotifier>.Instance;
             _client = A.Fake<ISensorHubClient>();
             _notifier = new SensorHubNotifier(_hubContext, _snapshotStore, _cache, _logger);
@@ -36,6 +35,7 @@ namespace TC.Agro.SensorIngest.Tests.Service.Services
         {
             var sensorId = Guid.NewGuid();
             var plotId = Guid.NewGuid();
+            var label = "Sensor-001";
 
             SetupCacheToReturn(sensorId, plotId);
 
@@ -44,11 +44,12 @@ namespace TC.Agro.SensorIngest.Tests.Service.Services
 
             var timestamp = DateTimeOffset.UtcNow;
 
-            await _notifier.NotifySensorReadingAsync(sensorId, 25.0, 60.0, 40.0, timestamp);
+            await _notifier.NotifySensorReadingAsync(sensorId, label, 25.0, 60.0, 40.0, timestamp);
 
             A.CallTo(() => _client.SensorReading(
                 A<SensorReadingRequest>.That.Matches(r =>
                     r.SensorId == sensorId &&
+                    r.Label == label &&
                     r.Timestamp == timestamp)))
                 .MustHaveHappenedOnceExactly();
         }
@@ -60,7 +61,7 @@ namespace TC.Agro.SensorIngest.Tests.Service.Services
 
             SetupCacheToReturn(sensorId, null);
 
-            await _notifier.NotifySensorReadingAsync(sensorId, 25.0, 60.0, 40.0, DateTimeOffset.UtcNow);
+            await _notifier.NotifySensorReadingAsync(sensorId, "Sensor-001", 25.0, 60.0, 40.0, DateTimeOffset.UtcNow);
 
             A.CallTo(() => _hubContext.Clients.Group(A<string>._))
                 .MustNotHaveHappened();
@@ -74,7 +75,7 @@ namespace TC.Agro.SensorIngest.Tests.Service.Services
             SetupCacheToThrow(new InvalidOperationException("DB error"));
 
             var exception = await Record.ExceptionAsync(() =>
-                _notifier.NotifySensorReadingAsync(sensorId, 25.0, 60.0, 40.0, DateTimeOffset.UtcNow));
+                _notifier.NotifySensorReadingAsync(sensorId, "Sensor-001", 25.0, 60.0, 40.0, DateTimeOffset.UtcNow));
 
             exception.ShouldBeNull();
         }

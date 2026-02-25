@@ -6,10 +6,12 @@ namespace TC.Agro.SensorIngest.Service.Hubs
     public sealed class SensorHub : Hub<ISensorHubClient>
     {
         private readonly ISensorReadingRepository _readingRepository;
+        private readonly ISensorSnapshotStore _snapshotStore;
 
-        public SensorHub(ISensorReadingRepository readingRepository)
+        public SensorHub(ISensorReadingRepository readingRepository, ISensorSnapshotStore snapshotStore)
         {
             _readingRepository = readingRepository;
+            _snapshotStore = snapshotStore;
         }
 
         public async Task JoinPlotGroup(string plotId)
@@ -23,10 +25,23 @@ namespace TC.Agro.SensorIngest.Service.Hubs
                 .GetByPlotIdAsync(parsedPlotId, from: null, to: null, limit: 10, cancellationToken: Context.ConnectionAborted)
                 .ConfigureAwait(false);
 
+            var sensorIds = recentReadings
+                .Select(reading => reading.SensorId)
+                .Distinct()
+                .ToList();
+
+            var sensorsById = await _snapshotStore
+                .GetByIdsAsync(sensorIds, Context.ConnectionAborted)
+                .ConfigureAwait(false);
+
             foreach (var reading in recentReadings)
             {
+                sensorsById.TryGetValue(reading.SensorId, out var sensor);
+                var label = sensor?.Label;
+
                 await Clients.Caller.SensorReading(new SensorReadingRequest(
                     reading.SensorId,
+                    label,
                     reading.Temperature,
                     reading.Humidity,
                     reading.SoilMoisture,

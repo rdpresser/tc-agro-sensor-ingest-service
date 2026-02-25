@@ -2,6 +2,7 @@ using FakeItEasy;
 using Microsoft.AspNetCore.SignalR;
 using TC.Agro.SensorIngest.Application.Abstractions.Ports;
 using TC.Agro.SensorIngest.Domain.Aggregates;
+using TC.Agro.SensorIngest.Domain.Snapshots;
 using TC.Agro.SensorIngest.Service.Hubs;
 
 namespace TC.Agro.SensorIngest.Tests.Service.Hubs
@@ -9,14 +10,16 @@ namespace TC.Agro.SensorIngest.Tests.Service.Hubs
     public class SensorHubTests
     {
         private readonly ISensorReadingRepository _readingRepository;
+        private readonly ISensorSnapshotStore _snapshotStore;
         private readonly SensorHub _hub;
         private readonly ISensorHubClient _callerClient;
 
         public SensorHubTests()
         {
             _readingRepository = A.Fake<ISensorReadingRepository>();
+            _snapshotStore = A.Fake<ISensorSnapshotStore>();
             _callerClient = A.Fake<ISensorHubClient>();
-            _hub = new SensorHub(_readingRepository);
+            _hub = new SensorHub(_readingRepository, _snapshotStore);
 
             // Setup Hub context mocks
             var hubCallerContext = A.Fake<HubCallerContext>();
@@ -38,16 +41,31 @@ namespace TC.Agro.SensorIngest.Tests.Service.Hubs
         {
             var plotId = Guid.NewGuid();
             var sensorId = Guid.NewGuid();
+            var ownerId = Guid.NewGuid();
+            var propertyId = Guid.NewGuid();
             var now = DateTime.UtcNow;
+            var label = "Sensor-001";
 
             var readings = new List<SensorReadingAggregate>
             {
                 SensorReadingAggregate.Create(sensorId, now, 25.0, 60.0, 40.0, null, 85.0).Value
             };
 
+            var snapshot = SensorSnapshot.Create(
+                sensorId,
+                ownerId,
+                propertyId,
+                plotId,
+                label,
+                "Plot 1",
+                "Property 1");
+
             A.CallTo(() => _readingRepository.GetByPlotIdAsync(
                 plotId, null, null, 10, A<CancellationToken>._))
                 .Returns(readings);
+
+            A.CallTo(() => _snapshotStore.GetByIdAsync(sensorId, A<CancellationToken>._))
+                .Returns(snapshot);
 
             await _hub.JoinPlotGroup(plotId.ToString());
 
@@ -57,7 +75,8 @@ namespace TC.Agro.SensorIngest.Tests.Service.Hubs
 
             A.CallTo(() => _callerClient.SensorReading(
                 A<SensorReadingRequest>.That.Matches(r =>
-                    r.SensorId == sensorId)))
+                    r.SensorId == sensorId &&
+                    r.Label == label)))
                 .MustHaveHappenedOnceExactly();
         }
 

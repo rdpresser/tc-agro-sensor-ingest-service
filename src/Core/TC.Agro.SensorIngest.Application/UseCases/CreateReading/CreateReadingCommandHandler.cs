@@ -71,8 +71,12 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateReading
 
         protected override async Task<CreateReadingResponse> BuildResponseAsync(SensorReadingAggregate aggregate, CancellationToken ct)
         {
+            var snapshot = await _sensorSnapshotStore.GetByIdAsync(aggregate.SensorId, ct).ConfigureAwait(false);
+            var label = snapshot?.Label;
+
             await _hubNotifier.NotifySensorReadingAsync(
                 aggregate.SensorId,
+                label,
                 aggregate.Temperature,
                 aggregate.Humidity,
                 aggregate.SoilMoisture,
