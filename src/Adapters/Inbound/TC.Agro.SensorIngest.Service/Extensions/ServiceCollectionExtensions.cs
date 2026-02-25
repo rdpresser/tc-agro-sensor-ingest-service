@@ -116,8 +116,17 @@ namespace TC.Agro.SensorIngest.Service.Extensions
                 {
                     s.Title = "TC.Agro.SensorIngest API";
                     s.Version = "v1";
-                    s.Description = "Sensor Ingest API for TC.Agro Solutions";
+                    s.Description = "High-throughput sensor data ingestion API for the TC Agro Solutions agricultural IoT platform. "
+                        + "Receives sensor readings, validates data, persists to TimescaleDB, and publishes events for downstream analytics.";
                     s.MarkNonNullablePropsAsRequired();
+
+                    s.AddAuth("Bearer", new NSwag.OpenApiSecurityScheme
+                    {
+                        Type = NSwag.OpenApiSecuritySchemeType.Http,
+                        Scheme = "bearer",
+                        BearerFormat = "JWT",
+                        Description = "Enter your JWT token. Example: eyJhbGciOiJIUzI1NiIs..."
+                    });
                 };
 
                 o.RemoveEmptyRequestSchema = true;
