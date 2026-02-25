@@ -6,8 +6,8 @@ namespace TC.Agro.SensorIngest.Service.Telemetry
         public const string Version = "1.0.0";
 
         // Service Identity - Centralized for consistency (matches Docker Compose)
-        public const string ServiceName = "tcagro-sensor-ingest";
-        public const string ServiceNamespace = "tcagro";
+        public const string ServiceName = "tc-agro-sensor-ingest";
+        public const string ServiceNamespace = "tc-agro";
 
         // Meter Names for OpenTelemetry Metrics
         public const string SensorIngestMeterName = "TC.Agro.SensorIngest.Service.Metrics";
