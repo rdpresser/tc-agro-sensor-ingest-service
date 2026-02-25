@@ -2,7 +2,8 @@ using JasperFx.Resources;
 using Quartz;
 using TC.Agro.Contracts.Events.SensorIngested;
 using TC.Agro.Messaging.Extensions;
-using TC.Agro.SensorIngest.Application.Abstractions.Ports;
+using TC.Agro.SensorIngest.Infrastructure.Options.Jobs;
+using TC.Agro.SensorIngest.Infrastructure.Options.Wheater;
 using TC.Agro.SensorIngest.Service.Providers;
 using TC.Agro.SharedKernel.Infrastructure.Messaging;
 
@@ -34,13 +35,11 @@ namespace TC.Agro.SensorIngest.Service.Extensions
 
             services.AddScoped<ISensorHubNotifier, Services.SensorHubNotifier>();
 
-            var weatherSection = builder.Configuration.GetSection("WeatherProvider");
-            services.Configure<WeatherProviderOptions>(weatherSection);
-
-            var weatherOptions = weatherSection.Get<WeatherProviderOptions>() ?? new WeatherProviderOptions();
-            services.AddHttpClient<IWeatherDataProvider, OpenMeteoWeatherProvider>(client =>
+            services.AddHttpClient<IWeatherDataProvider, OpenMeteoWeatherProvider>((sp, client) =>
             {
-                client.BaseAddress = new Uri(weatherOptions.BaseUrl);
+                var weatherOptionsFactory = sp.GetRequiredService<WeatherProviderOptionsFactory>();
+
+                client.BaseAddress = new Uri(weatherOptionsFactory.BaseUrl);
                 client.Timeout = TimeSpan.FromSeconds(10);
             });
 
@@ -433,17 +432,16 @@ namespace TC.Agro.SensorIngest.Service.Extensions
 
         private static IServiceCollection AddQuartzScheduling(this IServiceCollection services, IConfiguration configuration)
         {
-            var jobEnabled = configuration.GetValue("SensorReadingsJob:Enabled", false);
-
-            if (!jobEnabled)
+            var jobOptions = SensorReadingsJobOptionsHelper.Build(configuration);
+            if (!jobOptions.Enabled)
                 return services;
 
-            var intervalMinutes = configuration.GetValue("SensorReadingsJob:IntervalMinutes", 2);
+            var intervalSeconds = jobOptions.IntervalSeconds;
 
-            if (intervalMinutes < 1)
+            if (intervalSeconds < 1)
             {
                 throw new InvalidOperationException(
-                    $"SensorReadingsJob:IntervalMinutes must be >= 1, but was {intervalMinutes}.");
+                    $"Jobs:SensorReadings:IntervalSeconds must be >= 1, but was {intervalSeconds}.");
             }
 
             services.AddQuartz(q =>
@@ -455,7 +453,7 @@ namespace TC.Agro.SensorIngest.Service.Extensions
                 q.AddTrigger(opts => opts
                     .ForJob(jobKey)
                     .WithIdentity("SimulatedSensorReadings-Trigger", "SensorIngest")
-                    .WithSimpleSchedule(x => x.WithIntervalInMinutes(intervalMinutes).RepeatForever())
+                    .WithSimpleSchedule(x => x.WithIntervalInSeconds(intervalSeconds).RepeatForever())
                     .StartNow());
             });
 

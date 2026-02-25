@@ -2,7 +2,8 @@ using System.Globalization;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
 using TC.Agro.SensorIngest.Application.Abstractions.Ports;
-using ZiggyCreatures.Caching.Fusion;
+using TC.Agro.SensorIngest.Infrastructure.Options.Wheater;
+using TC.Agro.SharedKernel.Infrastructure.Caching.Service;
 
 namespace TC.Agro.SensorIngest.Service.Providers
 {
@@ -12,18 +13,18 @@ namespace TC.Agro.SensorIngest.Service.Providers
         private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(60);
 
         private readonly HttpClient _httpClient;
-        private readonly IFusionCache _cache;
+        private readonly ICacheService _cacheService;
         private readonly WeatherProviderOptions _options;
         private readonly ILogger<OpenMeteoWeatherProvider> _logger;
 
         public OpenMeteoWeatherProvider(
             HttpClient httpClient,
-            IFusionCache cache,
+            ICacheService cacheService,
             IOptions<WeatherProviderOptions> options,
             ILogger<OpenMeteoWeatherProvider> logger)
         {
             _httpClient = httpClient;
-            _cache = cache;
+            _cacheService = cacheService;
             _options = options.Value;
             _logger = logger;
         }
@@ -32,11 +33,12 @@ namespace TC.Agro.SensorIngest.Service.Providers
         {
             try
             {
-                return await _cache.GetOrSetAsync<WeatherData?>(
+                return await _cacheService.GetOrSetAsync(
                     CacheKey,
-                    async (ctx, ct2) => await FetchFromApiAsync(ct2),
-                    new FusionCacheEntryOptions { Duration = CacheDuration },
-                    ct).ConfigureAwait(false);
+                    async (ct2) => await FetchFromApiAsync(ct2).ConfigureAwait(false),
+                    duration: CacheDuration,
+                    distributedCacheDuration: CacheDuration,
+                    cancellationToken: ct).ConfigureAwait(false);
             }
             catch (HttpRequestException ex)
             {

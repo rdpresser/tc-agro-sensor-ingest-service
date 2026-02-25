@@ -1,8 +1,10 @@
 using Ardalis.Result;
 using Bogus;
+using Microsoft.Extensions.Options;
 using Quartz;
 using TC.Agro.Contracts.Events.SensorIngested;
 using TC.Agro.SensorIngest.Domain.Aggregates;
+using TC.Agro.SensorIngest.Infrastructure.Options.Jobs;
 using TC.Agro.SharedKernel.Infrastructure.Messaging;
 
 namespace TC.Agro.SensorIngest.Service.Jobs
@@ -12,16 +14,23 @@ namespace TC.Agro.SensorIngest.Service.Jobs
     {
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly ILogger<SimulatedSensorReadingsJob> _logger;
+        private readonly SensorReadingsJobOptions _options;
 
-        public SimulatedSensorReadingsJob(IServiceScopeFactory scopeFactory, ILogger<SimulatedSensorReadingsJob> logger)
+        public SimulatedSensorReadingsJob(
+            IServiceScopeFactory scopeFactory,
+            ILogger<SimulatedSensorReadingsJob> logger,
+            IOptions<SensorReadingsJobOptions> options)
         {
             _scopeFactory = scopeFactory ?? throw new ArgumentNullException(nameof(scopeFactory));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _options = options?.Value ?? new SensorReadingsJobOptions();
         }
 
         public async Task Execute(IJobExecutionContext context)
         {
-            _logger.LogInformation("SimulatedSensorReadingsJob started");
+            _logger.LogInformation(
+                "SimulatedSensorReadingsJob started (configured interval: {IntervalSeconds}s)",
+                _options.IntervalSeconds);
 
             try
             {

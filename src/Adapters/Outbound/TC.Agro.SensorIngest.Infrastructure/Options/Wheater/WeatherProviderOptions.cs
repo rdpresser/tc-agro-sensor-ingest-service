@@ -1,4 +1,4 @@
-namespace TC.Agro.SensorIngest.Service.Providers
+namespace TC.Agro.SensorIngest.Infrastructure.Options.Wheater
 {
     public sealed class WeatherProviderOptions
     {

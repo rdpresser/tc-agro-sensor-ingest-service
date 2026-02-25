@@ -2,10 +2,12 @@ using FakeItEasy;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Quartz;
 using TC.Agro.SensorIngest.Application.Abstractions.Ports;
 using TC.Agro.SensorIngest.Domain.Aggregates;
 using TC.Agro.SensorIngest.Domain.Snapshots;
+using TC.Agro.SensorIngest.Infrastructure.Options.Jobs;
 using TC.Agro.SensorIngest.Service.Jobs;
 using Wolverine;
 
@@ -22,6 +24,7 @@ namespace TC.Agro.SensorIngest.Tests.Service.Jobs
         private readonly ISensorHubNotifier _hubNotifier;
         private readonly IWeatherDataProvider _weatherProvider;
         private readonly ILogger<SimulatedSensorReadingsJob> _logger;
+        private readonly IOptions<SensorReadingsJobOptions> _jobOptions;
         private readonly SimulatedSensorReadingsJob _job;
         private readonly IJobExecutionContext _jobContext;
 
@@ -36,6 +39,7 @@ namespace TC.Agro.SensorIngest.Tests.Service.Jobs
             _hubNotifier = A.Fake<ISensorHubNotifier>();
             _weatherProvider = A.Fake<IWeatherDataProvider>();
             _logger = NullLogger<SimulatedSensorReadingsJob>.Instance;
+            _jobOptions = Options.Create(new SensorReadingsJobOptions { Enabled = true, IntervalSeconds = 5 });
             _jobContext = A.Fake<IJobExecutionContext>();
 
             A.CallTo(() => _scopeFactory.CreateScope()).Returns(_scope);
@@ -47,7 +51,7 @@ namespace TC.Agro.SensorIngest.Tests.Service.Jobs
             A.CallTo(() => _serviceProvider.GetService(typeof(IWeatherDataProvider))).Returns(_weatherProvider);
             A.CallTo(() => _jobContext.CancellationToken).Returns(CancellationToken.None);
 
-            _job = new SimulatedSensorReadingsJob(_scopeFactory, _logger);
+            _job = new SimulatedSensorReadingsJob(_scopeFactory, _logger, _jobOptions);
         }
 
         #region Execute - No Active Sensors
@@ -288,14 +292,14 @@ namespace TC.Agro.SensorIngest.Tests.Service.Jobs
         public void Constructor_WithNullScopeFactory_ShouldThrow()
         {
             Should.Throw<ArgumentNullException>(() =>
-                new SimulatedSensorReadingsJob(null!, _logger));
+                new SimulatedSensorReadingsJob(null!, _logger, _jobOptions));
         }
 
         [Fact]
         public void Constructor_WithNullLogger_ShouldThrow()
         {
             Should.Throw<ArgumentNullException>(() =>
-                new SimulatedSensorReadingsJob(_scopeFactory, null!));
+                new SimulatedSensorReadingsJob(_scopeFactory, null!, _jobOptions));
         }
 
         #endregion

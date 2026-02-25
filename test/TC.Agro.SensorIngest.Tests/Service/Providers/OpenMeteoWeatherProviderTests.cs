@@ -4,8 +4,9 @@ using System.Text;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using TC.Agro.SensorIngest.Application.Abstractions.Ports;
+using TC.Agro.SensorIngest.Infrastructure.Options.Wheater;
 using TC.Agro.SensorIngest.Service.Providers;
-using ZiggyCreatures.Caching.Fusion;
+using TC.Agro.SharedKernel.Infrastructure.Caching.Service;
 
 namespace TC.Agro.SensorIngest.Tests.Service.Providers
 {
@@ -103,7 +104,7 @@ namespace TC.Agro.SensorIngest.Tests.Service.Providers
                 BaseAddress = new Uri("https://api.open-meteo.com")
             };
 
-            var cache = new FusionCache(new FusionCacheOptions());
+            var cache = new FakeCacheService();
 
             return new OpenMeteoWeatherProvider(
                 httpClient,
@@ -155,6 +156,62 @@ namespace TC.Agro.SensorIngest.Tests.Service.Providers
                 {
                     Content = new StringContent(_response, Encoding.UTF8, "application/json")
                 });
+            }
+        }
+
+        private sealed class FakeCacheService : ICacheService
+        {
+            public Task<T?> GetAsync<T>(
+                string key,
+                TimeSpan? duration = null,
+                TimeSpan? distributedCacheDuration = null,
+                CancellationToken cancellationToken = default)
+            {
+                return Task.FromResult(default(T));
+            }
+
+            public async Task<T?> GetOrSetAsync<T>(
+                string key,
+                Func<CancellationToken, Task<T>> factory,
+                TimeSpan? duration = null,
+                TimeSpan? distributedCacheDuration = null,
+                CancellationToken cancellationToken = default)
+            {
+                return await factory(cancellationToken).ConfigureAwait(false);
+            }
+
+            public Task SetAsync<T>(
+                string key,
+                T value,
+                TimeSpan? duration = null,
+                TimeSpan? distributedCacheDuration = null,
+                IReadOnlyCollection<string>? tags = null,
+                CancellationToken cancellationToken = default)
+            {
+                return Task.CompletedTask;
+            }
+
+            public Task RemoveAsync(
+                string key,
+                TimeSpan? duration = null,
+                TimeSpan? distributedCacheDuration = null,
+                CancellationToken cancellationToken = default)
+            {
+                return Task.CompletedTask;
+            }
+
+            public Task RemoveByTagAsync(
+                string tag,
+                CancellationToken cancellationToken = default)
+            {
+                return Task.CompletedTask;
+            }
+
+            public Task RemoveByTagAsync(
+                IEnumerable<string> tags,
+                CancellationToken cancellationToken = default)
+            {
+                return Task.CompletedTask;
             }
         }
     }
