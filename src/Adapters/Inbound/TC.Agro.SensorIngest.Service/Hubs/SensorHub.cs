@@ -7,13 +7,25 @@ namespace TC.Agro.SensorIngest.Service.Hubs
     [Authorize(Roles = "Admin,Producer")]
     public sealed class SensorHub : Hub<ISensorHubClient>
     {
+        private static readonly string[] OwnerClaimTypes =
+        [
+            "sub",
+            ClaimTypes.NameIdentifier,
+            "oid",
+        ];
+
         private readonly ISensorReadingRepository _readingRepository;
         private readonly ISensorSnapshotStore _snapshotStore;
+        private readonly ILogger<SensorHub> _logger;
 
-        public SensorHub(ISensorReadingRepository readingRepository, ISensorSnapshotStore snapshotStore)
+        public SensorHub(
+            ISensorReadingRepository readingRepository,
+            ISensorSnapshotStore snapshotStore,
+            ILogger<SensorHub> logger)
         {
             _readingRepository = readingRepository ?? throw new ArgumentNullException(nameof(readingRepository));
             _snapshotStore = snapshotStore ?? throw new ArgumentNullException(nameof(snapshotStore));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task JoinPlotGroup(string plotId)
@@ -77,17 +89,41 @@ namespace TC.Agro.SensorIngest.Service.Hubs
                 if (!Guid.TryParse(ownerId, out var adminTargetOwnerId) || adminTargetOwnerId == Guid.Empty)
                     throw new HubException("Admin must provide a valid non-empty ownerId.");
 
+                _logger.LogDebug(
+                    "Owner scope resolved for SensorHub using explicit admin ownerId parameter.");
+
                 return adminTargetOwnerId;
             }
 
-            var claimValue =
-                Context.User?.FindFirstValue(ClaimTypes.NameIdentifier)
-                ?? Context.User?.FindFirstValue("sub");
+            var (currentOwnerId, claimTypeUsed) = ResolveOwnerScopeFromClaims();
 
-            if (!Guid.TryParse(claimValue, out var currentOwnerId) || currentOwnerId == Guid.Empty)
+            if (currentOwnerId == Guid.Empty)
+            {
+                _logger.LogWarning(
+                    "Unable to resolve owner scope for SensorHub. Checked claim types: {ClaimTypes}",
+                    OwnerClaimTypes);
                 throw new HubException("Unable to resolve owner scope for current user.");
+            }
+
+            _logger.LogDebug(
+                "Owner scope resolved for SensorHub using claim type {ClaimType}.",
+                claimTypeUsed);
 
             return currentOwnerId;
+        }
+
+        private (Guid OwnerId, string? ClaimTypeUsed) ResolveOwnerScopeFromClaims()
+        {
+            foreach (var claimType in OwnerClaimTypes)
+            {
+                var claimValue = Context.User?.FindFirstValue(claimType);
+                if (Guid.TryParse(claimValue, out var ownerId) && ownerId != Guid.Empty)
+                {
+                    return (ownerId, claimType);
+                }
+            }
+
+            return (Guid.Empty, null);
         }
 
         private async Task SendRecentReadingsForPlotAsync(Guid plotId, CancellationToken cancellationToken)

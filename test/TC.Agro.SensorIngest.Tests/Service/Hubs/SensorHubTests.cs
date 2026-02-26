@@ -1,5 +1,6 @@
 using FakeItEasy;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Logging.Abstractions;
 using System.Security.Claims;
 using TC.Agro.SensorIngest.Application.Abstractions.Ports;
 using TC.Agro.SensorIngest.Domain.Aggregates;
@@ -22,7 +23,7 @@ namespace TC.Agro.SensorIngest.Tests.Service.Hubs
             _readingRepository = A.Fake<ISensorReadingRepository>();
             _snapshotStore = A.Fake<ISensorSnapshotStore>();
             _callerClient = A.Fake<ISensorHubClient>();
-            _hub = new SensorHub(_readingRepository, _snapshotStore);
+            _hub = new SensorHub(_readingRepository, _snapshotStore, NullLogger<SensorHub>.Instance);
 
             _hubCallerContext = A.Fake<HubCallerContext>();
             A.CallTo(() => _hubCallerContext.ConnectionId).Returns("test-connection-id");
@@ -161,6 +162,24 @@ namespace TC.Agro.SensorIngest.Tests.Service.Hubs
             });
 
             await _hub.JoinOwnerGroup(providedOwnerId.ToString());
+
+            A.CallTo(() => _groups.AddToGroupAsync(
+                "test-connection-id", $"owner:{claimOwnerId}", A<CancellationToken>._))
+                .MustHaveHappenedOnceExactly();
+        }
+
+        [Fact]
+        public async Task JoinOwnerGroup_WithProducerRoleAndOidClaim_ShouldUseOwnerFromClaims()
+        {
+            var claimOwnerId = Guid.NewGuid();
+
+            SetUserContext(new[]
+            {
+                new Claim(ClaimTypes.Role, "Producer"),
+                new Claim("oid", claimOwnerId.ToString())
+            });
+
+            await _hub.JoinOwnerGroup(Guid.NewGuid().ToString());
 
             A.CallTo(() => _groups.AddToGroupAsync(
                 "test-connection-id", $"owner:{claimOwnerId}", A<CancellationToken>._))
