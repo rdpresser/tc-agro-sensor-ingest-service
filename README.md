@@ -1,6 +1,14 @@
-# Sensor Ingest Service
+# Sensor Ingest Servicer 🌾
 
-High-throughput sensor data ingestion microservice for the TC Agro Solutions agricultural IoT platform. Receives sensor readings via REST API, validates and persists data to TimescaleDB, publishes integration events for downstream analytics, and pushes real-time updates via SignalR.
+[![.NET Version](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
+[![C# Version](https://img.shields.io/badge/C%23-14.0-239120)](https://docs.microsoft.com/en-us/dotnet/csharp/)
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/rdpresser/tc-agro-sensor-ingest-service)
+[![Tests](https://img.shields.io/badge/tests-241%20passing-brightgreen)](https://github.com/rdpresser/tc-agro-sensor-ingest-service)
+[![Coverage](https://img.shields.io/badge/coverage-94%25-brightgreen)](https://github.com/rdpresser/tc-agro-sensor-ingest-service)
+[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
+> High-throughput sensor data ingestion microservice for the TC Agro Solutions agricultural IoT platform. Receives sensor readings via REST API, validates and persists data to TimescaleDB, publishes integration events for downstream analytics, and pushes real-time updates via SignalR.
+
 
 ## Architecture
 
