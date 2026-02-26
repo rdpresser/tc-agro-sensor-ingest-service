@@ -35,9 +35,69 @@ namespace TC.Agro.SensorIngest.Tests.Service.Hubs
             _groups = A.Fake<IGroupManager>();
             _hub.Groups = _groups;
 
-            A.CallTo(() => _snapshotStore.GetAllActiveAsync(A<CancellationToken>._))
+            A.CallTo(() => _snapshotStore.GetByOwnerIdAsync(A<Guid>._, A<CancellationToken>._))
+                .Returns(Array.Empty<SensorSnapshot>());
+
+            A.CallTo(() => _snapshotStore.GetListByPlotIdAsync(A<Guid>._, A<CancellationToken>._))
                 .Returns(Array.Empty<SensorSnapshot>());
         }
+
+        #region JoinPlotGroup
+
+        [Fact]
+        public async Task JoinPlotGroup_WithValidPlotId_ShouldAddGroupAndSendRecentReadings()
+        {
+            var ownerId = Guid.NewGuid();
+            var propertyId = Guid.NewGuid();
+            var plotId = Guid.NewGuid();
+            var sensorId = Guid.NewGuid();
+            var now = DateTime.UtcNow;
+
+            var snapshot = SensorSnapshot.Create(
+                sensorId,
+                ownerId,
+                propertyId,
+                plotId,
+                "Sensor-001",
+                "Plot 1",
+                "Property 1");
+
+            A.CallTo(() => _snapshotStore.GetListByPlotIdAsync(plotId, A<CancellationToken>._))
+                .Returns(new[] { snapshot });
+
+            A.CallTo(() => _readingRepository.GetByPlotIdAsync(plotId, null, null, 20, A<CancellationToken>._))
+                .Returns(new[] { SensorReadingAggregate.Create(sensorId, now, 24.5, 58.0, 39.0, null, 80.0).Value });
+
+            await _hub.JoinPlotGroup(plotId.ToString());
+
+            A.CallTo(() => _groups.AddToGroupAsync(
+                "test-connection-id", $"plot:{plotId}", A<CancellationToken>._))
+                .MustHaveHappenedOnceExactly();
+
+            A.CallTo(() => _callerClient.SensorReading(
+                A<SensorReadingRequest>.That.Matches(r => r.SensorId == sensorId && r.PlotId == plotId)))
+                .MustHaveHappenedOnceExactly();
+        }
+
+        [Fact]
+        public async Task JoinPlotGroup_WithInvalidGuid_ShouldThrowHubException()
+        {
+            await Should.ThrowAsync<HubException>(() => _hub.JoinPlotGroup("invalid-plot"));
+        }
+
+        [Fact]
+        public async Task LeavePlotGroup_WithValidPlotId_ShouldRemoveFromGroup()
+        {
+            var plotId = Guid.NewGuid();
+
+            await _hub.LeavePlotGroup(plotId.ToString());
+
+            A.CallTo(() => _groups.RemoveFromGroupAsync(
+                "test-connection-id", $"plot:{plotId}", A<CancellationToken>._))
+                .MustHaveHappenedOnceExactly();
+        }
+
+        #endregion
 
         #region JoinOwnerGroup
 
@@ -65,7 +125,7 @@ namespace TC.Agro.SensorIngest.Tests.Service.Hubs
                 SensorReadingAggregate.Create(sensorId, now, 25.0, 60.0, 40.0, null, 85.0).Value
             };
 
-            A.CallTo(() => _snapshotStore.GetAllActiveAsync(A<CancellationToken>._))
+            A.CallTo(() => _snapshotStore.GetByOwnerIdAsync(ownerId, A<CancellationToken>._))
                 .Returns(new[] { snapshot });
 
             A.CallTo(() => _readingRepository.GetByPlotIdAsync(
@@ -76,6 +136,10 @@ namespace TC.Agro.SensorIngest.Tests.Service.Hubs
 
             A.CallTo(() => _groups.AddToGroupAsync(
                 "test-connection-id", $"owner:{ownerId}", A<CancellationToken>._))
+                .MustHaveHappenedOnceExactly();
+
+            A.CallTo(() => _groups.AddToGroupAsync(
+                "test-connection-id", $"plot:{plotId}", A<CancellationToken>._))
                 .MustHaveHappenedOnceExactly();
 
             A.CallTo(() => _callerClient.SensorReading(
@@ -129,12 +193,29 @@ namespace TC.Agro.SensorIngest.Tests.Service.Hubs
         public async Task LeaveOwnerGroup_WithAdminRole_ShouldRemoveProvidedOwnerGroup()
         {
             var ownerId = Guid.NewGuid();
+            var plotId = Guid.NewGuid();
+            var snapshot = SensorSnapshot.Create(
+                Guid.NewGuid(),
+                ownerId,
+                Guid.NewGuid(),
+                plotId,
+                "Sensor-001",
+                "Plot 1",
+                "Property 1");
+
+            A.CallTo(() => _snapshotStore.GetByOwnerIdAsync(ownerId, A<CancellationToken>._))
+                .Returns(new[] { snapshot });
+
             SetUserContext(new[] { new Claim(ClaimTypes.Role, "Admin") });
 
             await _hub.LeaveOwnerGroup(ownerId.ToString());
 
             A.CallTo(() => _groups.RemoveFromGroupAsync(
                 "test-connection-id", $"owner:{ownerId}", A<CancellationToken>._))
+                .MustHaveHappenedOnceExactly();
+
+            A.CallTo(() => _groups.RemoveFromGroupAsync(
+                "test-connection-id", $"plot:{plotId}", A<CancellationToken>._))
                 .MustHaveHappenedOnceExactly();
         }
 

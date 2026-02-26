@@ -51,7 +51,10 @@ namespace TC.Agro.SensorIngest.Service.Services
                     soilMoisture,
                     timestamp);
 
-                await _hubContext.Clients.Group($"plot:{sensor.PlotId}").SensorReading(notification).ConfigureAwait(false);
+                await _hubContext.Clients
+                    .Groups(new[] { $"plot:{sensor.PlotId}", $"owner:{sensor.OwnerId}" })
+                    .SensorReading(notification)
+                    .ConfigureAwait(false);
 
                 _logger.LogInformation(
                     "Sensor reading broadcast to plot {PlotId} (SensorId: {SensorId}, Temp: {Temperature}, Humidity: {Humidity}, SoilMoisture: {SoilMoisture})",
@@ -82,7 +85,10 @@ namespace TC.Agro.SensorIngest.Service.Services
 
                 var notification = new SensorStatusChangedRequest(sensorId, status);
 
-                await _hubContext.Clients.Group($"plot:{sensor.PlotId}").SensorStatusChanged(notification).ConfigureAwait(false);
+                await _hubContext.Clients
+                    .Groups(new[] { $"plot:{sensor.PlotId}", $"owner:{sensor.OwnerId}" })
+                    .SensorStatusChanged(notification)
+                    .ConfigureAwait(false);
             }
             catch (Exception ex)
             {
