@@ -78,6 +78,15 @@ namespace TC.Agro.SensorIngest.Application.Abstractions.Ports
         Task<IReadOnlyList<SensorSnapshot>> GetAllActiveAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Retrieves all active sensor snapshots for a specific owner.
+        /// Used by SignalR owner-group join to preload recent readings in owner scope.
+        /// </summary>
+        /// <param name="ownerId">The owner identifier</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>A read-only list of active sensor snapshots for the owner</returns>
+        Task<IReadOnlyList<SensorSnapshot>> GetByOwnerIdAsync(Guid ownerId, CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Retrieves a sensor snapshot by its identifier, bypassing the global IsActive query filter.
         /// Used for reactivation scenarios where the snapshot may be inactive.
         /// </summary>

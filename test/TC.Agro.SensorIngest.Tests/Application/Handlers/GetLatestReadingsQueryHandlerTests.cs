@@ -45,7 +45,7 @@ namespace TC.Agro.SensorIngest.Tests.Application.Handlers
 
             var expectedReadings = new List<GetLatestReadingsResponse>
             {
-                new(Guid.NewGuid(), sensorId, Guid.NewGuid(), DateTimeOffset.UtcNow, 25.0, 60.0, 40.0, 0.0, 85.0)
+                new(Guid.NewGuid(), Guid.NewGuid(), sensorId, "Sensor Norte", "Plot Norte", "Property Norte", DateTimeOffset.UtcNow, 25.0, 60.0, 40.0, 0.0, 85.0)
             };
 
             A.CallTo(() => _readStore.GetLatestReadingsAsync(

@@ -1,5 +1,3 @@
-using TC.Agro.SensorIngest.Domain.Snapshots;
-
 namespace TC.Agro.SensorIngest.Infrastructure
 {
     [ExcludeFromCodeCoverage]
@@ -26,6 +24,11 @@ namespace TC.Agro.SensorIngest.Infrastructure
             modelBuilder.Ignore<BaseDomainEvent>();
 
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
+
+            // -------------------------------
+            // Global Query Filters
+            // -------------------------------
+            modelBuilder.Entity<SensorReadingAggregate>().HasQueryFilter(p => p.IsActive);
         }
 
         /// <inheritdoc />

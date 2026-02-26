@@ -4,6 +4,8 @@ namespace TC.Agro.SensorIngest.Application.UseCases.GetReadingsHistory
         Guid Id,
         Guid SensorId,
         Guid PlotId,
+        string PlotName,
+        string PropertyName,
         DateTimeOffset Time,
         double? Temperature,
         double? Humidity,

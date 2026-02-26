@@ -1,22 +1,36 @@
 using TC.Agro.SensorIngest.Application.UseCases.GetLatestReadings;
 using TC.Agro.SensorIngest.Application.UseCases.GetReadingsHistory;
+using TC.Agro.SharedKernel.Infrastructure.UserClaims;
 
 namespace TC.Agro.SensorIngest.Infrastructure.Repositories
 {
     public sealed class SensorReadingReadStore : ISensorReadingReadStore
     {
         private readonly ApplicationDbContext _dbContext;
+        private readonly IUserContext _userContext;
 
-        public SensorReadingReadStore(ApplicationDbContext dbContext)
+        public SensorReadingReadStore(ApplicationDbContext dbContext, IUserContext userContext)
         {
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+            _userContext = userContext ?? throw new ArgumentNullException(nameof(userContext));
         }
+
+        private IQueryable<SensorReadingAggregate> FilteredDbSet => _userContext.IsAdmin
+            ? _dbContext.SensorReadings
+            : _dbContext.SensorReadings.Where(x => x.Sensor.OwnerId == _userContext.Id);
 
         public async Task<(IReadOnlyList<GetLatestReadingsResponse> Readings, int TotalCount)> GetLatestReadingsAsync(
             GetLatestReadingsQuery query,
             CancellationToken cancellationToken = default)
         {
-            var readingsQuery = _dbContext.SensorReadings.AsQueryable();
+            var readingsQuery = FilteredDbSet
+                .AsNoTracking();
+
+            if (_userContext.IsAdmin && query.OwnerId is not null && query.OwnerId.HasValue && query.OwnerId.Value != Guid.Empty)
+            {
+                //when loggedin as admin on frontend
+                readingsQuery = readingsQuery.Where(x => x.Sensor.OwnerId == query.OwnerId);
+            }
 
             if (query.SensorId.HasValue)
             {
@@ -40,8 +54,11 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
                 .Take(pageSize)
                 .Select(x => new GetLatestReadingsResponse(
                     x.Id,
-                    x.SensorId,
                     x.Sensor.PlotId,
+                    x.SensorId,
+                    x.Sensor.Label,
+                    x.Sensor.PlotName,
+                    x.Sensor.PropertyName,
                     x.Time,
                     x.Temperature,
                     x.Humidity,
@@ -61,7 +78,8 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
             var to = DateTimeOffset.UtcNow;
             var from = to.AddDays(-Math.Clamp(query.Days, 1, 30));
 
-            var historyQuery = _dbContext.SensorReadings
+            var historyQuery = FilteredDbSet
+                .AsNoTracking()
                 .Where(x => x.SensorId == query.SensorId && x.Time >= from && x.Time <= to);
 
             var totalCount = await historyQuery.CountAsync(cancellationToken).ConfigureAwait(false);
@@ -78,6 +96,8 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
                     x.Id,
                     x.SensorId,
                     x.Sensor.PlotId,
+                    x.Sensor.PlotName,
+                    x.Sensor.PropertyName,
                     x.Time,
                     x.Temperature,
                     x.Humidity,

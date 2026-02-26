@@ -108,6 +108,16 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
         }
 
         /// <inheritdoc />
+        public async Task<IReadOnlyList<SensorSnapshot>> GetByOwnerIdAsync(Guid ownerId, CancellationToken cancellationToken = default)
+        {
+            return await _dbContext.SensorSnapshots
+                .AsNoTracking()
+                .Where(s => s.OwnerId == ownerId && s.IsActive)
+                .ToListAsync(cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
         public async Task<SensorSnapshot?> GetByIdIncludingInactiveAsync(Guid id, CancellationToken cancellationToken = default)
         {
             return await _dbContext.SensorSnapshots
