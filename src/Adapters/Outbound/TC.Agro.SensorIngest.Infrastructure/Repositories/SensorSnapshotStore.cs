@@ -1,3 +1,5 @@
+using TC.Agro.SensorIngest.Application.Abstractions;
+
 namespace TC.Agro.SensorIngest.Infrastructure.Repositories
 {
     internal class SensorSnapshotStore : ISensorSnapshotStore
@@ -15,21 +17,6 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
             ArgumentNullException.ThrowIfNull(snapshot);
 
             await _dbContext.SensorSnapshots.AddAsync(snapshot, cancellationToken).ConfigureAwait(false);
-        }
-
-        /// <inheritdoc />
-        public async Task UpdateAsync(SensorSnapshot snapshot, CancellationToken cancellationToken = default)
-        {
-            ArgumentNullException.ThrowIfNull(snapshot);
-
-            var existingSnapshot = await _dbContext.SensorSnapshots
-                .FirstOrDefaultAsync(o => o.Id == snapshot.Id, cancellationToken)
-                .ConfigureAwait(false);
-
-            if (existingSnapshot == null)
-                return;
-
-            _dbContext.SensorSnapshots.Update(snapshot);
         }
 
         /// <inheritdoc />
@@ -102,7 +89,8 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
         {
             return await _dbContext.SensorSnapshots
                 .AsNoTracking()
-                .Where(s => s.IsActive)
+                .Where(s => s.IsActive
+                    && s.Status == AppConstants.ValidStatuses.Active)
                 .ToListAsync(cancellationToken)
                 .ConfigureAwait(false);
         }

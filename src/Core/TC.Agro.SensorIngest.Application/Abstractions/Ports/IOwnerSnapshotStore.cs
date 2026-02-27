@@ -1,5 +1,3 @@
-using TC.Agro.SensorIngest.Domain.Snapshots;
-
 namespace TC.Agro.SensorIngest.Application.Abstractions.Ports
 {
     /// <summary>
@@ -14,13 +12,6 @@ namespace TC.Agro.SensorIngest.Application.Abstractions.Ports
         /// <param name="snapshot">The owner snapshot to add</param>
         /// <param name="cancellationToken">Cancellation token</param>
         Task AddAsync(OwnerSnapshot snapshot, CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Updates an existing owner snapshot in the store.
-        /// </summary>
-        /// <param name="snapshot">The owner snapshot to update</param>
-        /// <param name="cancellationToken">Cancellation token</param>
-        Task UpdateAsync(OwnerSnapshot snapshot, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Deletes an owner snapshot from the store by marking it as inactive.

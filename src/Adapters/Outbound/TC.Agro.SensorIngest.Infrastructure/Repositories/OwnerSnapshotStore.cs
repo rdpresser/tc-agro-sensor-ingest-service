@@ -1,5 +1,3 @@
-using TC.Agro.SensorIngest.Domain.Snapshots;
-
 namespace TC.Agro.SensorIngest.Infrastructure.Repositories
 {
     /// <summary>
@@ -22,21 +20,6 @@ namespace TC.Agro.SensorIngest.Infrastructure.Repositories
             ArgumentNullException.ThrowIfNull(snapshot);
 
             await _dbContext.OwnerSnapshots.AddAsync(snapshot, cancellationToken).ConfigureAwait(false);
-        }
-
-        /// <inheritdoc />
-        public async Task UpdateAsync(OwnerSnapshot snapshot, CancellationToken cancellationToken = default)
-        {
-            ArgumentNullException.ThrowIfNull(snapshot);
-
-            var existingSnapshot = await _dbContext.OwnerSnapshots
-                .FirstOrDefaultAsync(o => o.Id == snapshot.Id, cancellationToken)
-                .ConfigureAwait(false);
-
-            if (existingSnapshot == null)
-                return;
-
-            _dbContext.OwnerSnapshots.Update(snapshot);
         }
 
         /// <inheritdoc />

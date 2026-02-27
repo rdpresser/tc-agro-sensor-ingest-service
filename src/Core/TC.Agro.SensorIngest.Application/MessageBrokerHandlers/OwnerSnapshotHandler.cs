@@ -75,9 +75,6 @@ namespace TC.Agro.SensorIngest.Application.MessageBrokerHandlers
             // Update snapshot
             snapshot.Update(@event.EventData.Name, @event.EventData.Email, isActive: true);
 
-            // Update in store
-            await _store.UpdateAsync(snapshot, cancellationToken).ConfigureAwait(false);
-
             // Persist changes
             await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
@@ -100,9 +97,6 @@ namespace TC.Agro.SensorIngest.Application.MessageBrokerHandlers
 
             // Mark as inactive
             snapshot.Delete();
-
-            // Update in store
-            await _store.UpdateAsync(snapshot, cancellationToken).ConfigureAwait(false);
 
             // Persist changes
             await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);

@@ -14,6 +14,7 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
         public string PlotName { get; private set; } = default!;
         public string PropertyName { get; private set; } = default!;
         public string? Status { get; private set; }
+        public string? StatusChangeReason { get; private set; } = default!;
 
         public bool IsActive { get; private set; }
 
@@ -118,7 +119,8 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
             string sensorName,
             string plotName,
             string propertyName,
-            string status)
+            string status,
+            string? reason)
         {
             OwnerId = ownerId;
             PropertyId = propertyId;
@@ -128,6 +130,7 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
             PlotName = plotName;
             PropertyName = propertyName;
             UpdatedAt = DateTimeOffset.UtcNow;
+            StatusChangeReason = reason;
         }
 
         public void Delete()

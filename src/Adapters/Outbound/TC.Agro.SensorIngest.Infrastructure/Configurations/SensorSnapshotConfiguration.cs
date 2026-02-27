@@ -1,5 +1,3 @@
-using TC.Agro.SensorIngest.Domain.Snapshots;
-
 namespace TC.Agro.SensorIngest.Infrastructure.Configurations
 {
     internal sealed class SensorSnapshotConfiguration : IEntityTypeConfiguration<SensorSnapshot>
@@ -48,6 +46,12 @@ namespace TC.Agro.SensorIngest.Infrastructure.Configurations
 
             builder.Property(s => s.UpdatedAt)
                 .HasColumnType("timestamptz");
+
+            // StatusChangeReason - optional explanation for status changes
+            builder.Property(s => s.StatusChangeReason)
+                .HasColumnName("status_change_reason")
+                .IsRequired(false)
+                .HasMaxLength(500);
 
             // Relationship with OwnerSnapshot
             builder.HasOne(s => s.Owner)

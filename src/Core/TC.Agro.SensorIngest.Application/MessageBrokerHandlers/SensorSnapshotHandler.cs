@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.WebUtilities;
 using TC.Agro.Contracts.Events.Farm;
 
 namespace TC.Agro.SensorIngest.Application.MessageBrokerHandlers
@@ -50,7 +51,8 @@ namespace TC.Agro.SensorIngest.Application.MessageBrokerHandlers
                 label,
                 plotName: data.PlotName,
                 propertyName: data.PropertyName,
-                status: data.Status);
+                status: data.Status,
+                reason: data.Reason);
 
         public SensorSnapshotHandler(ISensorSnapshotStore store, IUnitOfWork unitOfWork, ILogger<SensorSnapshotHandler> logger)
         {
@@ -91,7 +93,7 @@ namespace TC.Agro.SensorIngest.Application.MessageBrokerHandlers
             CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(@event);
-            
+
             var data = @event.EventData;
             var snapshot = await _store.GetByIdAsync(
                 data.SensorId,
@@ -108,8 +110,6 @@ namespace TC.Agro.SensorIngest.Application.MessageBrokerHandlers
             else
             {
                 UpdateSnapshot(snapshot, data, label);
-
-                await _store.UpdateAsync(snapshot, cancellationToken).ConfigureAwait(false);
             }
 
             await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
@@ -133,6 +133,6 @@ namespace TC.Agro.SensorIngest.Application.MessageBrokerHandlers
             await _store.DeleteAsync(sensorId, cancellationToken).ConfigureAwait(false);
             await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
-        
+
     }
 }
