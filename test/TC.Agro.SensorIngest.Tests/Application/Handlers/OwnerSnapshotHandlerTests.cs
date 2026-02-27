@@ -204,8 +204,6 @@ namespace TC.Agro.SensorIngest.Tests.Application.Handlers
 
             await _handler.HandleAsync(CreateEvent(eventData), ct);
 
-            A.CallTo(() => _store.UpdateAsync(A<OwnerSnapshot>._, A<CancellationToken>._))
-                .MustNotHaveHappened();
             A.CallTo(() => _unitOfWork.SaveChangesAsync(A<CancellationToken>._))
                 .MustNotHaveHappened();
         }
@@ -235,9 +233,6 @@ namespace TC.Agro.SensorIngest.Tests.Application.Handlers
 
             existing.Name.ShouldBe("New Name");
             existing.Email.ShouldBe("new@example.com");
-
-            A.CallTo(() => _store.UpdateAsync(existing, A<CancellationToken>._))
-                .MustHaveHappenedOnceExactly();
 
             A.CallTo(() => _unitOfWork.SaveChangesAsync(A<CancellationToken>._))
                 .MustHaveHappenedOnceExactly();
@@ -274,8 +269,6 @@ namespace TC.Agro.SensorIngest.Tests.Application.Handlers
 
             await _handler.HandleAsync(CreateEvent(eventData), ct);
 
-            A.CallTo(() => _store.UpdateAsync(A<OwnerSnapshot>._, A<CancellationToken>._))
-                .MustNotHaveHappened();
             A.CallTo(() => _unitOfWork.SaveChangesAsync(A<CancellationToken>._))
                 .MustNotHaveHappened();
         }
@@ -301,9 +294,6 @@ namespace TC.Agro.SensorIngest.Tests.Application.Handlers
             await _handler.HandleAsync(CreateEvent(eventData), ct);
 
             existing.IsActive.ShouldBeFalse();
-
-            A.CallTo(() => _store.UpdateAsync(existing, A<CancellationToken>._))
-                .MustHaveHappenedOnceExactly();
 
             A.CallTo(() => _unitOfWork.SaveChangesAsync(A<CancellationToken>._))
                 .MustHaveHappenedOnceExactly();

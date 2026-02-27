@@ -261,9 +261,6 @@ namespace TC.Agro.SensorIngest.Tests.Application.Handlers
             snapshot.PlotName.ShouldBe("New Plot");
             snapshot.PropertyName.ShouldBe("New Farm");
 
-            A.CallTo(() => _store.UpdateAsync(snapshot, A<CancellationToken>._))
-                .MustHaveHappenedOnceExactly();
-
             A.CallTo(() => _store.AddAsync(A<SensorSnapshot>._, A<CancellationToken>._))
                 .MustNotHaveHappened();
 
@@ -302,9 +299,6 @@ namespace TC.Agro.SensorIngest.Tests.Application.Handlers
             await _handler.HandleAsync(CreateEvent(eventData), ct);
 
             snapshot.Label.ShouldBe("Unnamed Sensor");
-
-            A.CallTo(() => _store.UpdateAsync(snapshot, A<CancellationToken>._))
-                .MustHaveHappenedOnceExactly();
         }
 
         [Fact]
@@ -333,9 +327,6 @@ namespace TC.Agro.SensorIngest.Tests.Application.Handlers
                     s.PropertyName == "Farm A"),
                 A<CancellationToken>._))
                 .MustHaveHappenedOnceExactly();
-
-            A.CallTo(() => _store.UpdateAsync(A<SensorSnapshot>._, A<CancellationToken>._))
-                .MustNotHaveHappened();
 
             A.CallTo(() => _store.DeleteAsync(A<Guid>._, A<CancellationToken>._))
                 .MustNotHaveHappened();
