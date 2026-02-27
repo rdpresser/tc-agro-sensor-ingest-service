@@ -8,10 +8,6 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Sensors
         {
             Get("sensors/{SensorId:guid}/readings");
 
-            // Force FastEndpoints to bind from query parameters
-            RequestBinder(new RequestBinder<GetReadingsHistoryQuery>(BindingSource.QueryParams));
-            RequestBinder(new RequestBinder<GetReadingsHistoryQuery>(BindingSource.RouteValues));
-
             PreProcessor<QueryCachingPreProcessorBehavior<GetReadingsHistoryQuery, PaginatedResponse<GetReadingsHistoryResponse>>>();
             PostProcessor<QueryCachingPostProcessorBehavior<GetReadingsHistoryQuery, PaginatedResponse<GetReadingsHistoryResponse>>>();
 
