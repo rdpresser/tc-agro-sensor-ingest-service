@@ -5,6 +5,7 @@ namespace TC.Agro.SensorIngest.Domain.Aggregates
     public sealed class SensorReadingAggregate : BaseAggregateRoot
     {
         public Guid SensorId { get; private set; }
+        [System.Text.Json.Serialization.JsonIgnore]
         public SensorSnapshot Sensor { get; private set; } = default!;
         public DateTimeOffset Time { get; private set; }
         public double? Temperature { get; private set; }
