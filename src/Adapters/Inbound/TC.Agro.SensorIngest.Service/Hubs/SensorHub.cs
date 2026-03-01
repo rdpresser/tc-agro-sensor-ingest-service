@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using TC.Agro.Contracts.Realtime;
 using TC.Agro.SensorIngest.Domain.Snapshots;
 
 namespace TC.Agro.SensorIngest.Service.Hubs
@@ -7,8 +8,6 @@ namespace TC.Agro.SensorIngest.Service.Hubs
     [Authorize(Roles = "Admin,Producer")]
     public sealed class SensorHub : Hub<ISensorHubClient>
     {
-        private const string AdminOwnerScopeRequiredCode = "OWNER_SCOPE_REQUIRED";
-
         private static readonly string[] OwnerClaimTypes =
         [
             "sub",
@@ -92,23 +91,27 @@ namespace TC.Agro.SensorIngest.Service.Hubs
                 {
                     _logger.LogWarning(
                         "{ErrorCode}: Admin connection attempted owner-scoped operation without ownerId. ConnectionId: {ConnectionId}",
-                        AdminOwnerScopeRequiredCode,
+                        OwnerScopeErrors.AdminOwnerScopeRequiredCode,
                         Context.ConnectionId);
 
                     throw new HubException(
-                        $"{AdminOwnerScopeRequiredCode}: Admin must provide a valid non-empty ownerId before joining owner groups.");
+                        OwnerScopeErrors.ToHubError(
+                            OwnerScopeErrors.AdminOwnerScopeRequiredCode,
+                            OwnerScopeErrors.AdminOwnerScopeRequiredMessage));
                 }
 
                 if (!Guid.TryParse(ownerId, out var adminTargetOwnerId) || adminTargetOwnerId == Guid.Empty)
                 {
                     _logger.LogWarning(
                         "{ErrorCode}: Admin provided invalid ownerId '{OwnerId}'. ConnectionId: {ConnectionId}",
-                        AdminOwnerScopeRequiredCode,
+                        OwnerScopeErrors.AdminOwnerScopeRequiredCode,
                         ownerId,
                         Context.ConnectionId);
 
                     throw new HubException(
-                        $"{AdminOwnerScopeRequiredCode}: Admin must provide a valid non-empty ownerId before joining owner groups.");
+                        OwnerScopeErrors.ToHubError(
+                            OwnerScopeErrors.AdminOwnerScopeRequiredCode,
+                            OwnerScopeErrors.AdminOwnerScopeRequiredMessage));
                 }
 
                 _logger.LogDebug(
