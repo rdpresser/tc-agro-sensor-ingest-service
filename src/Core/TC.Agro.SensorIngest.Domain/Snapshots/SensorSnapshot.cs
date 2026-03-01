@@ -1,4 +1,5 @@
 using TC.Agro.SensorIngest.Domain.Aggregates;
+using System.Text.Json.Serialization;
 
 namespace TC.Agro.SensorIngest.Domain.Snapshots
 {
@@ -6,6 +7,7 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
     {
         public Guid Id { get; private set; }
         public Guid OwnerId { get; private set; }
+        [JsonIgnore]
         public OwnerSnapshot Owner { get; private set; } = default!;
         public Guid PropertyId { get; private set; }
         public Guid PlotId { get; private set; }
@@ -21,11 +23,13 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
         public DateTimeOffset CreatedAt { get; private set; }
         public DateTimeOffset? UpdatedAt { get; private set; }
 
+        [JsonIgnore]
         public ICollection<SensorReadingAggregate> SensorReadings { get; private set; } = [];
 
         private SensorSnapshot() { }
 
-        private SensorSnapshot(
+        [JsonConstructor]
+        public SensorSnapshot(
             Guid id,
             Guid ownerId,
             Guid propertyId,

@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace TC.Agro.SensorIngest.Domain.Snapshots
 {
     public sealed class OwnerSnapshot
@@ -9,11 +11,13 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
         public DateTimeOffset CreatedAt { get; private set; }
         public DateTimeOffset? UpdatedAt { get; private set; }
 
+        [JsonIgnore]
         public ICollection<SensorSnapshot> Sensors { get; private set; } = [];
 
         private OwnerSnapshot() { } // EF
 
-        private OwnerSnapshot(Guid id, string name, string email, bool isActive, DateTimeOffset createdAt, DateTimeOffset? updatedAt)
+        [JsonConstructor]
+        public OwnerSnapshot(Guid id, string name, string email, bool isActive, DateTimeOffset createdAt, DateTimeOffset? updatedAt)
         {
             Id = id;
             Name = name;
