@@ -7,6 +7,8 @@ namespace TC.Agro.SensorIngest.Service.Hubs
     [Authorize(Roles = "Admin,Producer")]
     public sealed class SensorHub : Hub<ISensorHubClient>
     {
+        private const string AdminOwnerScopeRequiredCode = "OWNER_SCOPE_REQUIRED";
+
         private static readonly string[] OwnerClaimTypes =
         [
             "sub",
@@ -86,8 +88,28 @@ namespace TC.Agro.SensorIngest.Service.Hubs
         {
             if (Context.User?.IsInRole("Admin") == true)
             {
+                if (string.IsNullOrWhiteSpace(ownerId))
+                {
+                    _logger.LogWarning(
+                        "{ErrorCode}: Admin connection attempted owner-scoped operation without ownerId. ConnectionId: {ConnectionId}",
+                        AdminOwnerScopeRequiredCode,
+                        Context.ConnectionId);
+
+                    throw new HubException(
+                        $"{AdminOwnerScopeRequiredCode}: Admin must provide a valid non-empty ownerId before joining owner groups.");
+                }
+
                 if (!Guid.TryParse(ownerId, out var adminTargetOwnerId) || adminTargetOwnerId == Guid.Empty)
-                    throw new HubException("Admin must provide a valid non-empty ownerId.");
+                {
+                    _logger.LogWarning(
+                        "{ErrorCode}: Admin provided invalid ownerId '{OwnerId}'. ConnectionId: {ConnectionId}",
+                        AdminOwnerScopeRequiredCode,
+                        ownerId,
+                        Context.ConnectionId);
+
+                    throw new HubException(
+                        $"{AdminOwnerScopeRequiredCode}: Admin must provide a valid non-empty ownerId before joining owner groups.");
+                }
 
                 _logger.LogDebug(
                     "Owner scope resolved for SensorHub using explicit admin ownerId parameter.");
