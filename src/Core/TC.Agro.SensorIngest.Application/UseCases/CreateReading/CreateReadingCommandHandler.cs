@@ -55,16 +55,17 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateReading
                     {
                         { typeof(SensorReadingAggregate.SensorReadingCreatedDomainEvent), e =>
                             CreateReadingMapper.ToIntegrationEvent((SensorReadingAggregate.SensorReadingCreatedDomainEvent)e) }
-                    });
+                    })
+                .ToList();
 
-            foreach (var evt in integrationEvents)
+            if (integrationEvents.Count > 0)
             {
-                await Outbox.EnqueueAsync(evt, ct).ConfigureAwait(false);
+                await Outbox.EnqueueAsync(integrationEvents, ct).ConfigureAwait(false);
             }
 
             _logger.LogInformation(
                 "Enqueued {Count} integration events for sensor reading {SensorReadingId} from sensor {SensorId}",
-                integrationEvents.Count(),
+                integrationEvents.Count,
                 aggregate.Id,
                 aggregate.SensorId);
         }
