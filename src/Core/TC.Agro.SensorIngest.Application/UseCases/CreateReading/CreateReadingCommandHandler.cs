@@ -60,7 +60,10 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateReading
 
             if (integrationEvents.Count > 0)
             {
-                await Outbox.EnqueueAsync(integrationEvents, ct).ConfigureAwait(false);
+                foreach (var evt in integrationEvents)
+                {
+                    await Outbox.EnqueueAsync(evt, ct).ConfigureAwait(false);
+                }
             }
 
             _logger.LogInformation(

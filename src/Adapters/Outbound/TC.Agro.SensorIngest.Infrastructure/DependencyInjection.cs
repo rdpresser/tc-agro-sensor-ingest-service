@@ -72,6 +72,10 @@ namespace TC.Agro.SensorIngest.Infrastructure
                     "WeatherProvider:Latitude must be between -90 and 90")
                 .Validate(o => o.Longitude >= -180 && o.Longitude <= 180,
                     "WeatherProvider:Longitude must be between -180 and 180")
+                .Validate(o => o.MaxCoordinatesPerRequest > 0,
+                    "WeatherProvider:MaxCoordinatesPerRequest must be greater than 0")
+                .Validate(o => o.MaxCoordinatesPerRequest <= 200,
+                    "WeatherProvider:MaxCoordinatesPerRequest must not exceed 200")
                 .ValidateOnStart();
 
             // Register factory for easy access to options

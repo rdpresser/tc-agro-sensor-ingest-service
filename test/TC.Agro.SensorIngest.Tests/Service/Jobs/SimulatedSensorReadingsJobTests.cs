@@ -1,5 +1,4 @@
 using FakeItEasy;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -15,9 +14,6 @@ namespace TC.Agro.SensorIngest.Tests.Service.Jobs
 {
     public class SimulatedSensorReadingsJobTests
     {
-        private readonly IServiceScopeFactory _scopeFactory;
-        private readonly IServiceScope _scope;
-        private readonly IServiceProvider _serviceProvider;
         private readonly ISensorSnapshotStore _snapshotStore;
         private readonly ISensorReadingRepository _readingRepository;
         private readonly IMessageBus _messageBus;
@@ -30,9 +26,6 @@ namespace TC.Agro.SensorIngest.Tests.Service.Jobs
 
         public SimulatedSensorReadingsJobTests()
         {
-            _scopeFactory = A.Fake<IServiceScopeFactory>();
-            _scope = A.Fake<IServiceScope>();
-            _serviceProvider = A.Fake<IServiceProvider>();
             _snapshotStore = A.Fake<ISensorSnapshotStore>();
             _readingRepository = A.Fake<ISensorReadingRepository>();
             _messageBus = A.Fake<IMessageBus>();
@@ -42,16 +35,20 @@ namespace TC.Agro.SensorIngest.Tests.Service.Jobs
             _jobOptions = Options.Create(new SensorReadingsJobOptions { Enabled = true, IntervalSeconds = 5 });
             _jobContext = A.Fake<IJobExecutionContext>();
 
-            A.CallTo(() => _scopeFactory.CreateScope()).Returns(_scope);
-            A.CallTo(() => _scope.ServiceProvider).Returns(_serviceProvider);
-            A.CallTo(() => _serviceProvider.GetService(typeof(ISensorSnapshotStore))).Returns(_snapshotStore);
-            A.CallTo(() => _serviceProvider.GetService(typeof(ISensorReadingRepository))).Returns(_readingRepository);
-            A.CallTo(() => _serviceProvider.GetService(typeof(IMessageBus))).Returns(_messageBus);
-            A.CallTo(() => _serviceProvider.GetService(typeof(ISensorHubNotifier))).Returns(_hubNotifier);
-            A.CallTo(() => _serviceProvider.GetService(typeof(IWeatherDataProvider))).Returns(_weatherProvider);
             A.CallTo(() => _jobContext.CancellationToken).Returns(CancellationToken.None);
+            A.CallTo(() => _weatherProvider.GetCurrentWeatherBatchAsync(
+                    A<IReadOnlyCollection<WeatherLocation>>._,
+                    A<CancellationToken>._))
+                .Returns(new Dictionary<WeatherLocation, WeatherData>());
 
-            _job = new SimulatedSensorReadingsJob(_scopeFactory, _logger, _jobOptions);
+            _job = new SimulatedSensorReadingsJob(
+                _snapshotStore,
+                _readingRepository,
+                _messageBus,
+                _hubNotifier,
+                _weatherProvider,
+                _logger,
+                _jobOptions);
         }
 
         #region Execute - No Active Sensors
@@ -200,6 +197,7 @@ namespace TC.Agro.SensorIngest.Tests.Service.Jobs
         public async Task Execute_WithRealWeatherData_ShouldUseWeatherValues()
         {
             var sensorId = Guid.NewGuid();
+            var location = new WeatherLocation(-22.7256, -47.6492);
             var snapshot = SensorSnapshot.Create(
                 id: sensorId,
                 ownerId: Guid.NewGuid(),
@@ -207,14 +205,21 @@ namespace TC.Agro.SensorIngest.Tests.Service.Jobs
                 plotId: Guid.NewGuid(),
                 label: "Sensor",
                 plotName: "Plot",
-                propertyName: "Farm");
+                propertyName: "Farm",
+                plotLatitude: location.Latitude,
+                plotLongitude: location.Longitude);
 
             var weatherData = new WeatherData(25.0, 60.0, 30.0, 2.5);
 
             A.CallTo(() => _snapshotStore.GetAllActiveAsync(A<CancellationToken>._))
                 .Returns(new List<SensorSnapshot> { snapshot });
-            A.CallTo(() => _weatherProvider.GetCurrentWeatherAsync(A<CancellationToken>._))
-                .Returns(weatherData);
+            A.CallTo(() => _weatherProvider.GetCurrentWeatherBatchAsync(
+                    A<IReadOnlyCollection<WeatherLocation>>._,
+                    A<CancellationToken>._))
+                .Returns(new Dictionary<WeatherLocation, WeatherData>
+                {
+                    [location] = weatherData
+                });
 
             await _job.Execute(_jobContext);
 
@@ -229,9 +234,10 @@ namespace TC.Agro.SensorIngest.Tests.Service.Jobs
         }
 
         [Fact]
-        public async Task Execute_WhenWeatherProviderReturnsNull_ShouldFallbackToSimulated()
+        public async Task Execute_WhenBatchWeatherReturnsEmpty_ShouldFallbackToSimulated()
         {
             var sensorId = Guid.NewGuid();
+            var location = new WeatherLocation(-22.7256, -47.6492);
             var snapshot = SensorSnapshot.Create(
                 id: sensorId,
                 ownerId: Guid.NewGuid(),
@@ -239,18 +245,67 @@ namespace TC.Agro.SensorIngest.Tests.Service.Jobs
                 plotId: Guid.NewGuid(),
                 label: "Sensor",
                 plotName: "Plot",
-                propertyName: "Farm");
+                propertyName: "Farm",
+                plotLatitude: location.Latitude,
+                plotLongitude: location.Longitude);
 
             A.CallTo(() => _snapshotStore.GetAllActiveAsync(A<CancellationToken>._))
                 .Returns(new List<SensorSnapshot> { snapshot });
-            A.CallTo(() => _weatherProvider.GetCurrentWeatherAsync(A<CancellationToken>._))
-                .Returns((WeatherData?)null);
+            A.CallTo(() => _weatherProvider.GetCurrentWeatherBatchAsync(
+                    A<IReadOnlyCollection<WeatherLocation>>._,
+                    A<CancellationToken>._))
+                .Returns(new Dictionary<WeatherLocation, WeatherData>());
 
             await _job.Execute(_jobContext);
 
             A.CallTo(() => _readingRepository.AddRangeAsync(
                 A<IEnumerable<SensorReadingAggregate>>.That.Matches(r => r.Any()),
                 A<CancellationToken>._))
+                .MustHaveHappenedOnceExactly();
+        }
+
+        [Fact]
+        public async Task Execute_WithSensorsFromSameLocation_ShouldRequestWeatherOnceForUniqueLocation()
+        {
+            var location = new WeatherLocation(-22.7256, -47.6492);
+            var sensor1 = SensorSnapshot.Create(
+                id: Guid.NewGuid(),
+                ownerId: Guid.NewGuid(),
+                propertyId: Guid.NewGuid(),
+                plotId: Guid.NewGuid(),
+                label: "Sensor 1",
+                plotName: "Plot",
+                propertyName: "Farm",
+                plotLatitude: location.Latitude,
+                plotLongitude: location.Longitude);
+
+            var sensor2 = SensorSnapshot.Create(
+                id: Guid.NewGuid(),
+                ownerId: Guid.NewGuid(),
+                propertyId: Guid.NewGuid(),
+                plotId: Guid.NewGuid(),
+                label: "Sensor 2",
+                plotName: "Plot",
+                propertyName: "Farm",
+                plotLatitude: location.Latitude,
+                plotLongitude: location.Longitude);
+
+            A.CallTo(() => _snapshotStore.GetAllActiveAsync(A<CancellationToken>._))
+                .Returns(new List<SensorSnapshot> { sensor1, sensor2 });
+
+            A.CallTo(() => _weatherProvider.GetCurrentWeatherBatchAsync(
+                    A<IReadOnlyCollection<WeatherLocation>>._,
+                    A<CancellationToken>._))
+                .Returns(new Dictionary<WeatherLocation, WeatherData>
+                {
+                    [location] = new WeatherData(25.0, 60.0, 30.0, 1.0)
+                });
+
+            await _job.Execute(_jobContext);
+
+            A.CallTo(() => _weatherProvider.GetCurrentWeatherBatchAsync(
+                    A<IReadOnlyCollection<WeatherLocation>>.That.Matches(locations => locations.Count == 1),
+                    A<CancellationToken>._))
                 .MustHaveHappenedOnceExactly();
         }
 
@@ -289,17 +344,87 @@ namespace TC.Agro.SensorIngest.Tests.Service.Jobs
         #region Constructor Validation
 
         [Fact]
-        public void Constructor_WithNullScopeFactory_ShouldThrow()
+        public void Constructor_WithNullSnapshotStore_ShouldThrow()
         {
             Should.Throw<ArgumentNullException>(() =>
-                new SimulatedSensorReadingsJob(null!, _logger, _jobOptions));
+                new SimulatedSensorReadingsJob(
+                    null!,
+                    _readingRepository,
+                    _messageBus,
+                    _hubNotifier,
+                    _weatherProvider,
+                    _logger,
+                    _jobOptions));
+        }
+
+        [Fact]
+        public void Constructor_WithNullReadingRepository_ShouldThrow()
+        {
+            Should.Throw<ArgumentNullException>(() =>
+                new SimulatedSensorReadingsJob(
+                    _snapshotStore,
+                    null!,
+                    _messageBus,
+                    _hubNotifier,
+                    _weatherProvider,
+                    _logger,
+                    _jobOptions));
+        }
+
+        [Fact]
+        public void Constructor_WithNullMessageBus_ShouldThrow()
+        {
+            Should.Throw<ArgumentNullException>(() =>
+                new SimulatedSensorReadingsJob(
+                    _snapshotStore,
+                    _readingRepository,
+                    null!,
+                    _hubNotifier,
+                    _weatherProvider,
+                    _logger,
+                    _jobOptions));
+        }
+
+        [Fact]
+        public void Constructor_WithNullHubNotifier_ShouldThrow()
+        {
+            Should.Throw<ArgumentNullException>(() =>
+                new SimulatedSensorReadingsJob(
+                    _snapshotStore,
+                    _readingRepository,
+                    _messageBus,
+                    null!,
+                    _weatherProvider,
+                    _logger,
+                    _jobOptions));
+        }
+
+        [Fact]
+        public void Constructor_WithNullWeatherProvider_ShouldThrow()
+        {
+            Should.Throw<ArgumentNullException>(() =>
+                new SimulatedSensorReadingsJob(
+                    _snapshotStore,
+                    _readingRepository,
+                    _messageBus,
+                    _hubNotifier,
+                    null!,
+                    _logger,
+                    _jobOptions));
         }
 
         [Fact]
         public void Constructor_WithNullLogger_ShouldThrow()
         {
             Should.Throw<ArgumentNullException>(() =>
-                new SimulatedSensorReadingsJob(_scopeFactory, null!, _jobOptions));
+                new SimulatedSensorReadingsJob(
+                    _snapshotStore,
+                    _readingRepository,
+                    _messageBus,
+                    _hubNotifier,
+                    _weatherProvider,
+                    null!,
+                    _jobOptions));
         }
 
         #endregion

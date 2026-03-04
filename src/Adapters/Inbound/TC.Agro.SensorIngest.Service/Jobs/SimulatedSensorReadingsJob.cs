@@ -12,16 +12,28 @@ namespace TC.Agro.SensorIngest.Service.Jobs
     [DisallowConcurrentExecution]
     internal sealed class SimulatedSensorReadingsJob : IJob
     {
-        private readonly IServiceScopeFactory _scopeFactory;
+        private readonly ISensorSnapshotStore _snapshotStore;
+        private readonly ISensorReadingRepository _readingRepository;
+        private readonly IMessageBus _messageBus;
+        private readonly ISensorHubNotifier _hubNotifier;
+        private readonly IWeatherDataProvider _weatherProvider;
         private readonly ILogger<SimulatedSensorReadingsJob> _logger;
         private readonly SensorReadingsJobOptions _options;
 
         public SimulatedSensorReadingsJob(
-            IServiceScopeFactory scopeFactory,
+            ISensorSnapshotStore snapshotStore,
+            ISensorReadingRepository readingRepository,
+            IMessageBus messageBus,
+            ISensorHubNotifier hubNotifier,
+            IWeatherDataProvider weatherProvider,
             ILogger<SimulatedSensorReadingsJob> logger,
             IOptions<SensorReadingsJobOptions> options)
         {
-            _scopeFactory = scopeFactory ?? throw new ArgumentNullException(nameof(scopeFactory));
+            _snapshotStore = snapshotStore ?? throw new ArgumentNullException(nameof(snapshotStore));
+            _readingRepository = readingRepository ?? throw new ArgumentNullException(nameof(readingRepository));
+            _messageBus = messageBus ?? throw new ArgumentNullException(nameof(messageBus));
+            _hubNotifier = hubNotifier ?? throw new ArgumentNullException(nameof(hubNotifier));
+            _weatherProvider = weatherProvider ?? throw new ArgumentNullException(nameof(weatherProvider));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _options = options?.Value ?? new SensorReadingsJobOptions();
         }
@@ -34,33 +46,45 @@ namespace TC.Agro.SensorIngest.Service.Jobs
 
             try
             {
-                await using var scope = _scopeFactory.CreateAsyncScope();
-
-                var snapshotStore = scope.ServiceProvider.GetRequiredService<ISensorSnapshotStore>();
-                var readingRepository = scope.ServiceProvider.GetRequiredService<ISensorReadingRepository>();
-                var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
-                var hubNotifier = scope.ServiceProvider.GetRequiredService<ISensorHubNotifier>();
-                var weatherProvider = scope.ServiceProvider.GetRequiredService<IWeatherDataProvider>();
-
-                var activeSensors = await snapshotStore.GetAllActiveAsync(context.CancellationToken).ConfigureAwait(false);
-
+                var activeSensors = await _snapshotStore.GetAllActiveAsync(context.CancellationToken).ConfigureAwait(false);
                 if (activeSensors.Count == 0)
                 {
                     _logger.LogInformation("No active sensors found. Skipping reading generation");
                     return;
                 }
 
-                var weatherData = await weatherProvider.GetCurrentWeatherAsync(context.CancellationToken).ConfigureAwait(false);
+                var weatherLocations = activeSensors
+                    .Select(sensor => BuildWeatherLocation(sensor.PlotLatitude, sensor.PlotLongitude))
+                    .Where(location => location is not null)
+                    .Select(location => location!)
+                    .Distinct()
+                    .ToList();
 
-                if (weatherData is not null)
+                if (weatherLocations.Count == 0)
                 {
-                    _logger.LogInformation(
-                        "Using real weather data from Open-Meteo: {Temperature}C, {Humidity}%, SoilMoisture={SoilMoisture}%",
-                        weatherData.Temperature, weatherData.Humidity, weatherData.SoilMoisture);
+                    _logger.LogWarning("No valid plot coordinates found. Falling back to fully simulated weather data");
                 }
                 else
                 {
-                    _logger.LogWarning("Weather API unavailable, falling back to simulated data");
+                    _logger.LogInformation(
+                        "Requesting weather from Open-Meteo for {LocationCount} unique location(s)",
+                        weatherLocations.Count);
+                }
+
+                var weatherByLocation = weatherLocations.Count > 0
+                    ? await _weatherProvider.GetCurrentWeatherBatchAsync(weatherLocations, context.CancellationToken).ConfigureAwait(false)
+                    : new Dictionary<WeatherLocation, WeatherData>();
+
+                if (weatherByLocation.Count > 0)
+                {
+                    _logger.LogInformation(
+                        "Using real weather data from Open-Meteo for {ResolvedCount}/{RequestedCount} location(s)",
+                        weatherByLocation.Count,
+                        weatherLocations.Count);
+                }
+                else if (weatherLocations.Count > 0)
+                {
+                    _logger.LogWarning("Weather API unavailable or returned no data. Falling back to simulated data per sensor");
                 }
 
                 _logger.LogInformation("Generating readings for {Count} active sensor(s)", activeSensors.Count);
@@ -69,7 +93,16 @@ namespace TC.Agro.SensorIngest.Service.Jobs
                 var now = DateTime.UtcNow;
 
                 var readings = activeSensors
-                    .Select(sensor => GenerateReading(faker, sensor.Id, now, weatherData))
+                    .Select(sensor =>
+                    {
+                        var weatherLocation = BuildWeatherLocation(sensor.PlotLatitude, sensor.PlotLongitude);
+                        var weatherData = weatherLocation is not null
+                            && weatherByLocation.TryGetValue(weatherLocation, out var weather)
+                                ? weather
+                                : null;
+
+                        return GenerateReading(faker, sensor.Id, now, weatherData);
+                    })
                     .Where(result => result.IsSuccess)
                     .Select(result => result.Value)
                     .ToList();
@@ -81,7 +114,7 @@ namespace TC.Agro.SensorIngest.Service.Jobs
                 }
 
                 // Persist all readings to DB first (AddRangeAsync calls SaveChangesAsync internally)
-                await readingRepository.AddRangeAsync(readings, context.CancellationToken).ConfigureAwait(false);
+                await _readingRepository.AddRangeAsync(readings, context.CancellationToken).ConfigureAwait(false);
 
                 _logger.LogInformation("Persisted {Count} reading(s). Publishing integration events", readings.Count);
 
@@ -103,9 +136,9 @@ namespace TC.Agro.SensorIngest.Service.Jobs
                                 DateTimeOffset.UtcNow),
                             reading.Id);
 
-                        await messageBus.PublishAsync(integrationEvent).ConfigureAwait(false);
+                        await _messageBus.PublishAsync(integrationEvent).ConfigureAwait(false);
 
-                        await hubNotifier.NotifySensorReadingAsync(
+                        await _hubNotifier.NotifySensorReadingAsync(
                             reading.SensorId,
                             reading.Temperature,
                             reading.Humidity,
@@ -129,6 +162,20 @@ namespace TC.Agro.SensorIngest.Service.Jobs
                 _logger.LogError(ex, "SimulatedSensorReadingsJob failed");
                 throw new JobExecutionException(ex, refireImmediately: false);
             }
+        }
+
+        private static WeatherLocation? BuildWeatherLocation(double? latitude, double? longitude)
+        {
+            if (!latitude.HasValue || !longitude.HasValue)
+                return null;
+
+            if (latitude.Value is < -90 or > 90)
+                return null;
+
+            if (longitude.Value is < -180 or > 180)
+                return null;
+
+            return new WeatherLocation(latitude.Value, longitude.Value);
         }
 
         internal static Result<SensorReadingAggregate> GenerateReading(Faker faker, Guid sensorId, DateTime now, WeatherData? weatherData)

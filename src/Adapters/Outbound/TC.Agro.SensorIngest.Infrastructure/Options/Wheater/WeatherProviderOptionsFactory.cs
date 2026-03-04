@@ -37,5 +37,10 @@ namespace TC.Agro.SensorIngest.Infrastructure.Options.Wheater
         /// Gets weather provider longitude.
         /// </summary>
         public double Longitude => _options.Longitude;
+
+        /// <summary>
+        /// Gets max number of coordinates per Open-Meteo request.
+        /// </summary>
+        public int MaxCoordinatesPerRequest => _options.MaxCoordinatesPerRequest;
     }
 }

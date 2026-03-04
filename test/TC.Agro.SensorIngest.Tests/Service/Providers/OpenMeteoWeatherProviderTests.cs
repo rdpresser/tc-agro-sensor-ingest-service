@@ -96,7 +96,72 @@ namespace TC.Agro.SensorIngest.Tests.Service.Providers
             result.SoilMoisture.ShouldBe(42.0);
         }
 
+        [Fact]
+        public async Task GetCurrentWeatherBatchAsync_WithMultipleLocations_ShouldReturnWeatherForEachLocation()
+        {
+            var currentHour = GetCurrentSaoPauloHour();
+            var json = BuildOpenMeteoBatchJson(
+                currentHour,
+                (28.5, 65, 0.30, 2.5),
+                (25.0, 60, 0.25, 0.0));
+
+            var provider = CreateProvider(json, HttpStatusCode.OK);
+            var locations = new List<WeatherLocation>
+            {
+                new(-22.7256, -47.6492),
+                new(-22.9000, -47.1000)
+            };
+
+            var result = await provider.GetCurrentWeatherBatchAsync(locations, TestContext.Current.CancellationToken);
+
+            result.Count.ShouldBe(2);
+            result[locations[0]].Temperature.ShouldBe(28.5);
+            result[locations[0]].Humidity.ShouldBe(65);
+            result[locations[0]].SoilMoisture.ShouldBe(30.0);
+            result[locations[0]].Precipitation.ShouldBe(2.5);
+
+            result[locations[1]].Temperature.ShouldBe(25.0);
+            result[locations[1]].Humidity.ShouldBe(60);
+            result[locations[1]].SoilMoisture.ShouldBe(25.0);
+            result[locations[1]].Precipitation.ShouldBeNull();
+        }
+
+        [Fact]
+        public async Task GetCurrentWeatherBatchAsync_WithDuplicateLocations_ShouldCallApiOnlyOnce()
+        {
+            var currentHour = GetCurrentSaoPauloHour();
+            var json = BuildOpenMeteoJson(currentHour, 26.0, 55, 0.28, 1.5);
+            var (provider, handler) = CreateProviderWithHandler(json, HttpStatusCode.OK);
+
+            var location = new WeatherLocation(-22.7256, -47.6492);
+            var locations = new List<WeatherLocation> { location, location, location };
+
+            var result = await provider.GetCurrentWeatherBatchAsync(locations, TestContext.Current.CancellationToken);
+
+            result.Count.ShouldBe(1);
+            handler.CallCount.ShouldBe(1);
+        }
+
+        [Fact]
+        public async Task GetCurrentWeatherBatchAsync_WithEmptyLocations_ShouldReturnEmptyWithoutCallingApi()
+        {
+            var (provider, handler) = CreateProviderWithHandler("", HttpStatusCode.OK);
+
+            var result = await provider.GetCurrentWeatherBatchAsync([], TestContext.Current.CancellationToken);
+
+            result.ShouldBeEmpty();
+            handler.CallCount.ShouldBe(0);
+        }
+
         private OpenMeteoWeatherProvider CreateProvider(string responseJson, HttpStatusCode statusCode)
+        {
+            var (provider, _) = CreateProviderWithHandler(responseJson, statusCode);
+            return provider;
+        }
+
+        private (OpenMeteoWeatherProvider Provider, FakeHttpMessageHandler Handler) CreateProviderWithHandler(
+            string responseJson,
+            HttpStatusCode statusCode)
         {
             var handler = new FakeHttpMessageHandler(responseJson, statusCode);
             var httpClient = new HttpClient(handler)
@@ -106,11 +171,13 @@ namespace TC.Agro.SensorIngest.Tests.Service.Providers
 
             var cache = new FakeCacheService();
 
-            return new OpenMeteoWeatherProvider(
+            var provider = new OpenMeteoWeatherProvider(
                 httpClient,
                 cache,
                 _options,
                 NullLogger<OpenMeteoWeatherProvider>.Instance);
+
+            return (provider, handler);
         }
 
         private static string GetCurrentSaoPauloHour()
@@ -138,10 +205,34 @@ namespace TC.Agro.SensorIngest.Tests.Service.Providers
             """;
         }
 
+        private static string BuildOpenMeteoBatchJson(
+            string timeEntry,
+            params (double Temperature, double Humidity, double SoilMoisture, double Precipitation)[] entries)
+        {
+            var payloads = entries
+                .Select((entry, index) => $$"""
+                {
+                    "location_id": {{index}},
+                    "hourly": {
+                        "time": ["{{timeEntry}}"],
+                        "temperature_2m": [{{entry.Temperature.ToString(CultureInfo.InvariantCulture)}}],
+                        "relative_humidity_2m": [{{entry.Humidity.ToString(CultureInfo.InvariantCulture)}}],
+                        "soil_moisture_0_to_1cm": [{{entry.SoilMoisture.ToString(CultureInfo.InvariantCulture)}}],
+                        "precipitation": [{{entry.Precipitation.ToString(CultureInfo.InvariantCulture)}}]
+                    }
+                }
+                """);
+
+            return $"[{string.Join(",", payloads)}]";
+        }
+
         private sealed class FakeHttpMessageHandler : HttpMessageHandler
         {
             private readonly string _response;
             private readonly HttpStatusCode _statusCode;
+
+            public int CallCount { get; private set; }
+            public Uri? LastRequestUri { get; private set; }
 
             public FakeHttpMessageHandler(string response, HttpStatusCode statusCode)
             {
@@ -152,6 +243,9 @@ namespace TC.Agro.SensorIngest.Tests.Service.Providers
             protected override Task<HttpResponseMessage> SendAsync(
                 HttpRequestMessage request, CancellationToken cancellationToken)
             {
+                CallCount++;
+                LastRequestUri = request.RequestUri;
+
                 return Task.FromResult(new HttpResponseMessage(_statusCode)
                 {
                     Content = new StringContent(_response, Encoding.UTF8, "application/json")
