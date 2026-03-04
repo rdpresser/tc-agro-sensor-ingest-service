@@ -1,6 +1,6 @@
 # GitHub Copilot Instructions - TC Agro Sensor Ingest Service
 
-## Project Context
+## 📋 Project Context
 
 **Name:** TC Agro Sensor Ingest Service
 **Repository:** https://github.com/rdpresser/tc-agro-sensor-ingest-service
@@ -18,7 +18,7 @@
 
 ---
 
-## Technology Stack
+## 🛠️ Technology Stack
 
 ### Backend
 
@@ -57,7 +57,7 @@
 
 ---
 
-## Project Structure
+## 🏗️ Project Structure
 
 ```
 src/
@@ -125,7 +125,7 @@ test/
 
 ---
 
-## API Endpoints
+## 🌐 API Endpoints
 
 ### Sensor Readings
 
@@ -205,7 +205,7 @@ test/
 
 ---
 
-## C# Coding Conventions
+## 📝 C# Coding Conventions
 
 ### Naming Conventions
 
@@ -298,7 +298,7 @@ await Outbox.EnqueueAsync(new SensorIngestedIntegrationEvent(...), ct);
 
 ---
 
-## TimescaleDB Configuration
+## ⏰ TimescaleDB Configuration
 
 The `sensor_readings` table uses TimescaleDB hypertable for efficient time-series storage:
 
@@ -330,7 +330,7 @@ ORDER BY hour DESC;
 
 ---
 
-## Validation Rules
+## ✅ Validation Rules
 
 | Field        | Validation                                                                      |
 | ------------ | ------------------------------------------------------------------------------- |
@@ -346,7 +346,7 @@ ORDER BY hour DESC;
 
 ---
 
-## Inter-Service Communication
+## 🔄 Inter-Service Communication
 
 ### Events Published
 
@@ -359,9 +359,9 @@ ORDER BY hour DESC;
 
 ---
 
-## Important Rules
+## 🎯 Important Rules
 
-### ALWAYS Do:
+### ✅ ALWAYS Do:
 
 - Use **FastEndpoints** for APIs (not MVC Controllers)
 - Use **async/await** in all I/O operations with `CancellationToken`
@@ -379,7 +379,7 @@ ORDER BY hour DESC;
 - Ensure modified/new code paths have automated test coverage before closing a task
 - For frontend changes in parent project (`poc/frontend` or `poc/mobile`), follow Frontend Test Parity Protocol
 
-### NEVER Do:
+### ❌ NEVER Do:
 
 - Use MVC Controllers (use FastEndpoints)
 - Expose domain entities directly in APIs
@@ -406,7 +406,7 @@ ORDER BY hour DESC;
 
 ---
 
-## Useful Commands
+## 🚀 Useful Commands
 
 ### Run Service
 
@@ -417,6 +417,9 @@ dotnet run --project src/Adapters/Inbound/TC.Agro.SensorIngest.Service
 ### Run Tests
 
 ```bash
+# Build solution/service
+dotnet build
+
 dotnet test
 ```
 
@@ -466,13 +469,13 @@ kubectl port-forward svc/sensor-ingest-service 8080:80 -n agro
 
 ---
 
-## Documentation and Language Standards
+## 📝 Documentation and Language Standards
 
 ### Chat Responses
 
 - **Match user's language:** Respond in the same language the user initiated the chat
-  - If user starts in **Portuguese** -> respond in Portuguese
-  - If user starts in **English** -> respond in English
+  - If user starts in **Portuguese** → respond in Portuguese
+  - If user starts in **English** → respond in English
 - **Consistent language:** Maintain the chat language throughout the conversation
 
 ### Code and Documentation Files
@@ -498,7 +501,7 @@ kubectl port-forward svc/sensor-ingest-service 8080:80 -n agro
 
 ---
 
-## References
+## 📚 References
 
 ### Technology Documentation
 
@@ -517,6 +520,6 @@ kubectl port-forward svc/sensor-ingest-service 8080:80 -n agro
 ---
 
 > **Last update:** March 4, 2026
-> **Version:** 1.1
-> **Key Addition:** Mandatory build/unit-test/coverage protocol + frontend parity guidance
+> **Version:** 1.2
+> **Key Addition:** Instruction cleanup + explicit build command + mandatory build/unit-test/coverage and frontend parity guidance
 > Use these instructions to guide code generation in the TC Agro Sensor Ingest Service project.
