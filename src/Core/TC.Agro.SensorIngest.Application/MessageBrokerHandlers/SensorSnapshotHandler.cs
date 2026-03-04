@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.WebUtilities;
 using TC.Agro.Contracts.Events.Farm;
 
 namespace TC.Agro.SensorIngest.Application.MessageBrokerHandlers
@@ -28,6 +27,9 @@ namespace TC.Agro.SensorIngest.Application.MessageBrokerHandlers
                 label,
                 plotName: data.PlotName,
                 propertyName: data.PropertyName,
+                plotLatitude: data.PlotLatitude,
+                plotLongitude: data.PlotLongitude,
+                plotBoundaryGeoJson: data.PlotBoundaryGeoJson,
                 createdAt: data.OccurredOn,
                 status: data.Status);
 

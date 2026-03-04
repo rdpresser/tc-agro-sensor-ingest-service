@@ -15,6 +15,9 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
         public string? Label { get; private set; } = default!;
         public string PlotName { get; private set; } = default!;
         public string PropertyName { get; private set; } = default!;
+        public double? PlotLatitude { get; private set; }
+        public double? PlotLongitude { get; private set; }
+        public string? PlotBoundaryGeoJson { get; private set; }
         public string? Status { get; private set; }
         public string? StatusChangeReason { get; private set; } = default!;
 
@@ -37,6 +40,9 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
             string? label,
             string plotName,
             string propertyName,
+            double? plotLatitude,
+            double? plotLongitude,
+            string? plotBoundaryGeoJson,
             bool isActive,
             DateTimeOffset createdAt,
             DateTimeOffset? updatedAt,
@@ -49,6 +55,9 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
             Label = label;
             PlotName = plotName;
             PropertyName = propertyName;
+            PlotLatitude = plotLatitude;
+            PlotLongitude = plotLongitude;
+            PlotBoundaryGeoJson = plotBoundaryGeoJson;
             IsActive = isActive;
             CreatedAt = createdAt;
             UpdatedAt = updatedAt;
@@ -63,6 +72,9 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
             string? label,
             string plotName,
             string propertyName,
+            double? plotLatitude = null,
+            double? plotLongitude = null,
+            string? plotBoundaryGeoJson = null,
             string? status = null)
         {
             var now = DateTimeOffset.UtcNow;
@@ -75,6 +87,9 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
                 label,
                 plotName,
                 propertyName,
+                plotLatitude,
+                plotLongitude,
+                plotBoundaryGeoJson,
                 true,
                 now,
                 null,
@@ -90,6 +105,9 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
             string plotName,
             string propertyName,
             DateTimeOffset createdAt,
+            double? plotLatitude = null,
+            double? plotLongitude = null,
+            string? plotBoundaryGeoJson = null,
             string? status = null)
         {
             return new SensorSnapshot(
@@ -100,6 +118,9 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
                 label,
                 plotName,
                 propertyName,
+                plotLatitude,
+                plotLongitude,
+                plotBoundaryGeoJson,
                 true,
                 createdAt,
                 null,
@@ -124,7 +145,10 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
             string plotName,
             string propertyName,
             string status,
-            string? reason)
+            string? reason,
+            double? plotLatitude = null,
+            double? plotLongitude = null,
+            string? plotBoundaryGeoJson = null)
         {
             OwnerId = ownerId;
             PropertyId = propertyId;
@@ -133,6 +157,9 @@ namespace TC.Agro.SensorIngest.Domain.Snapshots
             Label = sensorName;
             PlotName = plotName;
             PropertyName = propertyName;
+            PlotLatitude = plotLatitude;
+            PlotLongitude = plotLongitude;
+            PlotBoundaryGeoJson = plotBoundaryGeoJson;
             UpdatedAt = DateTimeOffset.UtcNow;
             StatusChangeReason = reason;
         }

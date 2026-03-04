@@ -31,6 +31,21 @@ namespace TC.Agro.SensorIngest.Infrastructure.Configurations
                 .IsRequired()
                 .HasMaxLength(200);
 
+            builder.Property(s => s.PlotLatitude)
+                .HasColumnName("plot_latitude")
+                .HasColumnType("double precision")
+                .IsRequired(false);
+
+            builder.Property(s => s.PlotLongitude)
+                .HasColumnName("plot_longitude")
+                .HasColumnType("double precision")
+                .IsRequired(false);
+
+            builder.Property(s => s.PlotBoundaryGeoJson)
+                .HasColumnName("plot_boundary_geo_json")
+                .HasColumnType("text")
+                .IsRequired(false);
+
             builder.Property(s => s.Status)
                 .HasMaxLength(20)
                 .HasColumnType("character varying(20)");
