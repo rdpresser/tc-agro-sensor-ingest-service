@@ -66,3 +66,12 @@ global using Wolverine.RabbitMQ;
 global using ZiggyCreatures.Caching.Fusion;
 global using ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
 global using ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
+//**//
+using System.Runtime.CompilerServices;
+[assembly: InternalsVisibleTo("TC.Agro.SensorIngest.Tests")]
+[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
+//**//REMARK: Required for functional and integration tests to work.
+namespace TC.Agro.SensorIngest.Service
+{
+    public partial class Program;
+}
