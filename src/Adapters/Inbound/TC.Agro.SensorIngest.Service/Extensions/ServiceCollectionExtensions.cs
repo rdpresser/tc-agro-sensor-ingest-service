@@ -102,13 +102,17 @@ namespace TC.Agro.SensorIngest.Service.Extensions
 
         public static IServiceCollection AddCustomFastEndpoints(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddFastEndpoints(discoveryOptions =>
+            services.AddFastEndpoints(dicoveryOptions =>
             {
-                discoveryOptions.Assemblies =
+                dicoveryOptions.DisableAutoDiscovery = true;
+                dicoveryOptions.Assemblies =
                 [
                     typeof(Application.DependencyInjection).Assembly,
-                    typeof(ServiceCollectionExtensions).Assembly
+                    typeof(Program).Assembly
                 ];
+                dicoveryOptions.Filter = type =>
+                    type.Assembly == typeof(Application.DependencyInjection).Assembly ||
+                    type.Assembly == typeof(Program).Assembly;
             })
             .SwaggerDocument(o =>
             {
