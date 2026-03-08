@@ -1,5 +1,3 @@
-using TC.Agro.SensorIngest.Domain.Snapshots;
-
 namespace TC.Agro.SensorIngest.Infrastructure.Configurations
 {
     internal sealed class OwnerSnapshotConfiguration : IEntityTypeConfiguration<OwnerSnapshot>

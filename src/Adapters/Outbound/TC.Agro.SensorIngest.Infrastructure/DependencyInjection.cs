@@ -1,6 +1,6 @@
-using TC.Agro.SharedKernel.Infrastructure;
 using TC.Agro.SensorIngest.Infrastructure.Options.Jobs;
 using TC.Agro.SensorIngest.Infrastructure.Options.Wheater;
+using TC.Agro.SharedKernel.Infrastructure;
 
 namespace TC.Agro.SensorIngest.Infrastructure
 {

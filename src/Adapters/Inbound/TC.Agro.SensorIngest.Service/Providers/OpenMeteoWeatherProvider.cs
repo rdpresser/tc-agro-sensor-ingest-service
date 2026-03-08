@@ -1,7 +1,6 @@
 using System.Globalization;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
-using TC.Agro.SensorIngest.Application.Abstractions.Ports;
 using TC.Agro.SensorIngest.Infrastructure.Options.Wheater;
 using TC.Agro.SharedKernel.Infrastructure.Caching.Service;
 

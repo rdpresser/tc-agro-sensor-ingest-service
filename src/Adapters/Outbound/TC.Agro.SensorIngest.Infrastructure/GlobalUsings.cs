@@ -9,7 +9,6 @@ global using Serilog;
 global using TC.Agro.SensorIngest.Application.Abstractions.Ports;
 global using TC.Agro.SensorIngest.Domain.Aggregates;
 global using TC.Agro.SensorIngest.Domain.Snapshots;
-global using TC.Agro.SensorIngest.Domain.ValueObjects;
 global using TC.Agro.SensorIngest.Infrastructure.Messaging;
 global using TC.Agro.SensorIngest.Infrastructure.Repositories;
 global using TC.Agro.SharedKernel.Application.Ports;

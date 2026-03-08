@@ -2,7 +2,6 @@ using System.Reflection;
 using TC.Agro.SensorIngest.Application.UseCases.CreateReading;
 using TC.Agro.SensorIngest.Domain.Aggregates;
 using TC.Agro.SensorIngest.Infrastructure;
-using TC.Agro.SensorIngest.Service;
 
 namespace TC.Agro.SensorIngest.Architecture.Tests;
 

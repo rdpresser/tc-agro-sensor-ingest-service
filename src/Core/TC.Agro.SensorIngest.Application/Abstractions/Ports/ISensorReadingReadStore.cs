@@ -1,5 +1,3 @@
-using TC.Agro.SharedKernel.Infrastructure.Pagination;
-
 namespace TC.Agro.SensorIngest.Application.Abstractions.Ports
 {
     public interface ISensorReadingReadStore

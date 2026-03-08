@@ -1,5 +1,3 @@
-using TC.Agro.SharedKernel.Infrastructure.Messaging;
-
 namespace TC.Agro.SensorIngest.Application.Abstractions.Mappers
 {
     /// <summary>
