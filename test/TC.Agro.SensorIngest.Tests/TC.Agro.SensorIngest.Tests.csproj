@@ -19,6 +19,8 @@
     </PackageReference>
     <PackageReference Include="Shouldly" />
     <PackageReference Include="FakeItEasy" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
     <PackageReference Include="coverlet.collector">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
@@ -28,6 +30,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Core\TC.Agro.SensorIngest.Domain\TC.Agro.SensorIngest.Domain.csproj" />
     <ProjectReference Include="..\..\src\Core\TC.Agro.SensorIngest.Application\TC.Agro.SensorIngest.Application.csproj" />
+    <ProjectReference Include="..\..\src\Adapters\Outbound\TC.Agro.SensorIngest.Infrastructure\TC.Agro.SensorIngest.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\Adapters\Inbound\TC.Agro.SensorIngest.Service\TC.Agro.SensorIngest.Service.csproj" />
   </ItemGroup>
 

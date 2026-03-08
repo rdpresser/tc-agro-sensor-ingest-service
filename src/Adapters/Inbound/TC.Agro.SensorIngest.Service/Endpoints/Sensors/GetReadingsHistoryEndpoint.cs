@@ -7,9 +7,7 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Sensors
         public override void Configure()
         {
             Get("sensors/{SensorId:guid}/readings");
-
-            PreProcessor<QueryCachingPreProcessorBehavior<GetReadingsHistoryQuery, PaginatedResponse<GetReadingsHistoryResponse>>>();
-            PostProcessor<QueryCachingPostProcessorBehavior<GetReadingsHistoryQuery, PaginatedResponse<GetReadingsHistoryResponse>>>();
+            this.AddQueryCachingIfNotTesting();
 
             Roles(AppRoles.Admin, AppRoles.Producer);
 

@@ -6,7 +6,7 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Readings
         {
             Post("readings/batch");
             PostProcessor<LoggingCommandPostProcessorBehavior<CreateBatchReadingsCommand, CreateBatchReadingsResponse>>();
-            PostProcessor<CacheInvalidationPostProcessorBehavior<CreateBatchReadingsCommand, CreateBatchReadingsResponse>>();
+            this.AddCacheInvalidationIfNotTesting();
 
             Roles(AppRoles.Admin, AppRoles.Producer, AppRoles.Sensor);
 

@@ -8,8 +8,7 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Dashboard
         {
             Get("dashboard/latest");
             RequestBinder(new RequestBinder<GetLatestReadingsQuery>(BindingSource.QueryParams));
-            PreProcessor<QueryCachingPreProcessorBehavior<GetLatestReadingsQuery, PaginatedResponse<GetLatestReadingsResponse>>>();
-            PostProcessor<QueryCachingPostProcessorBehavior<GetLatestReadingsQuery, PaginatedResponse<GetLatestReadingsResponse>>>();
+            this.AddQueryCachingIfNotTesting();
 
             Roles(AppRoles.Admin, AppRoles.Producer);
 

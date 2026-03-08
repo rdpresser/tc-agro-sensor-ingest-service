@@ -146,6 +146,12 @@ namespace TC.Agro.SensorIngest.Service.Extensions
 
             var normalizedPathBase = NormalizePathBase(pathBase);
 
+            var hostEnvironment = app.ApplicationServices.GetRequiredService<IHostEnvironment>();
+            if (hostEnvironment.IsEnvironment("Testing"))
+            {
+                return app;
+            }
+
             app.UseOpenApi(o =>
             {
                 o.PostProcess = (doc, req) =>

@@ -6,7 +6,7 @@ namespace TC.Agro.SensorIngest.Service.Endpoints.Readings
         {
             Post("readings");
             PostProcessor<LoggingCommandPostProcessorBehavior<CreateReadingCommand, CreateReadingResponse>>();
-            PostProcessor<CacheInvalidationPostProcessorBehavior<CreateReadingCommand, CreateReadingResponse>>();
+            this.AddCacheInvalidationIfNotTesting();
 
             Roles(AppRoles.Admin, AppRoles.Producer, AppRoles.Sensor);
 
