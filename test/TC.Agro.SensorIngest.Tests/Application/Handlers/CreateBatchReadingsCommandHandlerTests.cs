@@ -7,6 +7,8 @@ using TC.Agro.SensorIngest.Application.UseCases.CreateBatchReadings;
 using TC.Agro.SensorIngest.Domain.Aggregates;
 using TC.Agro.SensorIngest.Domain.Snapshots;
 using TC.Agro.SharedKernel.Application.Ports;
+using TC.Agro.SharedKernel.Infrastructure.Messaging;
+using TC.Agro.SharedKernel.Infrastructure.UserClaims;
 
 namespace TC.Agro.SensorIngest.Tests.Application.Handlers
 {
@@ -15,6 +17,7 @@ namespace TC.Agro.SensorIngest.Tests.Application.Handlers
         private readonly ISensorReadingRepository _repository;
         private readonly ITransactionalOutbox _outbox;
         private readonly ISensorSnapshotStore _sensorSnapshotStore;
+        private readonly IUserContext _userContext;
         private readonly ILogger<CreateBatchReadingsCommandHandler> _logger;
         private readonly CreateBatchReadingsCommandHandler _handler;
 
@@ -23,8 +26,12 @@ namespace TC.Agro.SensorIngest.Tests.Application.Handlers
             _repository = A.Fake<ISensorReadingRepository>();
             _outbox = A.Fake<ITransactionalOutbox>();
             _sensorSnapshotStore = A.Fake<ISensorSnapshotStore>();
+            _userContext = A.Fake<IUserContext>();
+            A.CallTo(() => _userContext.Id).Returns(Guid.NewGuid());
+            A.CallTo(() => _userContext.IsAuthenticated).Returns(true);
+            A.CallTo(() => _userContext.CorrelationId).Returns(Guid.NewGuid().ToString());
             _logger = NullLogger<CreateBatchReadingsCommandHandler>.Instance;
-            _handler = new CreateBatchReadingsCommandHandler(_repository, _outbox, _sensorSnapshotStore, _logger);
+            _handler = new CreateBatchReadingsCommandHandler(_repository, _outbox, _sensorSnapshotStore, _userContext, _logger);
         }
 
         private static SensorSnapshot CreateActiveSensor(Guid sensorId)
@@ -57,28 +64,35 @@ namespace TC.Agro.SensorIngest.Tests.Application.Handlers
         public void Constructor_WithNullRepository_ShouldThrow()
         {
             Should.Throw<ArgumentNullException>(() =>
-                new CreateBatchReadingsCommandHandler(null!, _outbox, _sensorSnapshotStore, _logger));
+                new CreateBatchReadingsCommandHandler(null!, _outbox, _sensorSnapshotStore, _userContext, _logger));
         }
 
         [Fact]
         public void Constructor_WithNullOutbox_ShouldThrow()
         {
             Should.Throw<ArgumentNullException>(() =>
-                new CreateBatchReadingsCommandHandler(_repository, null!, _sensorSnapshotStore, _logger));
+                new CreateBatchReadingsCommandHandler(_repository, null!, _sensorSnapshotStore, _userContext, _logger));
         }
 
         [Fact]
         public void Constructor_WithNullSnapshotStore_ShouldThrow()
         {
             Should.Throw<ArgumentNullException>(() =>
-                new CreateBatchReadingsCommandHandler(_repository, _outbox, null!, _logger));
+                new CreateBatchReadingsCommandHandler(_repository, _outbox, null!, _userContext, _logger));
+        }
+
+        [Fact]
+        public void Constructor_WithNullUserContext_ShouldThrow()
+        {
+            Should.Throw<ArgumentNullException>(() =>
+                new CreateBatchReadingsCommandHandler(_repository, _outbox, _sensorSnapshotStore, null!, _logger));
         }
 
         [Fact]
         public void Constructor_WithNullLogger_ShouldThrow()
         {
             Should.Throw<ArgumentNullException>(() =>
-                new CreateBatchReadingsCommandHandler(_repository, _outbox, _sensorSnapshotStore, null!));
+                new CreateBatchReadingsCommandHandler(_repository, _outbox, _sensorSnapshotStore, _userContext, null!));
         }
 
         #endregion
@@ -255,7 +269,7 @@ namespace TC.Agro.SensorIngest.Tests.Application.Handlers
             await _handler.ExecuteAsync(command, ct);
 
             A.CallTo(() => _outbox.EnqueueAsync(
-                A<SensorIngestedIntegrationEvent>._, A<CancellationToken>._))
+                A<EventContext<SensorIngestedIntegrationEvent>>._, A<CancellationToken>._))
                 .MustHaveHappened(2, Times.Exactly);
         }
 
@@ -272,7 +286,7 @@ namespace TC.Agro.SensorIngest.Tests.Application.Handlers
             await _handler.ExecuteAsync(command, ct);
 
             A.CallTo(() => _outbox.EnqueueAsync(
-                A<SensorIngestedIntegrationEvent>._, A<CancellationToken>._))
+                A<EventContext<SensorIngestedIntegrationEvent>>._, A<CancellationToken>._))
                 .MustNotHaveHappened();
         }
 

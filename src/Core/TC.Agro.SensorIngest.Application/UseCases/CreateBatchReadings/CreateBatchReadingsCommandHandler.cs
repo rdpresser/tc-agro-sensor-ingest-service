@@ -1,4 +1,7 @@
 using TC.Agro.Contracts.Events.SensorIngested;
+using TC.Agro.SensorIngest.Application.Abstractions.Mappers;
+using TC.Agro.SharedKernel.Domain.Events;
+using TC.Agro.SharedKernel.Infrastructure.UserClaims;
 
 namespace TC.Agro.SensorIngest.Application.UseCases.CreateBatchReadings
 {
@@ -8,17 +11,20 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateBatchReadings
         private readonly ISensorReadingRepository _repository;
         private readonly ITransactionalOutbox _outbox;
         private readonly ISensorSnapshotStore _sensorSnapshotStore;
+        private readonly IUserContext _userContext;
         private readonly ILogger<CreateBatchReadingsCommandHandler> _logger;
 
         public CreateBatchReadingsCommandHandler(
             ISensorReadingRepository repository,
             ITransactionalOutbox outbox,
             ISensorSnapshotStore sensorSnapshotStore,
+            IUserContext userContext,
             ILogger<CreateBatchReadingsCommandHandler> logger)
         {
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
             _outbox = outbox ?? throw new ArgumentNullException(nameof(outbox));
             _sensorSnapshotStore = sensorSnapshotStore ?? throw new ArgumentNullException(nameof(sensorSnapshotStore));
+            _userContext = userContext ?? throw new ArgumentNullException(nameof(userContext));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -80,27 +86,31 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateBatchReadings
             {
                 await _repository.AddRangeAsync(successfulAggregates, ct).ConfigureAwait(false);
 
+                var mappings = new Dictionary<Type, Func<BaseDomainEvent, SensorIngestedIntegrationEvent>>
+                {
+                    {
+                        typeof(SensorReadingAggregate.SensorReadingCreatedDomainEvent),
+                        domainEvent => ToIntegrationEvent((SensorReadingAggregate.SensorReadingCreatedDomainEvent)domainEvent)
+                    }
+                };
+
                 foreach (var aggregate in successfulAggregates)
                 {
-                    foreach (var domainEvent in aggregate.UncommittedEvents)
-                    {
-                        if (domainEvent is SensorReadingAggregate.SensorReadingCreatedDomainEvent createdEvent)
-                        {
-                            var integrationEvent = new SensorIngestedIntegrationEvent(
-                                SensorReadingId: createdEvent.AggregateId,
-                                SensorId: createdEvent.SensorId,
-                                Time: createdEvent.Time,
-                                Temperature: createdEvent.Temperature,
-                                Humidity: createdEvent.Humidity,
-                                SoilMoisture: createdEvent.SoilMoisture,
-                                Rainfall: createdEvent.Rainfall,
-                                BatteryLevel: createdEvent.BatteryLevel,
-                                OccurredOn: createdEvent.OccurredOn);
+                    var integrationEvents = aggregate.UncommittedEvents
+                        .MapToIntegrationEvents(
+                            aggregate: aggregate,
+                            userContext: _userContext,
+                            handlerName: nameof(CreateBatchReadingsCommandHandler),
+                            mappings: mappings)
+                        .ToList();
 
-                            await _outbox.EnqueueAsync(integrationEvent, ct).ConfigureAwait(false);
-                        }
+                    foreach (var integrationEvent in integrationEvents)
+                    {
+                        await _outbox.EnqueueAsync(integrationEvent, ct).ConfigureAwait(false);
                     }
                 }
+
+                await _outbox.SaveChangesAsync(ct).ConfigureAwait(false);
             }
 
             _logger.LogInformation(
@@ -114,5 +124,18 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateBatchReadings
                 FailedCount: results.Count - successfulAggregates.Count,
                 Results: results));
         }
+
+        private static SensorIngestedIntegrationEvent ToIntegrationEvent(
+            SensorReadingAggregate.SensorReadingCreatedDomainEvent createdEvent)
+            => new(
+                SensorReadingId: createdEvent.AggregateId,
+                SensorId: createdEvent.SensorId,
+                Time: createdEvent.Time,
+                Temperature: createdEvent.Temperature,
+                Humidity: createdEvent.Humidity,
+                SoilMoisture: createdEvent.SoilMoisture,
+                Rainfall: createdEvent.Rainfall,
+                BatteryLevel: createdEvent.BatteryLevel,
+                OccurredOn: createdEvent.OccurredOn);
     }
 }
