@@ -9,7 +9,7 @@ namespace TC.Agro.SensorIngest.Application.UseCases.CreateReading
 
             RuleFor(x => x.Timestamp)
                 .NotEmpty().WithMessage("Timestamp is required.")
-                .LessThanOrEqualTo(DateTime.UtcNow.AddMinutes(5)).WithMessage("Timestamp cannot be in the future.");
+                .LessThanOrEqualTo(_ => DateTime.UtcNow.AddMinutes(5)).WithMessage("Timestamp cannot be in the future.");
 
             RuleFor(x => x.Temperature)
                 .InclusiveBetween(-50, 70).When(x => x.Temperature.HasValue)
